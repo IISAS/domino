@@ -117,8 +117,8 @@ def create_docker_compose_file(
         airflow_redis,
         airflow_scheduler,
         airflow_triggerer,
-        airflow_webserver,
-        airflow_webserver_dev,
+        airflow_api,
+        airflow_api_dev,
         airflow_cli,
         airflow_init,
         flower,
@@ -141,15 +141,15 @@ def create_docker_compose_file(
         "deploy-local-dev": airflow_scheduler_dev
     }
 
-    webserver_def = {
-        "deploy-local": airflow_webserver,
-        "deploy-local-dev": airflow_webserver_dev
+    api_def = {
+        "deploy-local": airflow_api,
+        "deploy-local-dev": airflow_api_dev
     }
 
     services = {
         "postgres": airflow_postgres,
         "redis": airflow_redis,
-        "airflow-webserver": webserver_def[run_scope],
+        "airflow-api": api_def[run_scope],
         "airflow-scheduler": scheduler_def[run_scope],
         "airflow-init": airflow_init,
         **dependencies_services

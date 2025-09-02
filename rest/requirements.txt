@@ -19,5 +19,5 @@ uvicorn[standard]==0.18.1
 passlib==1.7.4
 tomli==2.0.1
 tomli_w==1.0.0
-cryptography==39.0.1
+cryptography==45.0.7
 aiohttp==3.8.3

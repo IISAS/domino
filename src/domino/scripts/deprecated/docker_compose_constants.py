@@ -31,7 +31,7 @@ airflow_common_env = {
     "AIRFLOW__LOGGING__BASE_LOG_FOLDER": f"{airflow_home_docker}/logs",
     "AIRFLOW__LOGGING__DAG_PROCESSOR_MANAGER_LOG_LOCATION": f"{airflow_home_docker}/logs/dag_processor_manager/dag_processor_manager.log",
     "AIRFLOW__SCHEDULER__CHILD_PROCESS_LOG_DIRECTORY": f"{airflow_home_docker}/logs/scheduler",
-    "AIRFLOW_WEBSERVER_HOST": "http://localhost:8080",
+    "AIRFLOW_API_HOST": "http://localhost:8080",
     # Default from original docker-compose.yaml
     "AIRFLOW__CORE__EXECUTOR": "CeleryExecutor",
     "AIRFLOW__CORE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@postgres/airflow",
@@ -41,7 +41,7 @@ airflow_common_env = {
     "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION": 'true',
     "AIRFLOW__CORE__LOAD_EXAMPLES": 'false',
     "AIRFLOW__CORE__ENABLE_XCOM_PICKLING": 'false',
-    "AIRFLOW__API__AUTH_BACKEND": 'airflow.api.auth.backend.basic_auth',
+    "AIRFLOW__API__AUTH_BACKEND": 'airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager',
     "_PIP_ADDITIONAL_REQUIREMENTS": "${_PIP_ADDITIONAL_REQUIREMENTS:-}",
     "AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL": 60
 }
@@ -89,21 +89,21 @@ x_airflow_common_dev = {
     "depends_on": airflow_common_depends_on
 }
 
-# Airflow webserver
-airflow_webserver = {
+# Airflow API Server
+airflow_api = {
     **x_airflow_common,
     "environment": airflow_common_env,
-    "container_name": "airflow-webserver",
-    "command": "webserver",
+    "container_name": "airflow-api",
+    "command": "api-server",
     "ports": [
-        "8080:8080"
+        "8081:8080"
     ],
     "healthcheck": {
         "test":[
             "CMD",
             "curl",
             "--fail",
-            "http://localhost:8080/health"
+            "http://localhost:8080/api/v2/monitor/health"
         ],
         "interval": "10s",
         "timeout": "10s",
@@ -118,8 +118,8 @@ airflow_webserver = {
     }
 }
 
-airflow_webserver_dev = copy.deepcopy(airflow_webserver)
-airflow_webserver_dev.update({
+airflow_api_dev = copy.deepcopy(airflow_api)
+airflow_api_dev.update({
     'volumes': airflow_common_volumes_dev,
 })
 
@@ -259,7 +259,7 @@ airflow_init = {
     ],
     "environment": {
         **airflow_common_env,
-        "_AIRFLOW_DB_UPGRADE": 'true',
+        "_AIRFLOW_DB_MIGRATE": 'true',
         "_AIRFLOW_WWW_USER_CREATE": 'true',
         "_AIRFLOW_WWW_USER_USERNAME": "${_AIRFLOW_WWW_USER_USERNAME:-airflow}",
         "_AIRFLOW_WWW_USER_PASSWORD": "${_AIRFLOW_WWW_USER_PASSWORD:-airflow}"
@@ -385,7 +385,7 @@ flowui_postgres = {
         "start_period": "2s"
     },
     "ports": [
-        "5433:5432"
+        "5434:5432"
     ],
     "restart": "always"
 }

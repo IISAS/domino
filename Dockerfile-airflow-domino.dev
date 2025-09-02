@@ -1,4 +1,4 @@
-FROM apache/airflow:2.7.2-python3.9
+FROM apache/airflow:3.0.6-python3.12
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -6,6 +6,11 @@ ENV PYTHONUNBUFFERED=1
 USER root
 RUN apt-get update
 RUN apt-get install nano -y
+
+RUN set -eux; \
+	apt-get install -y gosu; \
+# verify that the binary works
+	gosu nobody true
 
 # Editable pip install for Domino from local folder
 USER airflow

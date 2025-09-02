@@ -746,7 +746,7 @@ def run_platform_compose(
         airflow_init_ready = False
         airflow_triggerer_ready = False
         airflow_worker_ready = False
-        airflow_webserver_ready = False
+        airflow_api_ready = False
         airflow_scheduler_ready = False
         domino_database_ready = False
 
@@ -760,7 +760,7 @@ def run_platform_compose(
             airflow_init_ready: bool = False,
             airflow_triggerer_ready: bool = False,
             airflow_worker_ready: bool = False,
-            airflow_webserver_ready: bool = False,
+            airflow_api_ready: bool = False,
             airflow_scheduler_ready: bool = False,
             domino_database_ready: bool = False,
         ):
@@ -781,16 +781,16 @@ def run_platform_compose(
             if not airflow_worker_ready and "airflow-domino-worker" in line and "execute_command" in line:
                 console.print(" \u2713 Airflow worker service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 airflow_worker_ready = True
-            if not airflow_webserver_ready and "airflow-webserver" in line and "health" in line and "200" in line:
-                console.print(" \u2713 Airflow webserver service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
-                airflow_webserver_ready = True
+            if not airflow_api_ready and "airflow-api" in line and "health" in line and "200" in line:
+                console.print(" \u2713 Airflow API Server service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
+                airflow_api_ready = True
             if not airflow_scheduler_ready and "airflow-domino-scheduler" in line and "launched" in line:
                 console.print(" \u2713 Airflow scheduler service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 airflow_scheduler_ready = True
             if not domino_database_ready and "domino-postgres" in line and ("ready" in line or "skipping" in line):
                 console.print(" \u2713 Domino database service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 domino_database_ready = True
-            return airflow_redis_ready, airflow_database_ready, airflow_init_ready, airflow_triggerer_ready, airflow_worker_ready, airflow_webserver_ready, airflow_scheduler_ready, domino_database_ready
+            return airflow_redis_ready, airflow_database_ready, airflow_init_ready, airflow_triggerer_ready, airflow_worker_ready, airflow_api_ready, airflow_scheduler_ready, domino_database_ready
 
         def check_domino_processes():
             while True:
@@ -803,16 +803,16 @@ def run_platform_compose(
                 time.sleep(5)
 
         for line in process.stdout:
-            airflow_redis_ready, airflow_database_ready, airflow_init_ready, airflow_triggerer_ready, airflow_worker_ready, airflow_webserver_ready, airflow_scheduler_ready, domino_database_ready = customize_message(
+            airflow_redis_ready, airflow_database_ready, airflow_init_ready, airflow_triggerer_ready, airflow_worker_ready, airflow_api_ready, airflow_scheduler_ready, domino_database_ready = customize_message(
                 line, airflow_redis_ready, airflow_database_ready, airflow_init_ready, airflow_triggerer_ready,
-                airflow_worker_ready, airflow_webserver_ready, airflow_scheduler_ready, domino_database_ready)
+                airflow_worker_ready, airflow_api_ready, airflow_scheduler_ready, domino_database_ready)
             if all([
                 airflow_redis_ready,
                 airflow_database_ready,
                 airflow_init_ready,
                 airflow_triggerer_ready,
                 airflow_worker_ready,
-                airflow_webserver_ready,
+                airflow_api_ready,
                 airflow_scheduler_ready,
                 domino_database_ready,
             ]):
@@ -823,7 +823,7 @@ def run_platform_compose(
                 console.print("Domino UI: http://localhost:3000")
                 console.print("Domino REST API: http://localhost:8000")
                 console.print("Domino REST API Docs: http://localhost:8000/docs")
-                console.print("Airflow webserver: http://localhost:8080")
+                console.print("Airflow API Server: http://localhost:8080")
                 console.print("")
                 console.print("To stop the platform, run:")
                 console.print("    $ domino platform stop-compose")
@@ -877,7 +877,7 @@ def stop_platform_compose() -> None:
             "domino-docker-proxy",
             "airflow-domino-scheduler",
             "airflow-domino-worker",
-            "airflow-webserver",
+            "airflow-api",
             "airflow-triggerer",
             "airflow-redis",
             "airflow-postgres",

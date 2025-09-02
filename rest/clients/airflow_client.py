@@ -12,7 +12,7 @@ class AirflowRestClient(requests.Session):
     def __init__(self, *args, **kwargs):
         super(AirflowRestClient, self).__init__(*args, **kwargs)
 
-        self.base_url = settings.AIRFLOW_WEBSERVER_HOST
+        self.base_url = settings.AIRFLOW_API_HOST
         self.auth = (settings.AIRFLOW_ADMIN_CREDENTIALS.get('username'), settings.AIRFLOW_ADMIN_CREDENTIALS.get('password'))
         self.logger = get_configured_logger(self.__class__.__name__)
 
@@ -57,7 +57,7 @@ class AirflowRestClient(requests.Session):
         return data
 
     def run_dag(self, dag_id):
-        resource = f"api/v1/dags/{dag_id}/dagRuns"
+        resource = f"api/v2/dags/{dag_id}/dagRuns"
         dag_run_uuid = str(uuid.uuid4())
         payload = {
             "dag_run_id": f"rest-client-{dag_run_uuid}",
@@ -71,7 +71,7 @@ class AirflowRestClient(requests.Session):
         return response
 
     def delete_dag(self, dag_id):
-        resource = f"api/v1/dags/{dag_id}"
+        resource = f"api/v2/dags/{dag_id}"
         response = self.request(
             method="delete",
             resource=resource,
@@ -79,7 +79,7 @@ class AirflowRestClient(requests.Session):
         return response
 
     def update_dag(self, dag_id, payload):
-        resource = f"api/v1/dags/{dag_id}"
+        resource = f"api/v2/dags/{dag_id}"
         response = self.request(
             method='patch',
             resource=resource,
@@ -88,7 +88,7 @@ class AirflowRestClient(requests.Session):
         return response
 
     def get_dag_by_id(self, dag_id):
-        resource = f"api/v1/dags/{dag_id}"
+        resource = f"api/v2/dags/{dag_id}"
         response = self.request(
             method='get',
             resource=resource,
@@ -96,7 +96,7 @@ class AirflowRestClient(requests.Session):
         return response
 
     async def get_dag_by_id_async(self, session, dag_id):
-        resource = f"api/v1/dags/{dag_id}"
+        resource = f"api/v2/dags/{dag_id}"
         response = await self._request_async(session, 'GET', resource)
         return {
             'dag_id': dag_id,
@@ -104,7 +104,7 @@ class AirflowRestClient(requests.Session):
         }
 
     def get_all_dag_tasks(self, dag_id):
-        resource = f"api/v1/dags/{dag_id}/tasks"
+        resource = f"api/v2/dags/{dag_id}/tasks"
         response = self.request(
             method='get',
             resource=resource,
@@ -112,7 +112,7 @@ class AirflowRestClient(requests.Session):
         return response
 
     def list_import_errors(self, limit: int = 100, offset: int = 0):
-        resource = "api/v1/importErrors"
+        resource = "api/v2/importErrors"
         response = self.request(
             method='get',
             resource=resource,
@@ -127,7 +127,7 @@ class AirflowRestClient(requests.Session):
         page, page_size = self._validate_pagination_params(page, page_size)
         offset = page * page_size
         order_by = "-execution_date" if descending else "execution_date"
-        resource = f"api/v1/dags/{dag_id}/dagRuns?limit={page_size}&offset={offset}&order_by={order_by}"
+        resource = f"api/v2/dags/{dag_id}/dagRuns?limit={page_size}&offset={offset}&order_by={order_by}"
         response = self.request(
             method='get',
             resource=resource,
@@ -137,7 +137,7 @@ class AirflowRestClient(requests.Session):
     def get_all_run_tasks_instances(self, dag_id: str, dag_run_id: str, page: int, page_size: int):
         page, page_size = self._validate_pagination_params(page, page_size)
         offset = page * page_size
-        resource = f"api/v1/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances?limit={page_size}&offset={offset}"
+        resource = f"api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances?limit={page_size}&offset={offset}"
         response = self.request(
             method='get',
             resource=resource,
@@ -145,7 +145,7 @@ class AirflowRestClient(requests.Session):
         return response
 
     def get_task_logs(self, dag_id: str, dag_run_id: str, task_id: str, task_try_number: int):
-        resource = f"/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/logs/{task_try_number}"
+        resource = f"/api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/logs/{task_try_number}"
         response = self.request(
             method='get',
             resource=resource,
@@ -156,7 +156,7 @@ class AirflowRestClient(requests.Session):
 
     def get_task_result(self, dag_id: str, dag_run_id: str, task_id: str, task_try_number: int):
         # ref: https://airflow.apache.org/docs/apache-airflow/stable/stable-rest-api-ref.html#operation/get_xcom_entries
-        resource = f"/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/xcomEntries/return_value"
+        resource = f"/api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/xcomEntries/return_value"
         response = self.request(
             method='get',
             resource=resource,

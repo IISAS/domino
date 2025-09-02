@@ -174,12 +174,12 @@ class WorkflowService(object):
         max_total_errors_limit = 100
         import_errors_response = self.airflow_client.list_import_errors(limit=max_total_errors_limit)
         if import_errors_response.status_code != 200:
-            raise BaseException("Error when trying to fetch import errors from airflow webserver.")
+            raise BaseException("Error when trying to fetch import errors from airflow API Server.")
 
         import_errors_response_content = import_errors_response.json()
         if import_errors_response_content['total_entries'] >= max_total_errors_limit:
             # TODO handle to many import errors
-            raise BaseException("To many import errors in airflow webserver.")
+            raise BaseException("To many import errors in airflow API Server.")
 
         import_errors_uuids = [e.get('filename').split('dags/')[1].split('.py')[0] for e in import_errors_response_content['import_errors']]
 
