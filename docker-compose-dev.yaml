@@ -1,7 +1,6 @@
 # Basic Airflow cluster configuration for CeleryExecutor with Redis and PostgreSQL.
 # WARNING: This configuration is for local development. Do not use it in a production deployment.
 ---
-version: '3.8'
 x-airflow-common:
   &airflow-common
   build: 
@@ -18,7 +17,7 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__WEBSERVER__SHOW_TRIGGER_FORM_IF_NO_PARAMS: 'true'
-    AIRFLOW__API__AUTH_BACKENDS: 'airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 10
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
@@ -68,8 +67,13 @@ services:
     <<: *airflow-common
     container_name: airflow-api
     command: api-server
+    environment:
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: 'admin:admin'
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: '/opt/airflow/passwords.json'
     ports:
       - "8081:8080"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-./airflow}/passwords.json:/opt/airflow/passwords.json
     healthcheck:
       test:
         [
@@ -180,8 +184,12 @@ services:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin}
+      _AIRFLOW_WWW_USER_FIRSTNAME: ${_AIRFLOW_WWW_USER_FIRSTNAME:-Airflow}
+      _AIRFLOW_WWW_USER_LASTNAME: ${_AIRFLOW_WWW_USER_LASTNAME:-Admin}
+      _AIRFLOW_WWW_USER_EMAIL: ${_AIRFLOW_WWW_USER_EMAIL:-airflowadmin@example.com}
+      _AIRFLOW_WWW_USER_ROLE: ${_AIRFLOW_WWW_USER_ROLE:-Admin}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
@@ -296,7 +304,7 @@ services:
     container_name: domino-rest
     command: bash -c "alembic upgrade heads && uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000"
     ports:
-      - 8000:8000
+      - 8082:8000
     environment:
       - DOMINO_DB_USER=postgres
       - DOMINO_DB_PASSWORD=postgres
@@ -309,8 +317,8 @@ services:
       - DOMINO_GITHUB_WORKFLOWS_REPOSITORY=${DOMINO_GITHUB_WORKFLOWS_REPOSITORY}
       - CREATE_DEFAULT_USER=true
       - DOMINO_DEPLOY_MODE=local-compose
-      - AIRFLOW_ADMIN_USERNAME=airflow
-      - AIRFLOW_ADMIN_PASSWORD=airflow
+      - AIRFLOW_ADMIN_USERNAME=admin
+      - AIRFLOW_ADMIN_PASSWORD=admin
     networks:
       - domino-postgres-network
       - default
@@ -357,7 +365,7 @@ services:
     command: pnpm debug
     environment:
       - DOMINO_DEPLOY_MODE=local-compose
-      - API_URL=http://localhost:8000
+      - API_URL=http://localhost:8082
     ports:
       - 3000:3000
       - 9222:9222  # Expose debug port

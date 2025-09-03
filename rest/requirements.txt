@@ -3,8 +3,8 @@ bcrypt==3.2.2
 fastapi==0.104.1
 Jinja2==2.11.3
 psycopg2-binary==2.9.3
-pydantic[email]==2.4.2
-pydantic-settings==2.0.3
+pydantic[email]==2.11.7
+pydantic-settings==2.10.1
 MarkupSafe==2.0.1
 PyGithub==1.59.1
 PyJWT==2.4.0
@@ -19,5 +19,5 @@ uvicorn[standard]==0.18.1
 passlib==1.7.4
 tomli==2.0.1
 tomli_w==1.0.0
-cryptography==45.0.7
+cryptography==39.0.1
 aiohttp==3.8.3

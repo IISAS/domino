@@ -41,7 +41,7 @@ airflow_common_env = {
     "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION": 'true',
     "AIRFLOW__CORE__LOAD_EXAMPLES": 'false',
     "AIRFLOW__CORE__ENABLE_XCOM_PICKLING": 'false',
-    "AIRFLOW__API__AUTH_BACKEND": 'airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager',
+    "AIRFLOW__API__AUTH_BACKEND": 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session',
     "_PIP_ADDITIONAL_REQUIREMENTS": "${_PIP_ADDITIONAL_REQUIREMENTS:-}",
     "AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL": 60
 }

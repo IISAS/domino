@@ -96,7 +96,7 @@ class Settings(BaseSettings):
 
     DEPLOY_MODE: str = os.environ.get('DOMINO_DEPLOY_MODE', 'local-k8s')
 
-    CONDITIONAL_ENDPOINTS_ENABLED: bool = False if DEPLOY_MODE == 'local-compose' else True
+    CONDITIONAL_ENDPOINTS_ENABLED: bool = False if DEPLOY_MODE.startswith('local-compose') else True
 
 
 class LocalK8sSettings(Settings):
@@ -118,7 +118,7 @@ class LocalK8sSettings(Settings):
 class LocalComposeSettings(Settings):
     SERVER_HOST: str = "0.0.0.0"
     DEBUG: bool = True
-    PORT: int = 8000
+    PORT: int = int(os.environ.get('DOMINO_PORT', 8000))
     RELOAD: bool = True
     CORS: dict = {
         "origins": [
