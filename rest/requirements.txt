@@ -1,12 +1,12 @@
 alembic==1.16.5
 bcrypt==3.2.2
 fastapi==0.116.1
-Jinja2==2.11.3
+Jinja2==3.1.6
 psycopg2-binary==2.9.10
 pydantic[email]==2.11.7
 pydantic-settings==2.10.1
 MarkupSafe==2.1.5
-PyGithub==1.59.1
+PyGithub==1.55
 PyJWT==2.10.1
 pytzdata==2020.1
 PyYAML==6.0.2
