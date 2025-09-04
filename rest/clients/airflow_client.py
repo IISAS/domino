@@ -23,11 +23,14 @@ class AirflowRestClient(requests.Session):
         self.min_page_size = 1
         self.min_page = 0
 
+        # Automatically obtail JWT token
+        self._get_jwt_token()
+
 
     def _get_jwt_token(self):
-        token_endpoint = urljoin(self.base_url, "/auth/token")
+        url = urljoin(self.base_url, "/auth/token")
         try:
-            resp = self.post(token_endpoint, json={
+            resp = self.post(url, json={
                 "username": self.username,
                 "password": self.password
             })
@@ -49,21 +52,18 @@ class AirflowRestClient(requests.Session):
 
     def request(self, method, resource, **kwargs):
         try:
-            if not self.jwt_token:
-                self._get_jwt_token()
-            headers = kwargs.pop("headers", {})
-            headers["Authorization"] = f"Bearer {self.jwt_token}"
             url = urljoin(self.base_url, resource)
-            return super(AirflowRestClient, self).request(method, url, headers=headers, **kwargs)
+            return super(AirflowRestClient, self).request(method, url, **kwargs)
         except Exception as e:
             self.logger.exception(e)
             raise e
 
+
     async def _get_jwt_token_async(self):
-        token_endpoint = urljoin(self.base_url, "/auth/token")
+        url = urljoin(self.base_url, "/auth/token")
         async with ClientSession() as session:
             try:
-                resp = await session.post(token_endpoint, json={
+                resp = await session.post(url, json={
                     "username": self.username,
                     "password": self.password
                 })
