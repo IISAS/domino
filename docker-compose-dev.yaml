@@ -328,6 +328,8 @@ services:
     depends_on:
       domino_postgres:
         condition: service_healthy
+      airflow-api:
+        condition: service_healthy
 
   # Domino Postgres
   domino_postgres:
