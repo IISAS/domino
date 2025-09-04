@@ -60,7 +60,7 @@ class BaseAuthorizer():
     @classmethod
     def decode_token(cls, token):
         try:
-            payload = jwt.decode(token, cls.secret, algorithms=[cls.algorithm])
+            payload = jwt.decode(token, cls.secret, algorithms=[cls.algorithm], options={'verify_sub': False})
             return payload['sub']
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail='Signature has expired')
