@@ -1,3 +1,4 @@
+import { environment } from "@config/environment.config";
 import { AuthenticationProvider } from "@context/authentication";
 import { StorageProvider } from "@context/storage/useStorage";
 import { ColorModeProvider } from "@context/theme";
@@ -19,7 +20,7 @@ export const App: FC = () => (
           initialIsOpen={false}
           buttonPosition="bottom-right"
         />
-        <BrowserRouter>
+        <BrowserRouter basename={environment.BASENAME}>
           <AuthenticationProvider>
             <AppRoutes />
           </AuthenticationProvider>

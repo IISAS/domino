@@ -2,6 +2,7 @@
   "name": "domino",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/domino",
   "engines": {
     "node": ">=18 < 20"
   },

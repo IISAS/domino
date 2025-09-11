@@ -6,6 +6,7 @@ import {
   Link as LinkMui,
   useTheme,
 } from "@mui/material";
+import { buildAssetSrc } from "@utils/assetUtils";
 import PublicLayout from "components/PublicLayout";
 import TextInput from "components/TextInput";
 import { useAuthentication } from "context/authentication";
@@ -68,11 +69,11 @@ export const SignInPage: FC = () => {
           }}
         >
           <img
-            src={
+            src={buildAssetSrc(
               theme.palette.mode === "light"
                 ? "/assets/main_logo_black.png"
-                : "/assets/main_logo_white.png"
-            }
+                : "/assets/main_logo_white.png",
+            )}
             alt="logo"
             style={{ width: "360px" }}
           />

@@ -26,6 +26,7 @@ import { useAuthentication } from "context/authentication";
 import { useWorkspaces } from "context/workspaces";
 import { type FC } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { buildAssetSrc } from "utils/assetUtils";
 
 import { AppBar, Drawer, DrawerHeader } from "./drawerMenu.style";
 import { DrawerMenuItem } from "./drawerMenuItem";
@@ -55,7 +56,7 @@ export const DrawerMenu: FC<IDrawerMenuProps> = ({ isOpen, handleClose }) => {
             {theme.direction === "rtl" ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
           <img
-            src="/assets/main_logo_white.png"
+            src={buildAssetSrc("/assets/main_logo_white.png")}
             alt="logo"
             style={{ width: "190px", marginRight: "8px", marginLeft: "20px" }}
           />
