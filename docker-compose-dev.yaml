@@ -299,7 +299,7 @@ services:
         condition: service_completed_successfully
 
   # Domino REST Api
-  domino_rest:
+  domino-rest:
     # image: ghcr.io/tauffer-consulting/domino-rest:latest
     build:
       context: ./rest
@@ -311,7 +311,7 @@ services:
     environment:
       - DOMINO_DB_USER=postgres
       - DOMINO_DB_PASSWORD=postgres
-      - DOMINO_DB_HOST=domino_postgres
+      - DOMINO_DB_HOST=domino-postgres
       - DOMINO_DB_PORT=5432
       - DOMINO_DB_NAME=postgres
       - DOMINO_DEFAULT_PIECES_REPOSITORY_VERSION=0.6.0
@@ -329,13 +329,11 @@ services:
       - ./rest/:/rest # Enable hot reload for backend
       - ${AIRFLOW_PROJ_DIR:-./airflow}/dags:/opt/airflow/dags
     depends_on:
-      domino_postgres:
-        condition: service_healthy
-      airflow-api:
+      domino-postgres:
         condition: service_healthy
 
   # Domino Postgres
-  domino_postgres:
+  domino-postgres:
     image: postgres:13
     container_name: domino-postgres
     environment:
@@ -361,7 +359,7 @@ services:
     restart: always
 
   # Domino Frontend
-  domino_frontend:
+  domino-frontend:
     #image: ghcr.io/tauffer-consulting/domino-frontend:compose
     build:
       context: ./frontend
@@ -378,7 +376,7 @@ services:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
-      domino_rest:
+      domino-rest:
         condition: service_started
 
   # Domino Docker Proxy
