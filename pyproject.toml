@@ -62,29 +62,29 @@ domino = "domino.cli.cli:cli"
 
 [project.optional-dependencies]
 cli = [
-    "urllib3== 1.26.20",
+    "urllib3==2.5.0",
     "cryptography==45.0.7",
     "pyOpenSSL==25.1.0",
-    "PyGithub==1.55",
-    "docker>=7.0.0",
-    "kubernetes==23.6.0",
-    "bottle==0.12.25",
-    "requests==2.31.0"
+    "PyGithub==1.59.1",
+    "docker>=7.1.0",
+    "kubernetes==32.0.1",
+    "bottle==0.13.4",
+    "requests==2.32.5"
 ]
 airflow = [
     "apache-airflow==3.0.6",
-    "apache-airflow-providers-cncf-kubernetes==5.0.0",
-    "apache-airflow-providers-docker==3.6.0",
+    "apache-airflow-providers-cncf-kubernetes==10.7.0",
+    "apache-airflow-providers-docker==4.4.2",
 ]
 full = [
-    "bottle==0.12.25",
-    "urllib3== 1.26.20",
+    "bottle==0.13.4",
+    "urllib3==2.5.0",
     "cryptography==45.0.7",
     "pyOpenSSL==25.1.0",
-    "PyGithub==1.55",
-    "docker>=6.0.1",
-    "kubernetes==23.6.0",
+    "PyGithub==1.59.1",
+    "docker>=7.1.0",
+    "kubernetes==32.0.1",
     "apache-airflow==3.0.6",
-    "apache-airflow-providers-cncf-kubernetes==5.0.0",
-    "apache-airflow-providers-docker==3.6.0",
+    "apache-airflow-providers-cncf-kubernetes==10.7.0",
+    "apache-airflow-providers-docker==4.4.2",
 ]
