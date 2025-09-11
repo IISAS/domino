@@ -14,6 +14,8 @@ class AirflowRestClient(requests.Session):
         super(AirflowRestClient, self).__init__(*args, **kwargs)
 
         self.base_url = settings.AIRFLOW_API_HOST
+        if not self.base_url.endswith('/'):
+            self.base_url += '/'
         self.username = settings.AIRFLOW_ADMIN_CREDENTIALS.get('username')
         self.password = settings.AIRFLOW_ADMIN_CREDENTIALS.get('password')
         self.jwt_token = None
@@ -28,7 +30,7 @@ class AirflowRestClient(requests.Session):
 
 
     def _get_jwt_token(self):
-        url = urljoin(self.base_url, "/auth/token")
+        url = urljoin(self.base_url, "auth/token")
         try:
             resp = self.post(url, json={
                 "username": self.username,
@@ -60,7 +62,7 @@ class AirflowRestClient(requests.Session):
 
 
     async def _get_jwt_token_async(self):
-        url = urljoin(self.base_url, "/auth/token")
+        url = urljoin(self.base_url, "auth/token")
         async with ClientSession() as session:
             try:
                 resp = await session.post(url, json={
