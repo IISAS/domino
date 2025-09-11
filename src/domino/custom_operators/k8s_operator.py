@@ -1,4 +1,6 @@
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.utils.xcom_sidecar import PodDefaults
+
 from airflow.utils.context import Context
 from kubernetes.client import models as k8s
 from kubernetes import client, config
@@ -14,7 +16,7 @@ from domino.schemas import WorkflowSharedStorage, ContainerResourcesModel
 from domino.storage.s3 import S3StorageRepository
 from domino.logger import get_configured_logger
 from airflow.exceptions import AirflowException
-from airflow.kubernetes.pod_generator import PodDefaults
+
 import json
 
 class DominoKubernetesPodOperator(KubernetesPodOperator):
