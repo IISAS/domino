@@ -5,7 +5,7 @@ workflow_template = jinja2.Template(
     trim_blocks=True,
     source="""from datetime import datetime
 from dateutil.parser import parse
-from airflow import DAG
+from airflow.sdk import DAG
 from domino.task import Task
 
 dag_config_0 = {{ workflow_kwargs }}
