@@ -12,7 +12,7 @@ console = Console()
 
 # Ref: https://patorjk.com/software/taag/
 # Font: standard
-msg = """
+msg = r"""
 ==============================================
   ____                  _
  |  _ \  ___  _ __ ___ (_)_ __   ___

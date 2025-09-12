@@ -22,7 +22,6 @@ export interface IWorkflow {
   is_paused: boolean;
   is_active: boolean;
   status: workflowStatus;
-  is_subdag: boolean;
   last_pickled: string;
   schedule: string;
   max_active_tasks: number;

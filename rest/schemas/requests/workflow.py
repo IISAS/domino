@@ -4,7 +4,7 @@ from pydantic import BaseModel, field_validator, Field, ConfigDict
 from pydantic_core.core_schema import FieldValidationInfo
 from datetime import datetime
 from constants.default_pieces.storage import AWSS3StoragePiece
-
+from utils import parsers
 
 """
 Auxiliary data models
@@ -82,7 +82,7 @@ class WorkflowBaseSettings(BaseModel):
         try:
             if 'start_date' not in info.data:
                 raise ValueError("Start date must be provided")
-            converted_start_date =  datetime.fromisoformat(info.data['start_date'])
+            converted_start_date =  parsers.parse_iso_z(info.data['start_date'])
             if 'select_end_date' not in info.data:
                 raise ValueError("Select end date must be provided")
 

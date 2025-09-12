@@ -39,7 +39,7 @@ from repository.piece_repository_repository import PieceRepositoryRepository
 from repository.workflow_repository import WorkflowRepository
 from repository.secret_repository import SecretRepository
 from services.secret_service import SecretService
-
+from utils import parsers
 
 class WorkflowService(object):
     def __init__(self) -> None:
@@ -193,14 +193,14 @@ class WorkflowService(object):
             is_dag_broken = dag_uuid in import_errors_uuids
 
             schedule = 'none'
-            is_active = False
+            is_stale = False
             is_paused = False
             next_dagrun = None
             status = WorkflowStatus.creating.value
             if is_dag_broken:
                 status = WorkflowStatus.failed.value
                 schedule = 'failed'
-                is_active = False
+                is_stale = False
                 is_paused = False
 
             if response and not is_dag_broken:
@@ -210,7 +210,7 @@ class WorkflowService(object):
                 status = WorkflowStatus.active.value
 
                 is_paused = response.get("is_paused")
-                is_active = response.get("is_active")
+                is_stale = response.get("is_stale")
                 next_dagrun = response.get("next_dagrun_data_interval_end")
 
             data.append(
@@ -225,7 +225,7 @@ class WorkflowService(object):
                     created_by=dag_data.created_by,
                     workspace_id=dag_data.workspace_id,
                     is_paused=is_paused,
-                    is_active=is_active,
+                    is_stale=is_stale,
                     status=status,
                     schedule=schedule,
                     next_dagrun=next_dagrun
@@ -260,8 +260,7 @@ class WorkflowService(object):
         if airflow_dag_info.status_code == 404:
             airflow_dag_info = {
                 'is_paused': 'creating',
-                'is_active': 'creating',
-                'is_subdag': 'creating',
+                'is_stale': 'creating',
                 'last_pickled': 'creating',
                 'last_expired': 'creating',
                 'schedule': 'creating',
@@ -276,8 +275,8 @@ class WorkflowService(object):
         else:
             airflow_dag_info = airflow_dag_info.json()
 
-        # Airflow 2.4.0 deprecated schedule_interval in dag but the API (2.7.2) still using it
-        schedule = airflow_dag_info.pop("schedule_interval")
+        # Airflow 2.4.0 deprecated schedule_interval in dag but the API (2.7.2) still using it until 3.0.0, where it was renamed to timetable_summary
+        schedule = airflow_dag_info.pop("timetable_summary")
         if isinstance(schedule, dict):
             schedule = schedule.get("value")
 
@@ -596,7 +595,7 @@ class WorkflowService(object):
                 "executions": [{
                     "execution_date": e["execution_date"],
                     "state": e["state"],
-                    "elapsed_time": "" if e['end_date'] is None else str(datetime.fromisoformat(e['end_date']) - datetime.fromisoformat(e['start_date']))
+                    "elapsed_time": "" if e['end_date'] is None else str(parsers.parse_iso_z(e['end_date']) - parsers.parse_iso_z(e['start_date']))
                 } for e in all_workflow_runs['workflow_runs']]
             }
             return response_payload
@@ -655,6 +654,8 @@ class WorkflowService(object):
                 continue
             end_date_dt = datetime.fromisoformat(run.get('end_date'))
             start_date_dt = datetime.fromisoformat(run.get('start_date'))
+            end_date_dt = parsers.parse_iso_z(run.get('end_date'))
+            start_date_dt = parsers.parse_iso_z(run.get('start_date'))
             duration = end_date_dt - start_date_dt
             run['duration_in_seconds'] = duration.total_seconds()
             data.append(

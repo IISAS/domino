@@ -76,7 +76,7 @@ class GetWorkflowsResponseData(BaseModel):
     created_by: int
     workspace_id: int
     is_paused: bool
-    is_active: bool
+    is_stale: bool
     status: WorkflowStatus
     schedule: Optional[ScheduleIntervalTypeResponse] = None
     next_dagrun: Optional[datetime] = None
@@ -130,8 +130,7 @@ class GetWorkflowResponse(BaseModel):
 
     # Airflow database infos # TODO check if add more fields, or if we should use /details fields to get more infos
     is_paused: Optional[Union[bool, WorkflowStatus]] = None # Whether the DAG is paused.
-    is_active: Optional[Union[bool, WorkflowStatus]] = None # Whether the DAG is currently seen by the scheduler(s).
-    is_subdag: Optional[Union[bool, WorkflowStatus]] = None # Whether the DAG is SubDAG.
+    is_stale: Optional[Union[bool, WorkflowStatus]] = None # Whether the DAG is currently seen by the scheduler(s). In Airflow v3.0.0 renamed to: is_active
     last_pickled: Optional[Union[datetime, WorkflowStatus]] = None # The last time the DAG was pickled.
     last_expired: Optional[Union[datetime, WorkflowStatus]] = None # Time when the DAG last received a refresh signal (e.g. the DAG's "refresh" button was clicked in the web UI)
     schedule: Optional[Union[ScheduleIntervalTypeResponse, WorkflowStatus]] = None # The schedule interval for the DAG.
