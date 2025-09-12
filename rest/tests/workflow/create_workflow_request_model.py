@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 workflow_request_model = {
     "forageSchema": {
@@ -386,7 +386,7 @@ workflow_request_model = {
         "name": "test",
         "schedule": "none",
         "select_end_date": "never",
-        "start_date": str(datetime.utcnow().date())
+        "start_date": str(datetime.now(timezone.utc).date())
     },
     "tasks": {
         "SimpleLogP_0298c1669d404e08b631ebe1490e1c45": {

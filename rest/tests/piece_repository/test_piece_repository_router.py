@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from httpx import Response
 import json
 import pytest
@@ -16,7 +16,7 @@ class TestPieceRepositoryRouter:
         mock_response = [
             GetRepositoryReleasesResponse(
                 version = "0.0.7", 
-                last_modified = f"{datetime.utcnow()}"
+                last_modified = f"{datetime.now(timezone.utc)}"
             )
         ]
         response = get_repository_releases

@@ -2,7 +2,7 @@ from typing import List
 import json
 import tomli
 from math import ceil
-from datetime import datetime
+from datetime import datetime, timezone
 from core.logger import get_configured_logger
 from schemas.context.auth_context import AuthorizationContextData
 from schemas.requests.piece_repository import CreateRepositoryRequest, PatchRepositoryRequest, ListRepositoryFilters
@@ -132,7 +132,7 @@ class PieceRepositoryService(object):
             version=piece_repository_data.version
         )
         new_repo = PieceRepository(
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             name=repository_files_metadata['config_toml'].get('repository').get('REPOSITORY_NAME'),
             source=repository.source,
             path=repository.path,
@@ -185,7 +185,7 @@ class PieceRepositoryService(object):
 
         new_repo = PieceRepository(
             name=settings.DEFAULT_STORAGE_REPOSITORY['name'],
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             workspace_id=workspace_id,
             path=settings.DEFAULT_STORAGE_REPOSITORY['path'],
             source=settings.DEFAULT_STORAGE_REPOSITORY['source'],
@@ -228,7 +228,7 @@ class PieceRepositoryService(object):
             github_access_token=token
         )
         new_repo = PieceRepository(
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             name=repository_files_metadata['config_toml'].get('repository').get('REPOSITORY_NAME'),
             source=piece_repository_data.source,
             path=piece_repository_data.path,

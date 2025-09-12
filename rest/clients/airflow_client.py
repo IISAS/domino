@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import requests
 import ast
 from aiohttp import BasicAuth
@@ -106,7 +106,7 @@ class AirflowRestClient(requests.Session):
         dag_run_uuid = str(uuid.uuid4())
         payload = {
             "dag_run_id": f"rest-client-{dag_run_uuid}",
-            "logical_date": datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            "logical_date": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         }
         response = self.request(
             method="post",

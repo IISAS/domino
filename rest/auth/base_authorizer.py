@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 import jwt
 from schemas.errors.base import ForbiddenError, ResourceNotFoundError
@@ -37,15 +37,15 @@ class BaseAuthorizer():
 
     @classmethod
     def encode_token(cls, user_id):
-        exp = datetime.utcnow() + timedelta(days=0, minutes=cls.expire)
-        current_date = datetime.utcnow()
+        exp = datetime.now(timezone.utc) + timedelta(days=0, minutes=cls.expire)
+        current_date = datetime.now(timezone.utc)
         expires_in = floor((exp - current_date).total_seconds())
         if expires_in >= 120:
             expires_in = expires_in - 120
 
         payload = {
-            'exp': datetime.utcnow() + timedelta(days=0, minutes=cls.expire),
-            'iat': datetime.utcnow(),
+            'exp': datetime.now(timezone.utc) + timedelta(days=0, minutes=cls.expire),
+            'iat': datetime.now(timezone.utc),
             'sub': user_id
         }
         return {

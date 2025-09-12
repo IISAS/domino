@@ -33,22 +33,12 @@ class WorkflowRunTaskState(str, Enum):
     restarting = "restarting"
 
 
-class ScheduleIntervalTypeResponse(str, Enum):
-    none = "none"
-    once = "@once"
-    hourly = "@hourly"
-    daily = "@daily"
-    weekly = "@weekly"
-    monthly = "@monthly"
-    yearly = "@yearly"
-
-
 class WorkflowConfigResponse(BaseModel):
     # TODO remove regex ?
     name: str
     start_date: str
     end_date: Optional[str] = None
-    schedule: Optional[ScheduleIntervalTypeResponse] = None
+    schedule: Optional[str] = None
     catchup: bool = False
     generate_report: bool = False
     description: Optional[str] = None
@@ -56,7 +46,7 @@ class WorkflowConfigResponse(BaseModel):
 
     @field_validator('schedule')
     def set_schedule(cls, schedule):
-        return schedule or ScheduleIntervalTypeResponse.none
+        return schedule or None
 
 class BaseWorkflowModel(BaseModel):
     workflow: WorkflowConfigResponse
@@ -78,12 +68,12 @@ class GetWorkflowsResponseData(BaseModel):
     is_paused: bool
     is_stale: bool
     status: WorkflowStatus
-    schedule: Optional[ScheduleIntervalTypeResponse] = None
+    schedule: Optional[str] = None
     next_dagrun: Optional[datetime] = None
 
     @field_validator('schedule')
     def set_schedule(cls, schedule):
-        return schedule or ScheduleIntervalTypeResponse.none
+        return schedule or None
 
     @field_validator('start_date', mode='before')
     def add_utc_timezone_start_date(cls, v):
@@ -133,7 +123,7 @@ class GetWorkflowResponse(BaseModel):
     is_stale: Optional[Union[bool, WorkflowStatus]] = None # Whether the DAG is currently seen by the scheduler(s). In Airflow v3.0.0 renamed to: is_active
     last_pickled: Optional[Union[datetime, WorkflowStatus]] = None # The last time the DAG was pickled.
     last_expired: Optional[Union[datetime, WorkflowStatus]] = None # Time when the DAG last received a refresh signal (e.g. the DAG's "refresh" button was clicked in the web UI)
-    schedule: Optional[Union[ScheduleIntervalTypeResponse, WorkflowStatus]] = None # The schedule interval for the DAG.
+    schedule: Optional[Union[str, WorkflowStatus]] = None # The schedule interval for the DAG.
     max_active_tasks: Optional[Union[int, WorkflowStatus]] = None  # Maximum number of active tasks that can be run on the DAG
     max_active_runs: Optional[Union[int, WorkflowStatus]] = None # Maximum number of active DAG runs for the DAG
     has_task_concurrency_limits: Optional[Union[bool, WorkflowStatus]] = None # Whether the DAG has task concurrency limits
@@ -144,7 +134,7 @@ class GetWorkflowResponse(BaseModel):
 
     @field_validator('schedule')
     def set_schedule(cls, schedule):
-        return schedule or ScheduleIntervalTypeResponse.none
+        return schedule or None
 
 
 class GetWorkflowRunsResponseData(BaseModel):

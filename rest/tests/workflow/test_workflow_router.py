@@ -1,7 +1,7 @@
 import json
 import pytest
 from httpx import Response
-from datetime import datetime
+from datetime import datetime, timezone
 
 from database.models.user import User
 from database.models.workspace import Workspace
@@ -27,10 +27,10 @@ class TestWorkflowRouter:
         mock_response = CreateWorkflowResponse(
             id=1,
             name=workflow_request_model["workflow"]["name"],
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             schema=workflow_request_model['forageSchema'],
             created_by=user.id,
-            last_changed_at=datetime.utcnow(),
+            last_changed_at=datetime.now(timezone.utc),
             last_changed_by=user.id
         )
         response=create_workflow
@@ -56,7 +56,7 @@ class TestWorkflowRouter:
             schema=BaseWorkflowModel(
                 workflow=WorkflowConfigResponse(
                     name=workflow.name,
-                    start_date=str(datetime.utcnow())
+                    start_date=str(datetime.now(timezone.utc))
                 ),
                 tasks=dict()
             ),
@@ -64,7 +64,7 @@ class TestWorkflowRouter:
                 nodes=dict(),
                 edges=list(dict())
             ),
-            last_changed_at = datetime.utcnow(),
+            last_changed_at = datetime.now(timezone.utc),
             last_changed_by = user.id,
             created_by = user.id,
             workspace_id = default_workspace.id

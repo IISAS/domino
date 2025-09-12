@@ -78,11 +78,11 @@ class WorkflowService(object):
         new_workflow = Workflow(
             name=body.workflow.name,
             uuid_name=workflow_id,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             schema=body.forageSchema,
             ui_schema=body.ui_schema.model_dump(),
             created_by=auth_context.user_id,
-            last_changed_at=datetime.utcnow(),
+            last_changed_at=datetime.now(timezone.utc),
             start_date=body.workflow.start_date,
             end_date=body.workflow.end_date,
             schedule=body.workflow.schedule,
@@ -652,8 +652,8 @@ class WorkflowService(object):
                     GetWorkflowRunsResponseData(**run)
                 )
                 continue
-            end_date_dt = datetime.fromisoformat(run.get('end_date'))
-            start_date_dt = datetime.fromisoformat(run.get('start_date'))
+            end_date_dt = parsers.parse_iso_z(run.get('end_date'))
+            start_date_dt = parsers.parse_iso_z(run.get('start_date'))
             end_date_dt = parsers.parse_iso_z(run.get('end_date'))
             start_date_dt = parsers.parse_iso_z(run.get('start_date'))
             duration = end_date_dt - start_date_dt
