@@ -86,7 +86,7 @@ class DominoDockerOperator(DockerOperator):
         super().__init__(
             **docker_operator_kwargs,
             task_id=task_id,
-            docker_url='tcp://docker-proxy:2375',
+            docker_url=os.getenv('DOMINO_DOCKER_PROXY', 'tcp://docker-proxy:2375'),
             mounts=mounts,
             device_requests=self.device_requests,
             environment=self.environment,
