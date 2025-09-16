@@ -242,3 +242,5 @@ airflow/logs/*
 # Helm
 /helm/domino/charts/*
 /helm/domino/Chart.lock
+
+/frontend/src/remote-debug-profile/**
