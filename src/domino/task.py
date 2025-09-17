@@ -85,11 +85,11 @@ class Task(object):
                 dag=self.dag,
                 task_id=self.task_id,
                 start_date=datetime(2021, 1, 1), # TODO - get correct start_date
-                provide_context=True,
+                # provide_context=True,
                 op_kwargs=self.piece_input_kwargs,
                 # queue=dependencies_group,
                 make_python_callable_kwargs=dict(
-                    piece_name=self.piece_name,
+                    piece_name=self.piece.get('name'),
                     deploy_mode=self.deploy_mode,
                     task_id=self.task_id,
                     dag_id=self.dag_id,
