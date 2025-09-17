@@ -1,4 +1,3 @@
-import ast
 import uuid
 from datetime import datetime, timezone
 from urllib.parse import urljoin
@@ -234,7 +233,7 @@ class AirflowRestClient(requests.Session):
             raise ResourceNotFoundException("Task result not found.")
         if response.status_code != 200:
             raise BaseException("Error while trying to get task result base64_content")
-        response_dict =  ast.literal_eval(response.json()["value"])
+        response_dict = response.json()["value"]
         # Get base64_content and file_type
         result_dict = dict()
         if "display_result" in response_dict:
