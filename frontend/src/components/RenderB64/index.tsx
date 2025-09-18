@@ -40,6 +40,7 @@ export const RenderB64: React.FC<Props> = ({
           src={`data:image/${file_type};base64,${base64_content}`}
           alt="Content"
           style={{ maxWidth: "100%", maxHeight: "100%", ...style }}
+          class="checkerboard"
         />
       );
     case "svg":

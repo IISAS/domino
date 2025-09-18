@@ -1,3 +1,4 @@
+import os.path
 import uuid
 from datetime import datetime, timezone
 from urllib.parse import urljoin
@@ -238,6 +239,11 @@ class AirflowRestClient(requests.Session):
         result_dict = dict()
         if "display_result" in response_dict:
             result_dict["base64_content"] = response_dict["display_result"].get("base64_content", None)
-            result_dict["file_type"] = response_dict["display_result"].get("file_type", None)
+            file_type = response_dict["display_result"].get("file_type", None)
+            file_path = response_dict["display_result"].get("file_path", None)
+            if file_path and file_type == "image":
+                ext = os.path.splitext(file_path)[1].lstrip(".").lower()
+                file_type = ext if len(ext) > 1 else file_type
+            result_dict["file_type"] = file_type
         return result_dict
 
