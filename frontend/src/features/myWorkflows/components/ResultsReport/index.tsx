@@ -110,8 +110,8 @@ export const ResultsReport: React.FC = () => {
           <Typography component="span">{`< Go back to ${workflow?.name} Detail`}</Typography>
         </Button>
       </Grid>
-      <Grid item xs={2} direction="column">
-        <Paper>
+      <Grid container item xs={2} direction="column">
+        <Paper sx={{ width: "inherit"}}>
           <Container sx={{ paddingTop: 2 }}>
             <Typography variant="h6" component="h2">
               Pieces :
@@ -134,16 +134,26 @@ export const ResultsReport: React.FC = () => {
                         <LogoutIcon />
                       </ListItemIcon>
                       <ListItemText
-                        sx={{
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                        }}
                         primary={
                           <Tooltip title={task.piece_name} placement="top">
                             <span>{task.piece_name}</span>
                           </Tooltip>
                         }
+                        // Add props to the inner Typography component
+                        primaryTypographyProps={{
+                          noWrap: true,
+                          sx: {
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          },
+                        }}
+                        sx={{
+                          // Ensure the container cannot expand too wide
+                          maxWidth: "100%",
+                          minWidth: 0,
+                          overflow: "hidden",
+                        }}
                       />
                     </ListItemButton>
                   </ListItem>
