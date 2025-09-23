@@ -6,11 +6,16 @@ RUN corepack enable
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and yarn.lock files
-COPY package.json pnpm-lock.yaml ./
+# Copy package.json
+COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+  if [ -f pnpm-lock.yaml ]; then \
+    corepack enable pnpm && pnpm install --frozen-lockfile; \
+  else \
+    corepack enable pnpm && pnpm install; \
+  fi
 
 RUN npx pkg ./node_modules/@import-meta-env/cli/bin/import-meta-env.js \
   -o import-meta-env -y
