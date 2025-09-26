@@ -27,7 +27,6 @@ export type InfiniteQueryConfig<T = unknown> = Omit<
     T,
     AxiosError,
     InfiniteData<T, unknown>,
-    T,
     Array<string | undefined>,
     number
   >,

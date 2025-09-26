@@ -25,7 +25,7 @@ import {
   useImperativeHandle,
   type ForwardedRef,
 } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import {FormProvider, Resolver, useForm, useWatch} from "react-hook-form";
 import { isEmpty, yupResolver } from "utils";
 import * as yup from "yup";
 
@@ -131,7 +131,7 @@ const SettingsFormDrawer = forwardRef<
     const { getWorkflowSettingsData, setWorkflowSettingsData } =
       useWorkflowsEditor();
 
-    const resolver = yupResolver(WorkflowSettingsFormSchema);
+    const resolver = yupResolver(WorkflowSettingsFormSchema) as Resolver<IWorkflowSettings>;
     const methods = useForm<IWorkflowSettings>({
       mode: "onChange",
       resolver,

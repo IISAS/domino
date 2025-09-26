@@ -12,7 +12,7 @@ import PublicLayout from "components/PublicLayout";
 import TextInput from "components/TextInput";
 import { useAuthentication } from "context/authentication";
 import { type FC, useCallback } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import {FormProvider, Resolver, useForm} from "react-hook-form";
 import { Link } from "react-router-dom";
 import { yupResolver } from "utils";
 import * as yup from "yup";
@@ -31,7 +31,7 @@ export const SignUpPage: FC = () => {
   const theme = useTheme();
   const { register, authLoading } = useAuthentication();
 
-  const resolver = yupResolver(validationSignUp);
+  const resolver = yupResolver(validationSignUp) as Resolver<ISignUp>;
 
   const methods = useForm<ISignUp>({
     reValidateMode: "onChange",
