@@ -27,7 +27,7 @@ COPY . .
 RUN pnpm run build
 
 # Stage 2: Create a minimal NGINX image
-FROM nginx:1.25.2
+FROM nginx:1.29.1
 
 # Copy the build output from the previous stage
 COPY --from=build /app/build /usr/share/nginx/html
