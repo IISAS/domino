@@ -8,11 +8,11 @@ RUN groupadd -g ${GROUP_ID} domino && \
 
 WORKDIR /rest
 
+COPY . /rest
+
+RUN chown -R domino:domino /rest
+
 USER domino
-
-COPY . .
-
-COPY requirements.txt .
 
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
