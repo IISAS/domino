@@ -9,6 +9,10 @@ DOMINO_LOCAL_RUNNING_PATH = ""
 [kind]
 DOMINO_KIND_CLUSTER_NAME = "domino-cluster"
 
+[cluster]
+hostPortHttp = 80
+hostPortHttps = 443
+
 [github]
 DOMINO_GITHUB_WORKFLOWS_REPOSITORY = ""
 DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN = ""
