@@ -317,7 +317,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         sidecar_container = k8s.V1Container(
             name=self.shared_storage_sidecar_container_name,
             command=['bash', '-c', './sidecar_lifecycle.sh'],
-            image='ghcr.io/tauffer-consulting/domino-shared-storage-sidecar:latest',
+            image='ghcr.io/iisas/domino-shared-storage-sidecar:latest',
             volume_mounts=volume_mounts_sidecar_container,
             security_context=k8s.V1SecurityContext(privileged=True),
             env=[k8s.V1EnvVar(name=k, value=v) for k, v in sidecar_env_vars.items()],

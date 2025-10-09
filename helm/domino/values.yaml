@@ -6,14 +6,14 @@ github_access_token_workflows: default-substitute-this-for-your-own-token
 # Frontend service
 frontend:
   enabled: true
-  image: ghcr.io/tauffer-consulting/domino-frontend
+  image: ghcr.io/iisas/domino-frontend
   tag: latest
   apiUrl: http://localhost/api
 
 # REST service
 rest:
   enabled: true
-  image: ghcr.io/tauffer-consulting/domino-rest
+  image: ghcr.io/iisas/domino-rest
   tag: latest
   deployMode: local-k8s # TODO change to prod
   # Github workflows repository name - Same one used in airflow gitSync ssh

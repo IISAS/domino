@@ -227,7 +227,7 @@ services:
   # Modified Airflow Scheduler with Domino
   airflow-scheduler:
     <<: *airflow-common
-    image: ghcr.io/tauffer-consulting/domino-airflow-base:latest${DOMINO_COMPOSE_DEV}
+    image: ghcr.io/iisas/domino-airflow-base:latest${DOMINO_COMPOSE_DEV}
     container_name: airflow-domino-scheduler
     command: scheduler
     healthcheck:

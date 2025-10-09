@@ -28,6 +28,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true # Push is a shorthand for --output=type=registry
-          tags: ghcr.io/tauffer-consulting/domino-rest:latest
+          tags: ghcr.io/iisas/domino-rest:latest
           context: rest
           file: rest/Dockerfile

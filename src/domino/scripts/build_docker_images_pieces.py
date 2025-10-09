@@ -89,9 +89,9 @@ def build_images_from_pieces_repository(tag_overwrite: str | None = None, dev: b
         source_image_name = f"{github_container_registry_name}/{docker_image_repository}:{docker_image_version}-{group}"
 
         # If no extra dependency, use base Pod image and just copy the Pieces source code
-        base_image = "ghcr.io/tauffer-consulting/domino-base-piece:latest"
+        base_image = "ghcr.io/iisas/domino-base-piece:latest"
         if dev:
-            base_image = "ghcr.io/tauffer-consulting/domino-base-piece:latest-dev"
+            base_image = "ghcr.io/iisas/domino-base-piece:latest-dev"
 
         if not any([dependency_dockerfile, dependency_requirements]):
             pieces_dependencies_map[group]["source_image"] = source_image_name

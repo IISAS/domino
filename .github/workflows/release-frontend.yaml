@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true # Push is a shorthand for --output=type=registry
-          tags: ghcr.io/tauffer-consulting/domino-frontend:k8s
+          tags: ghcr.io/iisas/domino-frontend:k8s
           context: frontend
           file: frontend/Dockerfile.prod # Path to the Dockerfile
 
@@ -52,7 +52,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true # Push is a shorthand for --output=type=registry
-          tags: ghcr.io/tauffer-consulting/domino-frontend:compose
+          tags: ghcr.io/iisas/domino-frontend:compose
           context: frontend
           file: frontend/Dockerfile.prod # Path to the Dockerfile
         env:

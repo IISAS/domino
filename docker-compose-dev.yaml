@@ -307,7 +307,7 @@ services:
 
   # Domino REST Api
   domino-rest:
-    # image: ghcr.io/tauffer-consulting/domino-rest:latest
+    # image: ghcr.io/iisas/domino-rest:latest
     build:
       context: ./rest
       dockerfile: Dockerfile
@@ -371,7 +371,7 @@ services:
 
   # Domino Frontend
   domino-frontend:
-    #image: ghcr.io/tauffer-consulting/domino-frontend:compose
+    #image: ghcr.io/iisas/domino-frontend:compose
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
