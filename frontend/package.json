@@ -2,7 +2,7 @@
   "name": "domino",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/domino",
+  "homepage": "${BASENAME:-}",
   "engines": {
     "node": ">=18 < 20"
   },
