@@ -30,8 +30,8 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             # TODO use load balancer instead of service ip for airflow API Server ?
-            - name: AIRFLOW_API_HOST
-              value: http://airflow-api:8080
+            - name: AIRFLOW_APISERVER_HOST
+              value: http://airflow-apiserver:8080
             - name: DOMINO_DEPLOY_MODE
               value: {{ .Values.rest.deployMode }}
             - name: CREATE_DEFAULT_USER
