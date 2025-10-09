@@ -3,8 +3,8 @@ name: Create Kind cluster and run Domino API tests
 on:
   push:
     branches:
-      - spice-airflow-3.0.6
-      - spice-airflow-3.0.6-dev
+      - main
+      - dev
       - test/*
 
 jobs:
