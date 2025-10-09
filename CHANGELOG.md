@@ -1,3 +1,6 @@
+# v1.0.0
+Migrated to Apache Airflow v3.0.6.
+
 # v0.9.4
 
 ### Fixes

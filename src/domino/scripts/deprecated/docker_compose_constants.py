@@ -31,7 +31,7 @@ airflow_common_env = {
     "AIRFLOW__LOGGING__BASE_LOG_FOLDER": f"{airflow_home_docker}/logs",
     "AIRFLOW__LOGGING__DAG_PROCESSOR_MANAGER_LOG_LOCATION": f"{airflow_home_docker}/logs/dag_processor_manager/dag_processor_manager.log",
     "AIRFLOW__SCHEDULER__CHILD_PROCESS_LOG_DIRECTORY": f"{airflow_home_docker}/logs/scheduler",
-    "AIRFLOW_API_HOST": "http://localhost:8080",
+    "AIRFLOW_APISERVER_HOST": "http://localhost:8080",
     # Default from original docker-compose.yaml
     "AIRFLOW__CORE__EXECUTOR": "CeleryExecutor",
     "AIRFLOW__CORE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@postgres/airflow",
@@ -93,7 +93,7 @@ x_airflow_common_dev = {
 airflow_api = {
     **x_airflow_common,
     "environment": airflow_common_env,
-    "container_name": "airflow-api",
+    "container_name": "airflow-apiserver",
     "command": "api-server",
     "ports": [
         "8081:8080"

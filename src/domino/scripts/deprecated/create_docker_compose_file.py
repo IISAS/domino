@@ -149,7 +149,7 @@ def create_docker_compose_file(
     services = {
         "postgres": airflow_postgres,
         "redis": airflow_redis,
-        "airflow-api": api_def[run_scope],
+        "airflow-apiserver": api_def[run_scope],
         "airflow-scheduler": scheduler_def[run_scope],
         "airflow-init": airflow_init,
         **dependencies_services

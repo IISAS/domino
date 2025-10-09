@@ -171,16 +171,52 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 extraPortMappings=[
                     dict(
                         containerPort=80,
-                        hostPort=80,
+                        hostPort=platform_config['cluster'].get('hostPortHttp', 80),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
                     ),
                     dict(
                         containerPort=443,
-                        hostPort=443,
+                        hostPort=platform_config['cluster'].get('hostPortHttps', 443),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
-                    )
+                    ),
+                    dict(
+                        containerPort=3000,
+                        hostPort=platform_config['docker_proxy'].get('DOCKER_PROXY_PORT_HOST', 2376),
+                        listenAddress="0.0.0.0",
+                        protocol="TCP"
+                    ),
+                    dict(
+                        containerPort=3000,
+                        hostPort=platform_config['domino_frontend'].get('DOMINO_FRONTEND_PORT_HOST', 3000),
+                        listenAddress="0.0.0.0",
+                        protocol="TCP"
+                    ),
+                    dict(
+                        containerPort=5433,
+                        hostPort=platform_config['domino_db'].get('DOMINO_POSTGRES_PORT_HOST', 5433),
+                        listenAddress="0.0.0.0",
+                        protocol="TCP"
+                    ),
+                    dict(
+                        containerPort=5555,
+                        hostPort=platform_config['flower'].get('FLOWER_PORT_HOST', 5555),
+                        listenAddress="0.0.0.0",
+                        protocol="TCP"
+                    ),
+                    dict(
+                        containerPort=8000,
+                        hostPort=platform_config['domino_rest'].get('DOMINO_REST_PORT_HOST', 8000),
+                        listenAddress="0.0.0.0",
+                        protocol="TCP"
+                    ),
+                    dict(
+                        containerPort=8080,
+                        hostPort=platform_config['airflow'].get('AIRFLOW_APISERVER_PORT_HOST', 8080),
+                        listenAddress="0.0.0.0",
+                        protocol="TCP"
+                    ),
                 ]
             ),
             dict(
@@ -486,7 +522,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
         cluster_role_binding_worker = client.V1ClusterRoleBinding(
             metadata=client.V1ObjectMeta(name=role_binding_name_worker),
             subjects=[
-                client.V1Subject(
+                client.RbacV1Subject(
                     kind="ServiceAccount",
                     name=sa_name,
                     namespace="default"
@@ -506,7 +542,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
         cluster_role_binding_scheduler = client.V1ClusterRoleBinding(
             metadata=client.V1ObjectMeta(name=role_binding_name_scheduler),
             subjects=[
-                client.V1Subject(
+                client.RbacV1Subject(
                     kind="ServiceAccount",
                     name=sa_name,
                     namespace="default"
@@ -530,7 +566,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             try:
                 k8s_client.read_namespaced_persistent_volume_claim(name=persistent_volume_claim_name, namespace='default')
                 pvc_exists = True
-            except client.rest.ApiException as e:
+            except client.ApiException as e:
                 if e.status != 404:
                     raise e
 
@@ -552,7 +588,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             try:
                 k8s_client.read_persistent_volume(name=persistent_volume_name)
                 pv_exists = True
-            except client.rest.ApiException as e:
+            except client.ApiException as e:
                 if e.status != 404:
                     raise e
 
@@ -683,10 +719,18 @@ def run_platform_compose(
             os.environ['DOMINO_DB_PASSWORD'] = platform_config['domino_db'].get("DOMINO_DB_PASSWORD", 'postgres')
             os.environ['DOMINO_DB_NAME'] = platform_config['domino_db'].get("DOMINO_DB_NAME", 'postgres')
             os.environ['NETWORK_MODE'] = 'bridge'
+        else:
+            os.environ['DOMINO_POSTGRES_PORT_HOST'] = platform_config['domino_db'].get("DOMINO_POSTGRES_PORT_HOST", 5433)
 
         # If running database in an external local container, set network mode to host
         if platform_config['domino_db'].get('DOMINO_DB_HOST') in ['localhost', '0.0.0.0', '127.0.0.1']:
             os.environ['NETWORK_MODE'] = 'host'
+
+        os.environ['AIRFLOW_APISERVER_PORT_HOST'] = platform_config['airflow'].get('AIRFLOW_APISERVER_PORT_HOST', 8080)
+        os.environ['DOMINO_REST_PORT_HOST'] = platform_config['domino_rest'].get('DOMINO_REST_PORT_HOST', 8000)
+        os.environ['DOMINO_FRONTEND_PORT_HOST'] = platform_config['domino_frontend'].get('DOMINO_FRONTEND_PORT_HOST', 3000)
+        os.environ['DOCKER_PROXY_PORT_HOST'] = platform_config['docker_proxy'].get('DOCKER_PROXY_PORT_HOST', 2376)
+        os.environ['FLOWER_PORT_HOST'] = platform_config['flower'].get('FLOWER_PORT_HOST', 5555)
 
     # Create local directories
     local_path = Path(".").resolve()
@@ -781,7 +825,7 @@ def run_platform_compose(
             if not airflow_worker_ready and "airflow-domino-worker" in line and "execute_command" in line:
                 console.print(" \u2713 Airflow worker service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 airflow_worker_ready = True
-            if not airflow_api_ready and "airflow-api" in line and "health" in line and "200" in line:
+            if not airflow_api_ready and "airflow-apiserver" in line and "health" in line and "200" in line:
                 console.print(" \u2713 Airflow API Server service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 airflow_api_ready = True
             if not airflow_scheduler_ready and "airflow-domino-scheduler" in line and "launched" in line:
@@ -820,10 +864,10 @@ def run_platform_compose(
                 console.print("\n \u2713 All services for Domino Platform started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 console.print("")
                 console.print("You can now access them at")
-                console.print("Domino UI: http://localhost:3000")
-                console.print("Domino REST API: http://localhost:8000")
-                console.print("Domino REST API Docs: http://localhost:8000/docs")
-                console.print("Airflow API Server: http://localhost:8080")
+                console.print("Domino UI: http://{}:{}".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('DOMINO_FRONTEND_PORT_HOST', 3000)))
+                console.print("Domino REST API: http://{}:{}".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('DOMINO_REST_PORT_HOST', 8000)))
+                console.print("Domino REST API Docs: http://{}:{}/docs".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('DOMINO_REST_PORT_HOST', 8000)))
+                console.print("Airflow API Server: http://{}:{}".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('AIRFLOW_APISERVER_PORT_HOST', 8080)))
                 console.print("")
                 console.print("To stop the platform, run:")
                 console.print("    $ domino platform stop-compose")
@@ -877,7 +921,7 @@ def stop_platform_compose() -> None:
             "domino-docker-proxy",
             "airflow-domino-scheduler",
             "airflow-domino-worker",
-            "airflow-api",
+            "airflow-apiserver",
             "airflow-triggerer",
             "airflow-redis",
             "airflow-postgres",

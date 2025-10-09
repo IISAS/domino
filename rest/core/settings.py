@@ -81,9 +81,10 @@ class Settings(BaseSettings):
     # Default DB mock data
     AIRFLOW_ADMIN_CREDENTIALS: dict = {
         "username": os.environ.get('AIRFLOW_ADMIN_USERNAME', "admin"),
-        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "admin")
+        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "airflow")
     }
-    AIRFLOW_API_HOST: str = os.environ.get('AIRFLOW_API_HOST', "http://airflow-api:8080/")
+    AIRFLOW_APISERVER_PORT_HOST: int = int(os.environ.get('AIRFLOW_APISERVER_PORT_HOST', 8080))
+    AIRFLOW_APISERVER_HOST: str = os.environ.get('AIRFLOW_APISERVER_HOST', "http://airflow-apiserver:8080/")
 
     # Default repositories
     DEFAULT_STORAGE_REPOSITORY: dict = dict(
@@ -102,7 +103,7 @@ class Settings(BaseSettings):
 class LocalK8sSettings(Settings):
     SERVER_HOST: str = "0.0.0.0"
     DEBUG: bool = True
-    PORT: int = int(os.environ.get('DOMINO_PORT', 8000))
+    PORT: int = int(os.environ.get('DOMINO_REST_PORT_HOST', 8000))
     RELOAD: bool = True
     CORS: dict = {
         "origins": [
@@ -112,13 +113,13 @@ class LocalK8sSettings(Settings):
         "allow_methods": ["*"],
         "allow_headers": ["*"],
     }
-    ROOT_PATH: str = '/api'
+    ROOT_PATH: str = os.environ.get('ROOT_PATH', '/api')
 
 
 class LocalComposeSettings(Settings):
     SERVER_HOST: str = "0.0.0.0"
     DEBUG: bool = True
-    PORT: int = int(os.environ.get('DOMINO_PORT', 8000))
+    PORT: int = int(os.environ.get('DOMINO_REST_PORT_HOST', 8000))
     RELOAD: bool = True
     CORS: dict = {
         "origins": [
@@ -129,13 +130,13 @@ class LocalComposeSettings(Settings):
         "allow_headers": ["*"],
     }
 
-    ROOT_PATH: str = '/'
+    ROOT_PATH: str = os.environ.get('ROOT_PATH', '/')
 
 
 class ProdSettings(Settings):
     SERVER_HOST: str = "0.0.0.0"
     DEBUG: bool = False
-    PORT: int = int(os.environ.get('DOMINO_PORT', 8000))
+    PORT: int = int(os.environ.get('DOMINO_REST_PORT_HOST', 8000))
     RELOAD: bool = False
     CORS: dict = {
         "origins": [
@@ -147,7 +148,7 @@ class ProdSettings(Settings):
     }
 
     # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
-    ROOT_PATH: str = '/api'
+    ROOT_PATH: str = os.environ.get('ROOT_PATH', '/api')
 
 
 def get_settings():

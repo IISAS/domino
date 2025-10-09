@@ -16,7 +16,7 @@ class AirflowRestClient(requests.Session):
     def __init__(self, *args, **kwargs):
         super(AirflowRestClient, self).__init__(*args, **kwargs)
 
-        self.base_url = settings.AIRFLOW_API_HOST
+        self.base_url = settings.AIRFLOW_APISERVER_HOST
         if not self.base_url.endswith('/'):
             self.base_url += '/'
         self.username = settings.AIRFLOW_ADMIN_CREDENTIALS.get('username')
