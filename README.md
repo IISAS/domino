@@ -1,3 +1,7 @@
+This is a fork of the [Domino](https://github.com/Tauffer-Consulting/domino) project with added support of [Apache Airflow v3.0.6](https://github.com/apache/airflow/tree/3.0.6).
+
+---
+
 <p align="center">
   <img src="media/brand/main_logo.png" width="450" title="Domino">
 </p>
