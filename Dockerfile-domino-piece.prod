@@ -19,6 +19,6 @@ RUN chmod -R 777 .
 
 # pip install Domino from PyPI
 RUN pip install --upgrade pip && \
-    pip install domino-py[cli]
+    pip install domino-py-iisas[cli]
 
 WORKDIR /home

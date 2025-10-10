@@ -1,11 +1,11 @@
 [project]
 name = "domino-py-iisas"
 dynamic = ["version", "readme"]
-description = "Python package for Domino."
+description = "Fork of the original Python package for Domino."
 authors = [
+    { name = "Stefan Dlugolinsky", email = "stefan.dlugolinsky@savba.sk"},
     { name = "Luiz Tauffer", email = "luiz@taufferconsulting.com" },
-    { name = "Vinicius Vaz", email = "vinicius@taufferconsulting.com" },
-    { name = "Stefan Dlugolinsky, email = "stefan.dlugolinsky@savba.sk"}
+    { name = "Vinicius Vaz", email = "vinicius@taufferconsulting.com" }
 ]
 requires-python = ">=3.12"
 keywords = ["domino", "airflow", "gui"]
