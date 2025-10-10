@@ -2,9 +2,7 @@ server {
     listen 80;
     server_name localhost;
 
-    location ${BASENAME} {
-        rewrite ^${BASENAME}(.*)$ /$1 last;
-    }
+    # __LOCATION_BASENAME__   <-- placeholder
 
     location / {
         root /usr/share/nginx/html;
