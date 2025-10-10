@@ -9,6 +9,7 @@ frontend:
   image: ghcr.io/iisas/domino-frontend
   tag: latest
   apiUrl: http://localhost/api
+  baseName: /
 
 # REST service
 rest:
@@ -19,6 +20,7 @@ rest:
   # Github workflows repository name - Same one used in airflow gitSync ssh
   workflowsRepository: ~
   createDefaultUser: true
+  rootPath: /
 
 # Change this if using external Database
 database:

@@ -32,6 +32,8 @@ spec:
               value: {{ .Values.frontend.deployMode }}
             - name: API_URL
               value: {{ .Values.frontend.apiUrl }}
+            - name: BASENAME
+              value: {{ .Values.frontend.baseName }}
 
 ---
 # Frontend Service
