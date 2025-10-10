@@ -1,10 +1,11 @@
 [project]
-name = "domino-py"
+name = "domino-py-iisas"
 dynamic = ["version", "readme"]
 description = "Python package for Domino."
 authors = [
     { name = "Luiz Tauffer", email = "luiz@taufferconsulting.com" },
     { name = "Vinicius Vaz", email = "vinicius@taufferconsulting.com" },
+    { name = "Stefan Dlugolinsky, email = "stefan.dlugolinsky@savba.sk"}
 ]
 requires-python = ">=3.12"
 keywords = ["domino", "airflow", "gui"]
@@ -29,9 +30,9 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/Tauffer-Consulting/domino"
+homepage = "https://github.com/IISAS/domino"
 documentation = "https://tauffer-consulting.github.io/domino-docs/"
-repository = "https://github.com/Tauffer-Consulting/domino"
+repository = "https://github.com/IISAS/domino"
 
 [build-system]
 requires = ["setuptools"]
