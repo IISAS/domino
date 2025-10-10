@@ -1,4 +1,6 @@
-FROM bitnami/python:3.10
+# TODO: https://github.com/bitnami/containers/tree/main/bitnami/python
+#FROM bitnami/python:3.10
+FROM python:3.12
 
 RUN apt update \
     && apt -y install fuse3 \
