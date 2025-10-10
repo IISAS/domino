@@ -6,4 +6,4 @@ COLOR_PALETTE = {
 
 DOMINO_HELM_PATH = 'domino/domino'
 DOMINO_HELM_VERSION = '0.1.6'
-DOMINO_HELM_REPOSITORY = 'https://tauffer-consulting.github.io/domino/'
+DOMINO_HELM_REPOSITORY = 'https://iisas.github.io/domino/'

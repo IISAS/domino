@@ -171,18 +171,18 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 extraPortMappings=[
                     dict(
                         containerPort=80,
-                        hostPort=platform_config['cluster'].get('hostPortHttp', 80),
+                        hostPort=platform_config['kind'].get('HTTP_PORT_HOST', 80),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
                     ),
                     dict(
                         containerPort=443,
-                        hostPort=platform_config['cluster'].get('hostPortHttps', 443),
+                        hostPort=platform_config['kind'].get('HTTPS_PORT_HOST', 443),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
                     ),
                     dict(
-                        containerPort=3000,
+                        containerPort=2376,
                         hostPort=platform_config['docker_proxy'].get('DOCKER_PROXY_PORT_HOST', 2376),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
@@ -672,9 +672,9 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
 
     console.print("")
     console.print("K8s resources created successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
-    console.print("You can now access the Domino frontend at: http://localhost/")
-    console.print("Domino's REST API: http://localhost/api/")
-    console.print("Domino's REST API Swagger: http://localhost/api/docs")
+    console.print("You can now access the Domino frontend at: http://localhost:{}/".format(platform_config['kind'].get('HTTP_PORT_HOST')))
+    console.print("Domino's REST API: http://localhost:{}/api/".format(platform_config['kind'].get('HTTP_PORT_HOST')))
+    console.print("Domino's REST API Swagger: http://localhost:{}/api/docs".format(platform_config['kind'].get('HTTP_PORT_HOST')))
     console.print("")
 
 
@@ -719,18 +719,10 @@ def run_platform_compose(
             os.environ['DOMINO_DB_PASSWORD'] = platform_config['domino_db'].get("DOMINO_DB_PASSWORD", 'postgres')
             os.environ['DOMINO_DB_NAME'] = platform_config['domino_db'].get("DOMINO_DB_NAME", 'postgres')
             os.environ['NETWORK_MODE'] = 'bridge'
-        else:
-            os.environ['DOMINO_POSTGRES_PORT_HOST'] = platform_config['domino_db'].get("DOMINO_POSTGRES_PORT_HOST", 5433)
 
         # If running database in an external local container, set network mode to host
         if platform_config['domino_db'].get('DOMINO_DB_HOST') in ['localhost', '0.0.0.0', '127.0.0.1']:
             os.environ['NETWORK_MODE'] = 'host'
-
-        os.environ['AIRFLOW_APISERVER_PORT_HOST'] = platform_config['airflow'].get('AIRFLOW_APISERVER_PORT_HOST', 8080)
-        os.environ['DOMINO_REST_PORT_HOST'] = platform_config['domino_rest'].get('DOMINO_REST_PORT_HOST', 8000)
-        os.environ['DOMINO_FRONTEND_PORT_HOST'] = platform_config['domino_frontend'].get('DOMINO_FRONTEND_PORT_HOST', 3000)
-        os.environ['DOCKER_PROXY_PORT_HOST'] = platform_config['docker_proxy'].get('DOCKER_PROXY_PORT_HOST', 2376)
-        os.environ['FLOWER_PORT_HOST'] = platform_config['flower'].get('FLOWER_PORT_HOST', 5555)
 
     # Create local directories
     local_path = Path(".").resolve()
