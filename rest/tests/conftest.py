@@ -54,10 +54,10 @@ def piece_repository():
     return PieceRepository(
         id=1,
         source="github",
-        path="Tauffer-Consulting/default_domino_pieces_tests",
+        path="IISAS/default_domino_pieces_tests",
         version="0.0.4",
         workspace_id=1,
-        url='https://github.com/Tauffer-Consulting/default_domino_pieces_tests'
+        url='https://github.com/IISAS/default_domino_pieces_tests'
     )
 
 @pytest.fixture(scope="class")
