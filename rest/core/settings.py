@@ -35,18 +35,18 @@ class Settings(BaseSettings):
     DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS: str | None = os.environ.get('DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS', None)
 
     # Workflows storage
-    DOMINO_GITHUB_WORKFLOWS_REPOSITORY: str = os.environ.get('DOMINO_GITHUB_WORKFLOWS_REPOSITORY', "Tauffer-Consulting/domino_workflows_dev")
+    DOMINO_GITHUB_WORKFLOWS_REPOSITORY: str = os.environ.get('DOMINO_GITHUB_WORKFLOWS_REPOSITORY', "IISAS/domino_workflows_dev")
     DOMINO_LOCAL_WORKFLOWS_REPOSITORY: str = '/opt/airflow/dags'
 
     # Default domino pieces repository
     DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN: str | None = os.environ.get('DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN', None)
     DEFAULT_REPOSITORIES_LIST: list[dict] = [
         dict(
-            path="Tauffer-Consulting/default_domino_pieces",
-            version='0.8.1',
+            path="IISAS/default_domino_pieces",
+            version='0.1.0',
             source='github',
             require_token=False,
-            url='https://github.com/Tauffer-Consulting/default_domino_pieces'
+            url='https://github.com/IISAS/default_domino_pieces'
         ),
         dict(
             path="Tauffer-Consulting/openai_domino_pieces",
