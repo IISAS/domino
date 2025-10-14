@@ -4,7 +4,14 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
  
 USER root
+
 RUN apt-get update
+RUN apt-get install nano -y
+
+RUN set -eux; \
+	apt-get install -y gosu; \
+# verify that the binary works
+	gosu nobody true
 
 USER airflow
 RUN pip install --upgrade pip && \
