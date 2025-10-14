@@ -26,19 +26,9 @@ DOMINO_DB_USER = "postgres"
 DOMINO_DB_PASSWORD = "postgres"
 DOMINO_DB_NAME = "postgres"
 DOMINO_CREATE_DEFAULT_USER = true
-DOMINO_POSTGRES_PORT_HOST = 5433
-
-[domino_rest]
-DOMINO_REST_PORT_HOST = 8000
 
 [domino_frontend]
-DOMINO_FRONTEND_PORT_HOST = 3000
+API_URL = "http://localhost:80/api"
 
 [dev]
 DOMINO_LOCAL_DOMINO_PACKAGE=""
-
-[flower]
-FLOWER_PORT_HOST = 5555
-
-[docker_proxy]
-DOCKER_PROXY_PORT_HOST = 2376
