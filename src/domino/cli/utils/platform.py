@@ -182,41 +182,11 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                         protocol="TCP"
                     ),
                     dict(
-                        containerPort=2376,
-                        hostPort=platform_config['docker_proxy'].get('DOCKER_PROXY_PORT_HOST', 2376),
-                        listenAddress="0.0.0.0",
-                        protocol="TCP"
-                    ),
-                    dict(
-                        containerPort=3000,
-                        hostPort=platform_config['domino_frontend'].get('DOMINO_FRONTEND_PORT_HOST', 3000),
-                        listenAddress="0.0.0.0",
-                        protocol="TCP"
-                    ),
-                    dict(
-                        containerPort=5433,
-                        hostPort=platform_config['domino_db'].get('DOMINO_POSTGRES_PORT_HOST', 5433),
-                        listenAddress="0.0.0.0",
-                        protocol="TCP"
-                    ),
-                    dict(
-                        containerPort=5555,
-                        hostPort=platform_config['flower'].get('FLOWER_PORT_HOST', 5555),
-                        listenAddress="0.0.0.0",
-                        protocol="TCP"
-                    ),
-                    dict(
-                        containerPort=8000,
-                        hostPort=platform_config['domino_rest'].get('DOMINO_REST_PORT_HOST', 8000),
-                        listenAddress="0.0.0.0",
-                        protocol="TCP"
-                    ),
-                    dict(
                         containerPort=8080,
                         hostPort=platform_config['airflow'].get('AIRFLOW_APISERVER_PORT_HOST', 8080),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
-                    ),
+                    )
                 ]
             ),
             dict(
@@ -331,6 +301,8 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             "image": domino_frontend_image,
             "apiEnv": "dev" if platform_config['kind']["DOMINO_DEPLOY_MODE"] in ['local-k8s-dev', 'local-k8s'] else 'prod',
             "deployMode": platform_config['kind']["DOMINO_DEPLOY_MODE"],
+            "apiUrl": platform_config['domino_frontend'].get('API_URL', 'http://localhost:{}/api'.format(platform_config['kind'].get('HTTP_PORT_HOST', 80))),
+            "baseName": platform_config['domino_frontend'].get('BASE_NAME', '/')
         },
         "rest": {
             "enabled": True,
