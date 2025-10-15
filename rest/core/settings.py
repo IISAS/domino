@@ -83,8 +83,8 @@ class Settings(BaseSettings):
         "username": os.environ.get('AIRFLOW_ADMIN_USERNAME', "admin"),
         "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "airflow")
     }
-    AIRFLOW_APISERVER_PORT_HOST: int = int(os.environ.get('AIRFLOW_APISERVER_PORT_HOST', 8080))
-    AIRFLOW_APISERVER_HOST: str = os.environ.get('AIRFLOW_APISERVER_HOST', "http://airflow-apiserver:8080/")
+    AIRFLOW_API_SERVER_PORT_HOST: int = int(os.environ.get('AIRFLOW_API_SERVER_PORT_HOST', 8080))
+    AIRFLOW_API_SERVER_HOST: str = os.environ.get('AIRFLOW_API_SERVER_HOST', "http://airflow-api-server:8080/")
 
     # Default repositories
     DEFAULT_STORAGE_REPOSITORY: dict = dict(

@@ -61,15 +61,15 @@ services:
       start_period: 30s
     restart: always
 
-  airflow-apiserver:
+  airflow-api-server:
     <<: *airflow-common
-    container_name: airflow-apiserver
+    container_name: airflow-api-server
     command: api-server
     environment:
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: 'airflow:admin'
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: '/opt/airflow/passwords.json'
     ports:
-      - ${AIRFLOW_APISERVER_PORT_HOST:-8080}:8080
+      - ${AIRFLOW_API_SERVER_PORT_HOST:-8080}:8080
     healthcheck:
       test:
         [

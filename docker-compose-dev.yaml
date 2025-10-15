@@ -8,7 +8,7 @@ x-airflow-common:
     dockerfile: Dockerfile-airflow-domino.dev
   environment:
     &airflow-common-env
-    AIRFLOW__API__BASE_URL: "http://${HOSTNAME:-localhost}:${AIRFLOW_APISERVER_PORT_HOST:-8080}${AIRFLOW_APISERVER_BASENAME:-}"
+    AIRFLOW__API__BASE_URL: "http://${HOSTNAME:-localhost}:${AIRFLOW_API_SERVER_PORT_HOST:-8080}${AIRFLOW_API_SERVER_BASENAME:-}"
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -17,7 +17,7 @@ x-airflow-common:
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
-    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://${HOSTNAME:-localhost}:${AIRFLOW_APISERVER_PORT_HOST:-8080}${AIRFLOW_APISERVER_BASENAME:-}/execution/'
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://${HOSTNAME:-localhost}:${AIRFLOW_API_SERVER_PORT_HOST:-8080}${AIRFLOW_API_SERVER_BASENAME:-}/execution/'
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -79,11 +79,11 @@ services:
       start_period: 30s
     restart: always
 
-  airflow-apiserver:
+  airflow-api-server:
     <<: *airflow-common
-    container_name: airflow-apiserver
+    container_name: airflow-api-server
     environment:
-      AIRFLOW__API__BASE_URL: "https://${HOSTNAME:-localhost}:${AIRFLOW_APISERVER_PORT_HOST}${AIRFLOW_APISERVER_BASENAME}"
+      AIRFLOW__API__BASE_URL: "https://${HOSTNAME:-localhost}:${AIRFLOW_API_SERVER_PORT_HOST}${AIRFLOW_API_SERVER_BASENAME}"
     command: api-server
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
@@ -92,7 +92,7 @@ services:
       retries: 5
       start_period: 30s
     ports:
-      - ${AIRFLOW_APISERVER_PORT_HOST:-8080}:8080
+      - ${AIRFLOW_API_SERVER_PORT_HOST:-8080}:8080
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
@@ -152,7 +152,7 @@ services:
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
-      airflow-apiserver:
+      airflow-api-server:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
@@ -329,7 +329,7 @@ services:
       - DOMINO_DEPLOY_MODE=local-compose
       - AIRFLOW_ADMIN_USERNAME=${AIRFLOW_ADMIN_USERNAME:-admin}
       - AIRFLOW_ADMIN_PASSWORD=${AIRFLOW_ADMIN_PASSWORD:-airflow}
-      - AIRFLOW_APISERVER_HOST=http://airflow-apiserver:8080${AIRFLOW_APISERVER_BASENAME:-}
+      - AIRFLOW_API_SERVER_HOST=http://airflow-api-server:8080${AIRFLOW_API_SERVER_BASENAME:-}
       - ROOT_PATH=${DOMINO_REST_BASENAME:-}
     networks:
       - domino-postgres-network
@@ -340,7 +340,7 @@ services:
     depends_on:
       domino-postgres:
         condition: service_healthy
-      airflow-apiserver:
+      airflow-api-server:
         condition: service_healthy
 
   # Domino Postgres

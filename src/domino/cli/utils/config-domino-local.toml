@@ -1,7 +1,7 @@
 # Configuration file for running Domino platform locally
 
 [airflow]
-AIRFLOW_APISERVER_PORT_HOST = 8080
+AIRFLOW_API_SERVER_PORT_HOST = 8080
 
 [path]
 DOMINO_LOCAL_RUNNING_PATH = ""

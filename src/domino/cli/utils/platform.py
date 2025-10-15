@@ -183,7 +183,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                     ),
                     dict(
                         containerPort=8080,
-                        hostPort=platform_config['airflow'].get('AIRFLOW_APISERVER_PORT_HOST', 8080),
+                        hostPort=platform_config['airflow'].get('AIRFLOW_API_SERVER_PORT_HOST', 8080),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
                     )
@@ -450,7 +450,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 "-f", str(fp.name),
                 "airflow",
                 "apache-airflow/airflow",
-                "--version", " 1.11.0",
+                "--version", " 1.18.0",
             ]
             subprocess.run(commands)
 
@@ -705,7 +705,7 @@ def run_platform_compose(
         if platform_config['domino_db'].get('DOMINO_DB_HOST') in ['localhost', '0.0.0.0', '127.0.0.1']:
             os.environ['NETWORK_MODE'] = 'host'
 
-        os.environ['AIRFLOW_APISERVER_PORT_HOST'] = str(platform_config['airflow'].get("AIRFLOW_APISERVER_PORT_HOST", 8080))
+        os.environ['AIRFLOW_API_SERVER_PORT_HOST'] = str(platform_config['airflow'].get("AIRFLOW_API_SERVER_PORT_HOST", 8080))
         os.environ['AIRFLOW_UID'] = str(platform_config['airflow'].get("AIRFLOW_UID", 1000))
         os.environ['DOCKER_PROXY_PORT_HOST'] = str(platform_config['docker_proxy'].get("DOCKER_PROXY_PORT_HOST", 2376))
         os.environ['DOMINO_FRONTEND_BASENAME'] = str(platform_config['domino_frontend'].get('DOMINO_FRONTEND_BASENAME', '/'))
@@ -807,7 +807,7 @@ def run_platform_compose(
             if not airflow_worker_ready and "airflow-domino-worker" in line and "execute_command" in line:
                 console.print(" \u2713 Airflow worker service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 airflow_worker_ready = True
-            if not airflow_api_ready and "airflow-apiserver" in line and "health" in line and "200" in line:
+            if not airflow_api_ready and "airflow-api-server" in line and "health" in line and "200" in line:
                 console.print(" \u2713 Airflow API Server service started successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
                 airflow_api_ready = True
             if not airflow_scheduler_ready and "airflow-domino-scheduler" in line and "launched" in line:
@@ -849,7 +849,7 @@ def run_platform_compose(
                 console.print("Domino UI: http://{}:{}".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('DOMINO_FRONTEND_PORT_HOST', 3000)))
                 console.print("Domino REST API: http://{}:{}".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('DOMINO_REST_PORT_HOST', 8000)))
                 console.print("Domino REST API Docs: http://{}:{}/docs".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('DOMINO_REST_PORT_HOST', 8000)))
-                console.print("Airflow API Server: http://{}:{}".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('AIRFLOW_APISERVER_PORT_HOST', 8080)))
+                console.print("Airflow API Server: http://{}:{}".format(os.environ.get('HOSTNAME', 'localhost'), os.environ.get('AIRFLOW_API_SERVER_PORT_HOST', 8080)))
                 console.print("")
                 console.print("To stop the platform, run:")
                 console.print("    $ domino platform stop-compose")
@@ -903,7 +903,7 @@ def stop_platform_compose() -> None:
             "domino-docker-proxy",
             "airflow-domino-scheduler",
             "airflow-domino-worker",
-            "airflow-apiserver",
+            "airflow-api-server",
             "airflow-triggerer",
             "airflow-redis",
             "airflow-postgres",
