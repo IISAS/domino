@@ -435,7 +435,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
     }
 
     # Update Helm repositories
-    subprocess.run(["helm", "repo", "add", "domino", DOMINO_HELM_REPOSITORY])
+    subprocess.run(["helm", "repo", "add", "domino-iisas", DOMINO_HELM_REPOSITORY])
     subprocess.run(["helm", "repo", "add", "apache-airflow", "https://airflow.apache.org/"])  # ref: https://github.com/helm/helm/issues/8036
     subprocess.run(["helm", "repo", "update"])
 
@@ -464,7 +464,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             commands = [
                 "helm", "install",
                 "-f", str(fp.name),
-                "domino",
+                "domino-iisas",
                 helm_domino_path
             ]
             subprocess.run(commands)
@@ -486,7 +486,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 commands = [
                     "helm", "install",
                     "-f", str(fp.name),
-                    "domino",
+                    "domino-iisas",
                     f"{tmp_dir}/domino",
                 ]
                 subprocess.run(commands)
@@ -704,6 +704,15 @@ def run_platform_compose(
         # If running database in an external local container, set network mode to host
         if platform_config['domino_db'].get('DOMINO_DB_HOST') in ['localhost', '0.0.0.0', '127.0.0.1']:
             os.environ['NETWORK_MODE'] = 'host'
+
+        os.environ['AIRFLOW_APISERVER_PORT_HOST'] = str(platform_config['airflow'].get("AIRFLOW_APISERVER_PORT_HOST", 8080))
+        os.environ['AIRFLOW_UID'] = str(platform_config['airflow'].get("AIRFLOW_UID", 1000))
+        os.environ['DOCKER_PROXY_PORT_HOST'] = str(platform_config['docker_proxy'].get("DOCKER_PROXY_PORT_HOST", 2376))
+        os.environ['DOMINO_FRONTEND_BASENAME'] = str(platform_config['domino_frontend'].get('DOMINO_FRONTEND_BASENAME', '/'))
+        os.environ['DOMINO_FRONTEND_PORT_HOST'] = str(platform_config['domino_frontend'].get('DOMINO_FRONTEND_PORT_HOST', 3000))
+        os.environ['DOMINO_REST_PORT_HOST'] = str(platform_config['domino_rest'].get('DOMINO_REST_PORT_HOST', 8000))
+        os.environ['FLOWER_PORT_HOST'] = str(platform_config['flower'].get('FLOWER_PORT_HOST', 5555))
+
 
     # Create local directories
     local_path = Path(".").resolve()
