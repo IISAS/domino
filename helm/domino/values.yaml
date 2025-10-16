@@ -20,7 +20,7 @@ rest:
   # Github workflows repository name - Same one used in airflow gitSync ssh
   workflowsRepository: ~
   createDefaultUser: true
-  rootPath: /
+  rootPath: /api
 
 # Change this if using external Database
 database:
