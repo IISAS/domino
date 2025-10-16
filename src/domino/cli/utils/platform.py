@@ -9,6 +9,7 @@ import requests
 import time
 from concurrent.futures import ThreadPoolExecutor
 import base64
+import sys
 from pathlib import Path
 from rich.console import Console
 from yaml.resolver import BaseResolver
@@ -535,23 +536,27 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 }
             ]
 
-            with NamedTemporaryFile(suffix='.yaml', mode="w") as fp:
-                yaml.dump(airflow_db_manifest, fp)
+            with NamedTemporaryFile(suffix='.yaml', mode="w", delete_on_close=False) as fp:
+                # Dump as separate YAML documents
+                yaml_output = "\n---\n".join(
+                    yaml.safe_dump(doc, sort_keys=False) for doc in airflow_db_manifest
+                )
+                fp.write(yaml_output)
+                fp.close()
                 commands = [
                     "kubectl", "apply", "-f", str(fp.name), "--validate=false"
                 ]
                 subprocess.run(commands, stdout=subprocess.DEVNULL)
-                result = subprocess.run(
-                    ["kubectl", "wait", "--namespace", "default", "--for", "condition=ready",
-                     "cluster/airflow-postgres",
-                     "--timeout=60s"])
+                commands = [
+                    "kubectl", "wait", "--namespace", "default", "--for", "condition=Ready", "cluster/airflow-postgres", "--timeout=60s"
+                ]
+                result = subprocess.run(commands)
                 if result.returncode != 0:
                     error_message = result.stderr.strip() if result.stderr else result.stdout.strip() if result.stdout else 'no details given'
-                    raise Exception(
-                        f"An error occurred while installing database for Apache Airflow metastore: {error_message}")
-                console.print("database for the Apache Airflow metastore installed successfully!",
-                              style=f"bold {COLOR_PALETTE.get('success')}")
-                console.print("")
+                    raise Exception(f"An error occurred while installing database for Apache Airflow metastore: {error_message}")
+                
+            console.print("database for the Apache Airflow metastore installed successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
+            console.print("")
 
         # Create temporary file with airflow values
         with NamedTemporaryFile(suffix='.yaml', mode="w") as fp:
