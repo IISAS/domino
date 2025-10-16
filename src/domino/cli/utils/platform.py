@@ -240,9 +240,10 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
     result = subprocess.run(["kubectl", "create", "secret", "generic", f"{airflow_metadata_secret_name}", f"--from-literal=connection=postgresql://{airflow_db_user}:{airflow_db_password}@{airflow_db_host}:{airflow_db_port}/{airflow_db_name}"])
     if result.returncode != 0:
         error_message = result.stderr.strip() if result.stderr else result.stdout.strip()
-    # install database
+    # deploy Airflow metastore database
     airflow_db_image = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE', 'ghcr.io/cloudnative-pg/postgresql')
     airflow_db_image_tag = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE_TAG', '13')
+
 
     # Install Ingress NGINX controller
     console.print("")
