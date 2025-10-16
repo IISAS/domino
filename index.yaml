@@ -1,17 +1,17 @@
 apiVersion: v1
 entries:
-  domino-iisas:
+  domino:
   - apiVersion: v2
     appVersion: 0.2.0
-    created: "2025-10-15T08:29:21.736943161+02:00"
-    description: A Helm chart for Domino - fork by IISAS
-    digest: 1aa40331ac230157d0b823f7d0c51f43e15bf5bf3c81fedfd36391819c811888
+    created: "2025-10-16T09:14:50.614765479+02:00"
+    description: A Helm chart for Domino
+    digest: dbb3c900f88ea598c114ad4f8b947abae6492103251b3ca80ed72662da997e8e
     home: https://github.com/IISAS/domino
-    name: domino-iisas
+    name: domino
     sources:
     - https://github.com/IISAS/domino
     type: application
     urls:
-    - https://iisas.github.io/domino/domino-iisas-0.2.0.tgz
+    - https://iisas.github.io/domino/domino-0.2.0.tgz
     version: 0.2.0
-generated: "2025-10-15T08:29:21.736339591+02:00"
+generated: "2025-10-16T09:14:50.614335542+02:00"
