@@ -227,24 +227,6 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
     console.print("")
     console.print("Kind cluster created successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
 
-    # External database for the Airflow metastore (due to [changes](https://github.com/bitnami/containers/issues/83267) related to bitnami images since [v1.12.0](https://airflow.apache.org/docs/helm-chart/1.12.0/release_notes.html#the-helm-chart-is-now-using-a-newer-version-of-bitnami-postgresql-dependency-34817))
-    console.print("")
-    console.print("Installing external database for the Airflow metastore...")
-    # create secret for the Airflow metastore
-    airflow_metadata_secret_name = 'airflow-metadata-secret'
-    airflow_db_host = platform_config['airflow_db'].get('AIRFLOW_DB_HOST', 'airflow-postgresql')
-    airflow_db_port = platform_config['airflow_db'].get('AIRFLOW_DB_PORT', 5432)
-    airflow_db_user = platform_config['airflow_db'].get('AIRFLOW_DB_USER', 'airflow')
-    airflow_db_password = platform_config['airflow_db'].get('AIRFLOW_DB_PASSWORD', 'airflow')
-    airflow_db_name = platform_config['airflow_db'].get('AIRFLOW_DB_NAME', 'postgres')
-    result = subprocess.run(["kubectl", "create", "secret", "generic", f"{airflow_metadata_secret_name}", f"--from-literal=connection=postgresql://{airflow_db_user}:{airflow_db_password}@{airflow_db_host}:{airflow_db_port}/{airflow_db_name}"])
-    if result.returncode != 0:
-        error_message = result.stderr.strip() if result.stderr else result.stdout.strip()
-    # deploy Airflow metastore database
-    airflow_db_image = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE', 'ghcr.io/cloudnative-pg/postgresql')
-    airflow_db_image_tag = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE_TAG', '13')
-
-
     # Install Ingress NGINX controller
     console.print("")
     console.print("Installing NGINX controller...")
@@ -281,7 +263,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
 
     if local_domino_rest_image:
         console.print(f"Loading local REST image {local_domino_rest_image} to Kind cluster...")
-        subprocess.run(["kind", "load", "docker-image", local_domino_rest_image , "--name", cluster_name, "--nodes", f"{cluster_name}-worker"])
+        subprocess.run(["kind", "load", "docker-image", local_domino_rest_image, "--name", cluster_name, "--nodes", f"{cluster_name}-worker"])
         domino_rest_image = f'docker.io/library/{local_domino_rest_image}'
     elif platform_config['kind']["DOMINO_DEPLOY_MODE"] == 'local-k8s-dev':
         domino_rest_image = "ghcr.io/iisas/domino-rest:latest-dev"
@@ -344,7 +326,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
         domino_values_override_config['database'] = {
             **domino_values_override_config['database'],
             "host": platform_config['domino_db']["DOMINO_DB_HOST"],
-            "name":  platform_config['domino_db']["DOMINO_DB_NAME"],
+            "name": platform_config['domino_db']["DOMINO_DB_NAME"],
             "user": platform_config['domino_db']["DOMINO_DB_USER"],
             "password": platform_config['domino_db']["DOMINO_DB_PASSWORD"],
             "port": str(platform_config['domino_db'].get("DOMINO_DB_PORT", 5432))
@@ -452,7 +434,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             "enabled": False,
         },
         "data": {
-            "metadataSecretName": airflow_metadata_secret_name
+            "metadataSecretName": 'airflow-metadata-secret'
         },
         **workers,
         **scheduler,
@@ -466,6 +448,111 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
     # Install Airflow Helm Chart
     if install_airflow:
         console.print('Installing Apache Airflow...')
+
+        # External database for the Airflow metastore (due to [changes](https://github.com/bitnami/containers/issues/83267) related to bitnami images since [v1.12.0](https://airflow.apache.org/docs/helm-chart/1.12.0/release_notes.html#the-helm-chart-is-now-using-a-newer-version-of-bitnami-postgresql-dependency-34817))
+        if not airflow_values_override_config['postgresql']['enabled']:
+            console.print('Installing external database for the Apache Airflow metastore...')
+
+            # create secret for the Airflow metastore
+            airflow_db_host = platform_config['airflow_db'].get('AIRFLOW_DB_HOST', 'airflow-postgres')
+            airflow_db_port = platform_config['airflow_db'].get('AIRFLOW_DB_PORT', 5432)
+            airflow_db_user = platform_config['airflow_db'].get('AIRFLOW_DB_USER', 'airflow')
+            airflow_db_password = platform_config['airflow_db'].get('AIRFLOW_DB_PASSWORD', 'airflow')
+            airflow_db_name = platform_config['airflow_db'].get('AIRFLOW_DB_NAME', 'postgres')
+            result = subprocess.run(["kubectl", "create", "secret", "generic",
+                                     f"{airflow_values_override_config['data']['metadataSecretName']}",
+                                     f"--from-literal=connection=postgresql://{airflow_db_user}:{airflow_db_password}@{airflow_db_host}:{airflow_db_port}/{airflow_db_name}"])
+            if result.returncode != 0:
+                error_message = result.stderr.strip() if result.stderr else result.stdout.strip()
+
+            # deploy Airflow metastore database
+            airflow_db_image = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE',
+                                                                 'ghcr.io/cloudnative-pg/postgresql')
+            airflow_db_image_tag = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE_TAG', '13')
+            cnpg_operator_add_repo_command = [
+                "helm", "repo", "add", "cnpg", "https://cloudnative-pg.github.io/charts"
+            ]
+            console.print("Adding CloudNativePG repository...")
+            subprocess.run(cnpg_operator_add_repo_command)
+            helm_update_command = ["helm", "repo", "update", "cnpg"]
+            console.print("Updating helm repositories...")
+            subprocess.run(helm_update_command)
+            cnpg_operator_install_command = [
+                "helm", "install", "cnpg",
+                "--namespace", "cnpg-system",
+                "--create-namespace",
+                "--set", "config.clusterWide=false",
+                "cnpg/cloudnative-pg",
+                "--hide-notes"
+            ]
+            console.print("Installing CloudNativePG operator...")
+            subprocess.run(cnpg_operator_install_command)
+
+            airflow_db_manifest = [
+                {
+                    "apiVersion": "postgresql.cnpg.io/v1",
+                    "kind": "Cluster",
+                    "metadata": {
+                        "name": "airflow-postgres",
+                        "namespace": "default"
+                    },
+                    "spec": {
+                        "instances": 1,
+                        "imageName": f"{airflow_db_image}:{airflow_db_image_tag}",
+                        "storage": {
+                            "size": "1Gi"
+                        },
+                        "bootstrap": {
+                            "initdb": {
+                                "database": f"{airflow_db_name}",
+                                "owner": f"{airflow_db_user}",
+                                "secret": {
+                                    "name": f"{airflow_values_override_config['data']['metadataSecretName']}"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "v1",
+                    "kind": "Service",
+                    "metadata": {
+                        "name": "airflow-postgres-service"
+                    },
+                    "spec": {
+                        "type": "ClusterIP",
+                        "selector": {
+                            "app": "airflow-postgres"
+                        },
+                        "ports": [
+                            {
+                                "protocol": "TCP",
+                                "port": 5432,
+                                "targetPort": 5432
+                            }
+                        ]
+                    }
+                }
+            ]
+
+            with NamedTemporaryFile(suffix='.yaml', mode="w") as fp:
+                yaml.dump(airflow_db_manifest, fp)
+                commands = [
+                    "kubectl", "apply", "-f", str(fp.name), "--validate=false"
+                ]
+                subprocess.run(commands, stdout=subprocess.DEVNULL)
+                result = subprocess.run(
+                    ["kubectl", "wait", "--namespace", "default", "--for", "condition=ready",
+                     "cluster/airflow-postgres",
+                     "--timeout=60s"])
+                if result.returncode != 0:
+                    error_message = result.stderr.strip() if result.stderr else result.stdout.strip() if result.stdout else 'no details given'
+                    raise Exception(
+                        f"An error occurred while installing database for Apache Airflow metastore: {error_message}")
+                console.print("database for the Apache Airflow metastore installed successfully!",
+                              style=f"bold {COLOR_PALETTE.get('success')}")
+                console.print("")
+
         # Create temporary file with airflow values
         with NamedTemporaryFile(suffix='.yaml', mode="w") as fp:
             yaml.dump(airflow_values_override_config, fp)
