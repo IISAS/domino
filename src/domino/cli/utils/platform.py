@@ -227,6 +227,23 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
     console.print("")
     console.print("Kind cluster created successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
 
+    # External database for the Airflow metastore (due to [changes](https://github.com/bitnami/containers/issues/83267) related to bitnami images since [v1.12.0](https://airflow.apache.org/docs/helm-chart/1.12.0/release_notes.html#the-helm-chart-is-now-using-a-newer-version-of-bitnami-postgresql-dependency-34817))
+    console.print("")
+    console.print("Installing external database for the Airflow metastore...")
+    # create secret for the Airflow metastore
+    airflow_metadata_secret_name = 'airflow_metadata_secret'
+    airflow_db_host = platform_config['airflow_db'].get('AIRFLOW_DB_HOST', 'airflow-postgresql')
+    airflow_db_port = platform_config['airflow_db'].get('AIRFLOW_DB_PORT', 5432)
+    airflow_db_user = platform_config['airflow_db'].get('AIRFLOW_DB_USER', 'airflow')
+    airflow_db_password = platform_config['airflow_db'].get('AIRFLOW_DB_PASSWORD', 'airflow')
+    airflow_db_name = platform_config['airflow_db'].get('AIRFLOW_DB_NAME', 'postgres')
+    result = subprocess.run(["kubectl", "create", "secret", "generic", f"{airflow_metadata_secret_name}", f"--from-literal=connection=postgresql://{airflow_db_user}:{airflow_db_password}@{airflow_db_host}:{airflow_db_port}/{airflow_db_name}"])
+    if result.returncode != 0:
+        error_message = result.stderr.strip() if result.stderr else result.stdout.strip()
+    # install database
+    airflow_db_image = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE', 'ghcr.io/cloudnative-pg/postgresql')
+    airflow_db_image_tag = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE_TAG', '13')
+
     # Install Ingress NGINX controller
     console.print("")
     console.print("Installing NGINX controller...")
@@ -429,6 +446,12 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             "annotations": {
                 "sidecar.istio.io/inject": "false"
             },
+        },
+        "postgresql": {
+            "enabled": False,
+        },
+        "data": {
+            "metadataSecretName": airflow_metadata_secret_name
         },
         **workers,
         **scheduler,
