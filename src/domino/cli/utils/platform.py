@@ -231,7 +231,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
     console.print("")
     console.print("Installing external database for the Airflow metastore...")
     # create secret for the Airflow metastore
-    airflow_metadata_secret_name = 'airflow_metadata_secret'
+    airflow_metadata_secret_name = 'airflow-metadata-secret'
     airflow_db_host = platform_config['airflow_db'].get('AIRFLOW_DB_HOST', 'airflow-postgresql')
     airflow_db_port = platform_config['airflow_db'].get('AIRFLOW_DB_PORT', 5432)
     airflow_db_user = platform_config['airflow_db'].get('AIRFLOW_DB_USER', 'airflow')
