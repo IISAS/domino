@@ -37,7 +37,7 @@ jobs:
 
       - name: Prepare and create cluster.
         run: |
-          domino platform prepare --cluster-name=domino-cluster --workflows-repository=${{secrets.TESTS_WORKFLOWS_REPOSITORY}} --github-workflows-ssh-private-key='' --github-workflows-token=${{ secrets.TESTS_GITHUB_WORKFLOWS_TOKEN }} --github-default-pieces-repository-token=${{ secrets.TESTS_GITHUB_PIECES_TOKEN }} --deploy-mode=local-k8s-dev --local-pieces-repository-path=[] --local-domino-path='./src/domino' --local-rest-image='domino-rest:test' --local-frontend-image='' --local-airflow-image=''
+          domino platform prepare --cluster-name=domino-cluster --http-port=80 --https-port=443 --workflows-repository=${{secrets.TESTS_WORKFLOWS_REPOSITORY}} --github-workflows-ssh-private-key='' --github-workflows-token=${{ secrets.TESTS_GITHUB_WORKFLOWS_TOKEN }} --github-default-pieces-repository-token=${{ secrets.TESTS_GITHUB_PIECES_TOKEN }} --deploy-mode=local-k8s-dev --local-pieces-repository-path=[] --local-domino-path='./src/domino' --local-rest-image='domino-rest:test' --local-frontend-image='' --local-airflow-image=''
           domino platform create --install-airflow=False
 
       - name: Install tests dependencies.
