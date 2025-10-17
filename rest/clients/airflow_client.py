@@ -63,7 +63,7 @@ class AirflowRestClient(requests.Session):
                 self.logger.info("Obtained JWT token for authentication.")
             except Exception as e:
                 self.logger.exception("Failed to obtain JWT token.")
-                raise
+                self.jwt_token = None
             finally:
                 self.retrieving_jwt_token = False
 
