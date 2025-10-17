@@ -595,7 +595,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 commands = [
                     "helm", "install",
                     "-f", str(fp.name),
-                    "domino-iisas",
+                    "domino",
                     f"{tmp_dir}/domino",
                 ]
                 subprocess.run(commands)
