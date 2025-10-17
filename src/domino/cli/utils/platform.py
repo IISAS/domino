@@ -310,14 +310,6 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             "image": domino_rest_image,
             "workflowsRepository": platform_config['github']['DOMINO_GITHUB_WORKFLOWS_REPOSITORY'],
             "createDefaultUser": platform_config['domino_db'].get('DOMINO_CREATE_DEFAULT_USER', True)
-        },
-        "database": {
-            "enabled": db_enabled,
-            "image": "postgres:18",
-            "name": "postgres",
-            "user": "postgres",
-            "password": "postgres",
-            "port": "5432",
         }
     }
 
