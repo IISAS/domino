@@ -48,6 +48,14 @@ def get_cluster_name_from_env():
     return cluster_name
 
 
+def get_cluster_http_port_from_env():
+    return os.environ.get("DOMINO_KIND_CLUSTER_HTTP_PORT", 80)
+
+
+def get_cluster_https_port_from_env():
+    return int(os.environ.get("DOMINO_KIND_CLUSTER_HTTPS_PORT", 443))
+
+
 def get_github_workflows_ssh_private_key_from_env():
     return os.environ.get("DOMINO_GITHUB_WORKFLOWS_SSH_PRIVATE_KEY", "")
 
@@ -82,6 +90,18 @@ def get_github_token_pieces_from_config_or_env():
     prompt='Local cluster name',
     default=get_cluster_name_from_env,
     help='Define the name for the local k8s cluster.'
+)
+@click.option(
+    '--http-port',
+    prompt='Local cluster HTTP port',
+    default=get_cluster_http_port_from_env,
+    help='Define the HTTP port for the local k8s cluster.'
+)
+@click.option(
+    '--https-port',
+    prompt='Local cluster HTTPS port',
+    default=get_cluster_https_port_from_env,
+    help='Define the HTTPS port for the local k8s cluster.'
 )
 @click.option(
     '--workflows-repository',
@@ -145,6 +165,8 @@ def get_github_token_pieces_from_config_or_env():
 )
 def cli_prepare_platform(
     cluster_name,
+    http_port,
+    https_port,
     workflows_repository,
     github_workflows_ssh_private_key,
     github_default_pieces_repository_token,
@@ -160,6 +182,8 @@ def cli_prepare_platform(
     """Prepare local folder for running a Domino platform."""
     platform.prepare_platform(
         cluster_name=cluster_name,
+        http_port=int(http_port),
+        https_port=int(https_port),
         workflows_repository=workflows_repository,
         github_workflows_ssh_private_key=github_workflows_ssh_private_key,
         github_default_pieces_repository_token=github_default_pieces_repository_token,

@@ -59,6 +59,8 @@ def create_ssh_pair_key() -> None:
 
 def prepare_platform(
     cluster_name: str,
+    http_port: int,
+    https_port: int,
     workflows_repository: str,
     github_workflows_ssh_private_key: str,
     github_default_pieces_repository_token: str,
@@ -79,6 +81,10 @@ def prepare_platform(
     config_dict["path"]["DOMINO_LOCAL_RUNNING_PATH"] = running_path
     config_dict["kind"]["DOMINO_KIND_CLUSTER_NAME"] = cluster_name
     config_dict['kind']['DOMINO_DEPLOY_MODE'] = deploy_mode
+    config_dict["kind"]["DOMINO_KIND_CLUSTER_HTTP_PORT"] = http_port
+    config_dict["kind"]["DOMINO_KIND_CLUSTER_HTTPS_PORT"] = https_port
+
+    config_dict["domino_frontend"]["API_URL"] = "http://localhost{}/api".format(f":{http_port}")
 
     if deploy_mode == 'local-k8s-dev':
         config_dict['dev']['DOMINO_AIRFLOW_IMAGE'] = local_airflow_image
@@ -172,19 +178,13 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 extraPortMappings=[
                     dict(
                         containerPort=80,
-                        hostPort=platform_config['kind'].get('HTTP_PORT_HOST', 80),
+                        hostPort=platform_config['kind'].get('DOMINO_KIND_CLUSTER_HTTP_PORT', 80),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
                     ),
                     dict(
                         containerPort=443,
-                        hostPort=platform_config['kind'].get('HTTPS_PORT_HOST', 443),
-                        listenAddress="0.0.0.0",
-                        protocol="TCP"
-                    ),
-                    dict(
-                        containerPort=8080,
-                        hostPort=platform_config['airflow'].get('AIRFLOW_API_SERVER_PORT_HOST', 8080),
+                        hostPort=platform_config['kind'].get('DOMINO_KIND_CLUSTER_HTTPS_PORT', 443),
                         listenAddress="0.0.0.0",
                         protocol="TCP"
                     )
@@ -302,7 +302,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             "image": domino_frontend_image,
             "apiEnv": "dev" if platform_config['kind']["DOMINO_DEPLOY_MODE"] in ['local-k8s-dev', 'local-k8s'] else 'prod',
             "deployMode": platform_config['kind']["DOMINO_DEPLOY_MODE"],
-            "apiUrl": platform_config['domino_frontend'].get('API_URL', 'http://localhost:{}/api'.format(platform_config['kind'].get('HTTP_PORT_HOST', 80))),
+            "apiUrl": platform_config['domino_frontend'].get('API_URL', 'http://localhost:{}/api'.format(platform_config['kind'].get('DOMINO_KIND_CLUSTER_HTTP_PORT', 80))),
             "baseName": platform_config['domino_frontend'].get('BASE_NAME', '/')
         },
         "rest": {
@@ -313,7 +313,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
         },
         "database": {
             "enabled": db_enabled,
-            "image": "postgres:13",
+            "image": "postgres:18",
             "name": "postgres",
             "user": "postgres",
             "password": "postgres",
@@ -518,7 +518,8 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                     "apiVersion": "v1",
                     "kind": "Service",
                     "metadata": {
-                        "name": "airflow-postgres-service"
+                        "name": "airflow-postgres-service",
+                        "namespace": "default"
                     },
                     "spec": {
                         "type": "ClusterIP",
@@ -580,7 +581,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             commands = [
                 "helm", "install",
                 "-f", str(fp.name),
-                "domino-iisas",
+                "domino",
                 helm_domino_path
             ]
             subprocess.run(commands)
@@ -769,9 +770,9 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
 
     console.print("")
     console.print("K8s resources created successfully!", style=f"bold {COLOR_PALETTE.get('success')}")
-    console.print("You can now access the Domino frontend at: http://localhost:{}/".format(platform_config['kind'].get('HTTP_PORT_HOST')))
-    console.print("Domino's REST API: http://localhost:{}/api/".format(platform_config['kind'].get('HTTP_PORT_HOST')))
-    console.print("Domino's REST API Swagger: http://localhost:{}/api/docs".format(platform_config['kind'].get('HTTP_PORT_HOST')))
+    console.print("You can now access the Domino frontend at: http://localhost:{}/".format(platform_config['kind'].get('DOMINO_KIND_CLUSTER_HTTP_PORT')))
+    console.print("Domino's REST API: http://localhost:{}/api/".format(platform_config['kind'].get('DOMINO_KIND_CLUSTER_HTTP_PORT')))
+    console.print("Domino's REST API Swagger: http://localhost:{}/api/docs".format(platform_config['kind'].get('DOMINO_KIND_CLUSTER_HTTP_PORT')))
     console.print("")
 
 
