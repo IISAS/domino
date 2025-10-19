@@ -6,6 +6,7 @@ import enum
 
 class RepositorySourceRequestEnum(str, enum.Enum):
     github = 'github'
+    @enum.member
     class Config:
         use_enum_values = True
 
