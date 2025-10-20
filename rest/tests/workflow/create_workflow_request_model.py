@@ -11,7 +11,7 @@ workflow_request_model = {
                         "dockerfile": None,
                         "requirements_file": "requirements_0.txt"
                     },
-                    "source_image": "ghcr.io/iisas/default_domino_pieces:0.5.0-group0",
+                    "source_image": "ghcr.io/iisas/default_domino_pieces:0.9.0-group0",
                     "input_schema": {
                         "$defs": {
                             "InputEnum": {
@@ -393,7 +393,7 @@ workflow_request_model = {
             "task_id": "SimpleLogP_0298c1669d404e08b631ebe1490e1c45",
             "piece": {
                 "name": "SimpleLogPiece",
-                "source_image": "ghcr.io/iisas/default_domino_pieces_tests:0.0.5-group0"
+                "source_image": "ghcr.io/iisas/default_domino_pieces_tests:0.0.9-group0"
             },
             "workflow_shared_storage": {
                 "source": "None",

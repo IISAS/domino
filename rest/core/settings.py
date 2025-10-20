@@ -7,7 +7,7 @@ from database.models.enums import RepositorySource
 
 class Settings(BaseSettings):
     # General app config
-    VERSION: str = "0.1.0"
+    VERSION: str = "0.2.0"
     APP_TITLE: str = "Domino REST api"
 
     # Database config
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     DEFAULT_REPOSITORIES_LIST: list[dict] = [
         dict(
             path="IISAS/default_domino_pieces",
-            version='0.1.0',
+            version='0.9.0',
             source='github',
             require_token=False,
             url='https://github.com/IISAS/default_domino_pieces'
