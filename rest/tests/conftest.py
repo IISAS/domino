@@ -55,7 +55,7 @@ def piece_repository():
         id=1,
         source="github",
         path="IISAS/default_domino_pieces_tests",
-        version="0.0.8",
+        version="0.0.9",
         workspace_id=1,
         url='https://github.com/IISAS/default_domino_pieces_tests'
     )
