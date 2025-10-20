@@ -5,6 +5,7 @@ class RepositorySource(str, enum.Enum):
     github = 'github'
     default = 'default'
 
+    @enum.member
     class Config:
         use_enum_values = True
 
@@ -15,6 +16,7 @@ class Permission(str, enum.Enum):
     write = 'write'
     read = 'read'
 
+    @enum.member
     class Config:
         use_enum_values = True
 
@@ -29,6 +31,7 @@ class UserWorkspaceStatus(str, enum.Enum):
     accepted = 'accepted'
     rejected = 'rejected'
 
+    @enum.member
     class Config:
         use_enum_values = True
 
@@ -42,5 +45,6 @@ class WorkflowScheduleInterval(str, enum.Enum):
     monthly = 'monthly'
     yearly = 'yearly'
 
+    @enum.member
     class Config:
         use_enum_values = True
