@@ -135,7 +135,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             all_volumes.append(volume_dev_pieces)
             all_volume_mounts.append(volume_mount_dev_pieces)
 
-        ######################## For local domino-py dev ###############################################
+        ######################## For local domino-py-iisas dev ###############################################
         domino_package_local_claim_name = 'domino-dev-volume-claim'
         pvc_exists = False
         try:

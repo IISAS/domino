@@ -9,14 +9,14 @@ from domino.client.github_rest_client import GithubRestClient
 class Actions(object):
     github_client = GithubRestClient(token=os.environ.get("GITHUB_TOKEN"))
     repo_name = os.environ.get("GITHUB_REPOSITORY")
-    new_tag = f"domino-py-{domino.__version__}"
+    new_tag = f"domino-py-iisas-{domino.__version__}"
 
     @classmethod
     def _validate_package_version(cls):
         """
         Check if the version number is in the correct format.
         """
-        pattern = r"^domino-py-\d+\.\d+\.\d+$"
+        pattern = r"^domino-py-iisas-\d+\.\d+\.\d+$"
         matched = re.match(pattern, cls.new_tag)
         if matched:
             return cls.new_tag
@@ -30,7 +30,7 @@ class Actions(object):
         releases = cls.github_client.get_releases(repo_name=cls.repo_name)
         if not releases:
             return
-        releases_py = [release for release in releases if "domino-py-" in release.tag_name]
+        releases_py = [release for release in releases if "domino-py-iisas-" in release.tag_name]
         for release in releases_py:
             if release.tag_name == cls.new_tag:
                 raise Exception("Version already exists.")

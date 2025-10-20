@@ -9,7 +9,7 @@ on:
       - Dockerfile-domino-piece.gpu-prod
       - Dockerfile-domino-piece.prod
   workflow_run:
-    workflows: ["Build and publish domino-py package"]
+    workflows: ["Build and publish domino-py-iisas package"]
     branches: [main]
     types:
       - completed
