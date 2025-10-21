@@ -447,40 +447,41 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             console.print('Installing external database for the Apache Airflow metastore...')
 
             # create secret for the Airflow metastore
-            airflow_db_host = platform_config['airflow_db'].get('AIRFLOW_DB_HOST', 'airflow-postgres')
+            airflow_db_host = platform_config['airflow_db'].get('AIRFLOW_DB_HOST', 'cluster/airflow-postgres')
             airflow_db_port = platform_config['airflow_db'].get('AIRFLOW_DB_PORT', 5432)
             airflow_db_user = platform_config['airflow_db'].get('AIRFLOW_DB_USER', 'airflow')
             airflow_db_password = platform_config['airflow_db'].get('AIRFLOW_DB_PASSWORD', 'airflow')
             airflow_db_name = platform_config['airflow_db'].get('AIRFLOW_DB_NAME', 'postgres')
-            result = subprocess.run(["kubectl", "create", "secret", "generic",
-                                     f"{airflow_values_override_config['data']['metadataSecretName']}",
-                                     f"--from-literal=connection=postgresql://{airflow_db_user}:{airflow_db_password}@{airflow_db_host}:{airflow_db_port}/{airflow_db_name}"])
+            result = subprocess.run(
+                [
+                    "kubectl",
+                    "create",
+                    "secret",
+                    "generic",
+                    f"{airflow_values_override_config['data']['metadataSecretName']}",
+                    f"--from-literal=connection=postgresql://{airflow_db_user}:{airflow_db_password}@{airflow_db_host}:{airflow_db_port}/{airflow_db_name}",
+                    f"--from-literal=username={airflow_db_user}",
+                    f"--from-literal=password={airflow_db_password}",
+                ]
+            )
             if result.returncode != 0:
                 error_message = result.stderr.strip() if result.stderr else result.stdout.strip()
 
-            # deploy Airflow metastore database
-            airflow_db_image = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE',
-                                                                 'ghcr.io/cloudnative-pg/postgresql')
-            airflow_db_image_tag = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE_TAG', '13')
-            cnpg_operator_add_repo_command = [
-                "helm", "repo", "add", "cnpg", "https://cloudnative-pg.github.io/charts"
-            ]
             console.print("Adding CloudNativePG repository...")
-            subprocess.run(cnpg_operator_add_repo_command)
-            helm_update_command = ["helm", "repo", "update", "cnpg"]
-            console.print("Updating helm repositories...")
-            subprocess.run(helm_update_command)
-            cnpg_operator_install_command = [
-                "helm", "install", "cnpg",
-                "--namespace", "cnpg-system",
-                "--create-namespace",
-                "--set", "config.clusterWide=false",
-                "cnpg/cloudnative-pg",
-                "--hide-notes"
-            ]
-            console.print("Installing CloudNativePG operator...")
-            subprocess.run(cnpg_operator_install_command)
+            subprocess.run(["helm", "repo", "add", "cnpg", "https://cloudnative-pg.github.io/charts"])
 
+            console.print("Updating helm repositories...")
+            subprocess.run(["helm", "repo", "update", "cnpg"])
+
+            console.print("Installing CloudNativePG operator...")
+            subprocess.run(["helm", "install", "cnpg", "--namespace", "default", "--set", "config.clusterWide=false", "cnpg/cloudnative-pg", "--hide-notes"])
+
+            console.print("Waiting fot the CloudNativePG operator to be ready...")
+            subprocess.run(["kubectl", "wait", "--namespace", "default", "--for", "condition=Available", "deployment/cnpg-cloudnative-pg", "--timeout=60s"])
+
+            # deploy Airflow metastore database
+            airflow_db_image = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE', 'ghcr.io/cloudnative-pg/postgresql')
+            airflow_db_image_tag = platform_config['airflow_db'].get('AIRFLOW_DB_IMAGE_TAG', '13')
             airflow_db_manifest = [
                 {
                     "apiVersion": "postgresql.cnpg.io/v1",
@@ -537,7 +538,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
                 fp.write(yaml_output)
                 fp.close()
                 commands = [
-                    "kubectl", "apply", "-f", str(fp.name), "--validate=false"
+                    "kubectl", "apply", "-f", str(fp.name)
                 ]
                 subprocess.run(commands, stdout=subprocess.DEVNULL)
                 commands = [
