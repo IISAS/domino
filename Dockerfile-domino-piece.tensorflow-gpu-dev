@@ -1,0 +1,48 @@
+FROM tensorflow/tensorflow:2.20.0-gpu
+
+ARG PYTHON_VERSION=python3.11
+
+ENV PYTHONUNBUFFERED=1
+
+# SYSTEM
+RUN apt-get update --yes --quiet && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
+    software-properties-common \
+    build-essential \
+    apt-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python
+RUN apt-get update --yes --quiet
+RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
+    python3-setuptools \
+    ${PYTHON_VERSION}-lib2to3 \
+    ${PYTHON_VERSION}-gdbm \
+    ${PYTHON_VERSION}-tk
+
+# downgrade protobuf, see: https://github.com/tensorflow/tensorflow/issues/98980
+RUN pip install "protobuf>=5.28.3,<6"
+
+# Domino
+## Create folders to store source code
+RUN mkdir -p /home/domino/pieces_repository
+
+## Create folder to store run data results
+RUN mkdir -p /home/run_data
+WORKDIR /home/run_data
+RUN chmod -R 777 .
+
+## Create folder for sidecar pod mount to read xcom data
+RUN mkdir -p /airflow/xcom/
+RUN echo "{}" > /airflow/xcom/return.json
+WORKDIR /airflow/xcom
+RUN chmod -R 777 .
+
+## Editable pip install for Domino from local folder
+RUN mkdir -p /home/domino/domino_py
+COPY pyproject.toml /home/domino/domino_py/
+COPY src/domino /home/domino/domino_py/src/domino
+WORKDIR /home/domino/domino_py
+RUN chmod -R 777 .
+RUN pip install --no-cache -e .[cli]
+
+WORKDIR /home
