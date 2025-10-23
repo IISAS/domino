@@ -1,4 +1,4 @@
-FROM apache/airflow:3.0.6-python3.12
+FROM apache/airflow:3.0.6-python3.11
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

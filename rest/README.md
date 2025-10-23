@@ -25,8 +25,8 @@ export DOMINO_DB_NAME=<your-db-name>
 ### 2. In order to run the server you will need to install the dependencies, we suggest you create a virtual environment and install the dependencies in there. You can choose the way you want to create the virtual environment. Here is a suggestion:
 
 ```bash
-# Create the virtual env with python 3.12
-python3.12 -m venv venv 
+# Create the virtual env with python 3.11
+python3.11 -m venv venv 
 # Activate the virtual env
 source venv venv/bin/activate
 # Install the dependencies

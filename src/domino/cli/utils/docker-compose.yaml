@@ -3,7 +3,7 @@
 ---
 x-airflow-common:
   &airflow-common
-  image: apache/airflow:3.0.6-python3.12
+  image: apache/airflow:3.0.6-python3.11
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
