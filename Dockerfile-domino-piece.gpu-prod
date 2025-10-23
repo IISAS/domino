@@ -24,7 +24,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 RUN pip install --upgrade pip
 
-
 # Domino
 ## Create folders to store source code
 RUN mkdir -p /home/domino/pieces_repository
