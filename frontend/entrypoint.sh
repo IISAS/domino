@@ -17,7 +17,7 @@ if [ "${BASENAME}" = "/" ]; then
 else
   echo "Adding location block for BASENAME=${BASENAME}..."
   # Inject the location block before envsubst
-  awk -v block="location ${BASENAME} {\n    rewrite ^${BASENAME}(.*)\$ /\\1 last;\n}\n" \
+  awk -v block="location ${BASENAME} {\n    rewrite ^${BASENAME}(.*)\$ /\$1 last;\n}\n" \
       '/__LOCATION_BASENAME__/ {print block; next} {print}' "${TEMPLATE}" > "${OUTPUT}"
 fi
 
