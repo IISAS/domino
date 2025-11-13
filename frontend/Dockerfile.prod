@@ -1,5 +1,7 @@
 # Stage 1: Build the React app
 FROM node:18-slim AS build
+ARG BASENAME
+ENV BASENAME="${BASENAME}"
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable

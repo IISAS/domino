@@ -1,12 +1,10 @@
 server {
     listen 80;
     server_name localhost;
+    root /usr/share/nginx/html;
 
-    # __LOCATION_BASENAME__   <-- placeholder
-
-    location / {
-        root /usr/share/nginx/html;
+    location ${BASENAME} {
         index index.html index.htm;
-        try_files $uri /$uri/ /index.html;
+        try_files $uri $uri/ /index.html;
     }
 }
