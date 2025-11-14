@@ -8,5 +8,5 @@ import { getBasename } from "@utils/basenameUtils";
  * @returns a properly concatenated path, e.g. "/basename/assets/main_logo_white.png"
  */
 export function buildAssetSrc(assetPath: string): string {
-  return `${getBasename()}/${assetPath}`.replace(/([^:]\/)\/+/g, '$1');
+  return getBasename() + (assetPath.startsWith("/") ? assetPath : "/" + assetPath);
 }

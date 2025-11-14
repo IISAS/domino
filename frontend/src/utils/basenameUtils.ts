@@ -6,10 +6,8 @@ import { environment } from "@config/environment.config";
  * Ensures result always starts with '/' unless empty.
  */
 export function getBasename(): string {
-  const raw = environment.BASENAME ?? "";
-  if (!raw) {
-    return "/";
-  }
+  const raw = environment.BASENAME ?? "/";
+
   // Ensure it starts with a forward slash
   let base = raw.startsWith("/") ? raw : "/" + raw;
 

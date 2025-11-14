@@ -4,6 +4,7 @@ server {
     root /usr/share/nginx/html;
 
     location ${BASENAME} {
+        rewrite ${BASENAME}(/assets/.*)$ $1;
         index index.html index.htm;
         try_files $uri $uri/ /index.html;
     }
