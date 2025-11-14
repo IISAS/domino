@@ -10,9 +10,13 @@ from rich.console import Console
 
 console = Console()
 
+def create_docker_client():
+    return docker.from_env(
+        timeout = int(os.environ.get("DOCKER_CLIENT_TIMEOUT", 60))
+    )
 
 def publish_image(source_image_name: str):
-    client = docker.from_env()
+    client = create_docker_client()
     print(f"Publishing docker image: {source_image_name}")
     print(Style.RESET_ALL + Style.DIM, end='')
     try:
@@ -33,7 +37,7 @@ def build_image_from_tmp_dockerfile(
     path: str = ".",
     dockerfile: str = "Dockerfile-tmp"
 ):
-    client = docker.from_env()
+    client = create_docker_client()
     try:
         os.environ["DOCKER_BUILDKIT"] = "1"
         print(Fore.BLUE + f"Building docker image: {source_image_name}")
