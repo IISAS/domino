@@ -7,8 +7,8 @@ github_access_token_workflows: default-substitute-this-for-your-own-token
 frontend:
   enabled: true
   image: ghcr.io/iisas/domino-frontend
-  deployMode: local-k8s # TODO change to prod
-  tag: latest
+  #deployMode: local-k8s # TODO change to prod
+  tag: k8s
   apiUrl: http://localhost/api
   baseName: /
 
