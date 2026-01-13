@@ -6,7 +6,7 @@ github_access_token_workflows: default-substitute-this-for-your-own-token
 # Frontend service
 frontend:
   enabled: true
-  image: ghcr.io/iisas/domino-frontend:k8s
+  image: ghcr.io/iisas/domino-frontend
   tag: latest
   apiUrl: http://localhost/api
   baseName: /
@@ -14,7 +14,7 @@ frontend:
 # REST service
 rest:
   enabled: true
-  image: ghcr.io/iisas/domino-rest:latest
+  image: ghcr.io/iisas/domino-rest
   tag: latest
   deployMode: local-k8s # TODO change to prod
   # Github workflows repository name - Same one used in airflow gitSync ssh
