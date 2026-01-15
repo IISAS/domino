@@ -173,7 +173,7 @@ class ProdSettings1(Settings):
         ],
         "allow_credentials": True,
         "allow_methods": ["GET", "POST", "HEAD", "OPTIONS"],
-        "allow_headers": ["Accept", "Accept-Language", "Content-Language", "content-type", "Content-Type", "application/json", "Content-Type: application/json", "content-type: application/json", ],
+        "allow_headers": ["Accept", "Accept-Language", "Content-Language", "content-type", "Content-Type", "Authorization", ],
     }
 
     # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
