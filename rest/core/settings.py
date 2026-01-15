@@ -171,9 +171,9 @@ class ProdSettings1(Settings):
             "http://domino-frontend-service:80/domino",
             "http://domino-frontend-service:80/domino/",
         ],
-        "allow_credentials": False,
-        "allow_methods": ["GET", "POST", "HEAD"],
-        "allow_headers": ["Accept", "Accept-Language", "Content-Language", "content-type", "Range"],
+        "allow_credentials": True,
+        "allow_methods": ["GET", "POST", "HEAD", "OPTIONS"],
+        "allow_headers": ["Accept", "Accept-Language", "Content-Language", "content-type", "Content-Type", "application/json", "Content-Type: application/json", "content-type: application/json", ],
     }
 
     # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
