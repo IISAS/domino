@@ -159,21 +159,12 @@ class ProdSettings1(Settings):
     CORS: dict = {
         "origins": [
             "http://147.213.76.237:30007",
-            "http://147.213.76.237:30007/",
-            "http://localhost:8000",
-            "http://localhost:8000/",
-            "http://domino-rest-service:8000/rest",
-            "http://domino-rest-service:8000/rest/",
-            "http://domino-rest-service:8000",
-            "http://domino-rest-service:8000/",
-            "http://domino-frontend-service:80",
-            "http://domino-frontend-service:80/",
-            "http://domino-frontend-service:80/domino",
-            "http://domino-frontend-service:80/domino/",
+            "147.213.76.237:30007",
+            "domino-rest-service:8000",            
         ],
         "allow_credentials": True,
-        "allow_methods": ["GET", "POST", "HEAD", "OPTIONS"],
-        "allow_headers": ["Accept", "Accept-Language", "Content-Language", "content-type", "Content-Type", "Authorization", ],
+        "allow_methods": ["GET", "POST", "HEAD", "OPTIONS", "DELETE", "PUT", "CONNECT", "TRACE", "PATCH"],
+        "allow_headers": ["Accept", "Accept-Language", "Content-Type: application/json", "Authorization"],
     }
 
     # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
