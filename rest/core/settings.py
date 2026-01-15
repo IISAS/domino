@@ -151,6 +151,24 @@ class ProdSettings(Settings):
     ROOT_PATH: str = os.environ.get('ROOT_PATH', '/api')
 
 
+class ProdSettings1(Settings):
+    SERVER_HOST: str = "0.0.0.0"
+    DEBUG: bool = False
+    PORT: int = int(os.environ.get('DOMINO_REST_PORT_HOST', 8000))
+    RELOAD: bool = False
+    CORS: dict = {
+        "origins": [
+            "http://147.213.76.237:30007",
+        ],
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+
+    # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
+    ROOT_PATH: str = os.environ.get('ROOT_PATH', '/api')
+
+
 def get_settings():
     env = os.getenv("DOMINO_DEPLOY_MODE", "local-k8s-dev")
     settings_type = {
@@ -158,6 +176,7 @@ def get_settings():
         "local-k8s-dev": LocalK8sSettings(),
         "local-compose": LocalComposeSettings(),
         "prod": ProdSettings(),
+        "prod1": ProdSettings1(),
     }
     return settings_type[env]
 
