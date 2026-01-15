@@ -159,10 +159,11 @@ class ProdSettings1(Settings):
     CORS: dict = {
         "origins": [
             "http://147.213.76.237:30007",
+            ""http://147.213.76.237:30007/",
         ],
         "allow_credentials": True,
         "allow_methods": ["GET", "POST", "HEAD"],
-        "allow_headers": ["Accept", "Accept-Language", "Content-Language", "Content-Type", "Range"],
+        "allow_headers": ["Accept", "Accept-Language", "Content-Language", "content-type", "Range"],
     }
 
     # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
