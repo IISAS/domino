@@ -1,5 +1,5 @@
-#FROM python:3.12-slim
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim
+#FROM python:3.12-slim-bookworm
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
@@ -8,6 +8,7 @@ RUN pip install --upgrade pip
 
 RUN groupadd -g ${GROUP_ID} domino && \
     useradd -m -u ${USER_ID} -g ${GROUP_ID} domino
+    usermod -a -G root domino
 
 USER domino
 
