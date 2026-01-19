@@ -6,7 +6,7 @@ ARG USER_ID=1000
 ARG GROUP_ID=1000
 
 RUN apt update && \
-    apt install sudo -y
+    apt install sudo procps net-tools iputils-ping curl vim -y
 
 RUN pip install --upgrade pip
 
@@ -17,7 +17,7 @@ RUN groupadd -g ${GROUP_ID} domino && \
 
 RUN echo '%sudo ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers ;
 
-RUN echo "domino:domino" | chpasswd
+#RUN echo "domino:domino" | chpasswd
 
 USER domino
 
