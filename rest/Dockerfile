@@ -1,9 +1,12 @@
-#FROM python:3.12-slim
+FROM python:3.12-slim
 #FROM python:3.12-slim-bookworm
-FROM python:3.12.12
+#FROM python:3.12.12
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
+
+RUN apt update && \
+    apt install sudo -y
 
 RUN pip install --upgrade pip
 
