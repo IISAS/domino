@@ -12,7 +12,8 @@ RUN pip install --upgrade pip
 
 RUN groupadd -g ${GROUP_ID} domino && \
     useradd --system -m -u ${USER_ID} -g ${GROUP_ID} domino && \
-    usermod -a -G root domino
+    usermod -a -G root domino && \
+    adduser domino sudo
 
 RUN echo '%sudo ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers ;
 
