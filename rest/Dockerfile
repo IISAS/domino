@@ -1,5 +1,6 @@
-FROM python:3.12-slim
+#FROM python:3.12-slim
 #FROM python:3.12-slim-bookworm
+FROM python:3.12.12
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
