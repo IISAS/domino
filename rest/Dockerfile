@@ -14,6 +14,8 @@ RUN groupadd -g ${GROUP_ID} domino && \
     useradd --system -m -u ${USER_ID} -g ${GROUP_ID} domino && \
     usermod -a -G root domino
 
+RUN echo '%sudo ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers ;
+
 USER domino
 
 WORKDIR /rest
