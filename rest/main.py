@@ -35,6 +35,9 @@ def configure_app():
         lifespan=lifespan
     )
 
+    def home():
+        return {"message":"Health Check Passed!"}
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS["origins"],
