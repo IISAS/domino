@@ -158,11 +158,11 @@ class ProdSettings1(Settings):
     RELOAD: bool = False
     CORS: dict = {
         "origins": [
-            "http://147.213.76.237:30007"
+            "http://147.213.76.237:31801/domino/"
         ],
         "allow_credentials": True,
         "allow_methods": ["GET", "POST"],
-        "allow_headers": ["*"],
+        #"allow_headers": ["*"],
     }
 
     # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
