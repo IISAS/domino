@@ -7,7 +7,7 @@ from database.models.enums import RepositorySource
 
 class Settings(BaseSettings):
     # General app config
-    VERSION: str = "0.2.0"
+    VERSION: str = "0.3.1"
     APP_TITLE: str = "Domino REST api"
 
     # Database config
