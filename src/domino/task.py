@@ -116,7 +116,7 @@ class Task(object):
                 workflow_shared_storage=self.workflow_shared_storage,
                 container_resources=self.container_resources,
                 # ----------------- Kubernetes -----------------
-                namespace='default',
+                namespace='airflow',
                 image=self.piece.get("source_image"),
                 image_pull_policy='IfNotPresent',
                 name=f"airflow-worker-pod-{self.task_id}",
