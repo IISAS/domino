@@ -26,6 +26,7 @@ export type EndDateTypes = `${endDateTypes}`;
 
 export enum storageSourcesAWS {
   None = "None",
+  Local = "Local",
   AWS_S3 = "AWS S3",
 }
 
