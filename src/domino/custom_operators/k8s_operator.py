@@ -469,13 +469,12 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
 
 
     def execute(self, context: Context):
-        print("SELF: ", self)
-        print("CONTEXT: ", context)
-        
         """
         Code from here onward is executed by the Worker and not by the Scheduler.
         """
         # TODO change url based on platform configuration
+        self.logger.info(self)
+        self.logger.info(context)
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest-service:8000/")
         self._prepare_execute_environment(context=context)
         remote_pod = None
