@@ -469,6 +469,9 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
 
 
     def execute(self, context: Context):
+        print("SELF: ", self)
+        print("CONTEXT: ", context)
+        
         """
         Code from here onward is executed by the Worker and not by the Scheduler.
         """
