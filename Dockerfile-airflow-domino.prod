@@ -11,7 +11,7 @@ USER root
 #RUN set -eux; \
 #	apt-get install -y gosu; \
 # verify that the binary works
-	gosu nobody true
+#	gosu nobody true
 
 USER airflow
 RUN pip install --upgrade pip && \
