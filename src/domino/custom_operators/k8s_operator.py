@@ -177,10 +177,10 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
 
         if not self.workflow_shared_storage or self.workflow_shared_storage.mode.name == 'none':
             return pod
-        if self.workflow_shared_storage.source.name in ["aws_s3", "gcs"]:
+        if self.workflow_shared_storage.source.name in ["aws_s3", "local", "gcs"]:
             pod = self.add_shared_storage_sidecar(pod)
-        elif self.workflow_shared_storage.source.name == "local":
-            pod = self.add_local_shared_storage_volumes(pod)
+        #elif self.workflow_shared_storage.source.name == "local":
+        #    pod = self.add_local_shared_storage_volumes(pod)
         return pod
 
 
@@ -225,6 +225,8 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 secret_key=storage_piece_secrets.get('AWS_SECRET_ACCESS_KEY'),
                 bucket=self.workflow_shared_storage.bucket,
             )
+        elif self.workflow_shared_storage.source.name == 'local':
+            validated = True
         return validated
 
     def add_shared_storage_sidecar(self, pod: k8s.V1Pod) -> k8s.V1Pod:
