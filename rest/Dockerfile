@@ -25,9 +25,9 @@ WORKDIR /rest
 
 COPY . .
 
-RUN pip install --no-cache-dir --user -r requirements.txt
-
 ENV PATH="/home/domino/.local/bin:$PATH"
+
+RUN pip install --no-cache-dir --user -r requirements.txt
 
 EXPOSE 8000
 
