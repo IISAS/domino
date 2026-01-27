@@ -34,6 +34,11 @@ class WorkflowSharedStorage(BaseModel):
 class LocalSharedStorage(WorkflowSharedStorage):
     source: StorageSource = StorageSource.local
     storage_piece_name: str = "LocalStoragePiece" # TODO to be implemented
+    base_folder: str = Field(
+        description="The base folder to be used as the root of the storage source.",
+        default="",
+    )
+
 
 
 class AwsS3SharedStorage(WorkflowSharedStorage):
