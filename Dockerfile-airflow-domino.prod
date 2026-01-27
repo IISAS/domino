@@ -5,13 +5,13 @@ ENV PYTHONUNBUFFERED=1
  
 USER root
 
-RUN apt-get update
+#RUN apt-get update
 #RUN apt-get install vim net-tools iputils-ping mc nano -y
 
-RUN set -eux; \
-	apt-get install -y gosu; \
- verify that the binary works
-	gosu nobody true
+#RUN set -eux; \
+#	apt-get install -y gosu; \
+# verify that the binary works
+#	gosu nobody true
 
 USER airflow
 RUN pip install --upgrade pip && \
