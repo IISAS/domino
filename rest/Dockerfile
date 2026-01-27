@@ -20,5 +20,5 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--proxy-headers", "--log-level", "debug", "--port", "8000"]
-#CMD ["python", "main.py"]
+#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--proxy-headers", "--log-level", "debug", "--port", "8000"]
+CMD ["python", "main.py"]
