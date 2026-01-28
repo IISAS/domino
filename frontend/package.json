@@ -21,7 +21,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
-    "@iconify/react": "^4.1.1",
+    "@iconify/react": "^6.0.2",
     "@import-meta-env/cli": "^0.6.8",
     "@import-meta-env/unplugin": "^0.4.10",
     "@mui/icons-material": "^5.15.16",
