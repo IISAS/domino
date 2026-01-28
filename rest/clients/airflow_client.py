@@ -1,4 +1,3 @@
-import os
 import os.path
 import uuid
 from datetime import datetime, timezone
@@ -11,6 +10,7 @@ from aiohttp import ClientSession
 from core.logger import get_configured_logger
 from core.settings import settings
 from schemas.exceptions.base import ResourceNotFoundException
+
 
 class AirflowRestClient(requests.Session):
     def __init__(self, *args, **kwargs):
