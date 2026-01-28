@@ -15,8 +15,8 @@ importers:
         specifier: ^11.11.5
         version: 11.14.1(@emotion/react@11.14.0(@types/react@18.3.24)(react@18.3.1))(@types/react@18.3.24)(react@18.3.1)
       '@iconify/react':
-        specifier: ^4.1.1
-        version: 4.1.1(react@18.3.1)
+        specifier: ^6.0.2
+        version: 6.0.2(react@18.3.1)
       '@import-meta-env/cli':
         specifier: ^0.6.8
         version: 0.6.9(@import-meta-env/unplugin@0.4.10)(dotenv@16.5.0)
@@ -530,8 +530,8 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@iconify/react@4.1.1':
-    resolution: {integrity: sha512-jed14EjvKjee8mc0eoscGxlg7mSQRkwQG3iX3cPBCO7UlOjz0DtlvTqxqEcHUJGh+z1VJ31Yhu5B9PxfO0zbdg==}
+  '@iconify/react@6.0.2':
+    resolution: {integrity: sha512-SMmC2sactfpJD427WJEDN6PMyznTFMhByK9yLW0gOTtnjzzbsi/Ke/XqsumsavFPwNiXs8jSiYeZTmLCLwO+Fg==}
     peerDependencies:
       react: '>=16'
 
@@ -5110,7 +5110,7 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@iconify/react@4.1.1(react@18.3.1)':
+  '@iconify/react@6.0.2(react@18.3.1)':
     dependencies:
       '@iconify/types': 2.0.0
       react: 18.3.1
