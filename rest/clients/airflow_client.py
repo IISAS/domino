@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime, timezone
 from urllib.parse import urljoin
 
-import jwt
 import requests
 from aiohttp import ClientSession
 
@@ -14,7 +13,7 @@ from schemas.exceptions.base import ResourceNotFoundException
 
 class AirflowRestClient(requests.Session):
     def __init__(self, *args, **kwargs):
-        super(AirflowRestClient, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.base_url = settings.AIRFLOW_API_SERVER_HOST
         if not self.base_url.endswith('/'):
@@ -28,38 +27,17 @@ class AirflowRestClient(requests.Session):
         self.min_page_size = 1
         self.min_page = 0
 
-
-    def _is_jwt_token_expired(self, jwt_token):
-        if not jwt_token:
-            return True
-        try:
-            header = jwt.get_unverified_header(jwt_token)
-            alg = header['alg']
-            decoded = jwt.decode_complete(jwt_token, algorithms=[alg], options={"verify_signature": False})
-            payload = decoded['payload']
-            return payload['exp'] < datetime.now(timezone.utc).timestamp()
-        except jwt.ExpiredSignatureError as e:
-            return True
-        except jwt.InvalidTokenError as e:
-            return True
-
-
     def _get_jwt_token(self) -> str:
-        jwt_token = None
-        try:
-            url = urljoin(self.base_url, "auth/token")
-            resp = self.post(url, json={
+        url = urljoin(self.base_url, "auth/token")
+        resp = super().post(
+            url,
+            json={
                 "username": self.username,
                 "password": self.password
-            })
-            resp.raise_for_status()
-            jwt_token = resp.json().get("access_token")
-            self.logger.info("Obtained JWT token.")
-        except Exception as e:
-            self.logger.exception(f"Failed to obtain JWT token: {e}")
-        finally:
-            return jwt_token
-
+            }
+        )
+        resp.raise_for_status()
+        return resp.json().get("access_token")
 
     def _validate_pagination_params(self, page, page_size):
         page = max(page, self.min_page)
@@ -67,40 +45,33 @@ class AirflowRestClient(requests.Session):
 
         return page, page_size
 
-
     def request(self, method, resource, **kwargs):
         try:
-            if self._is_jwt_token_expired(self.jwt_token):
-                self.jwt_token = self._get_jwt_token()
             if not self.jwt_token:
-                raise Exception(f'Could not obtain JWT token')
+                self.jwt_token = self._get_jwt_token()
             self.headers.update({"Authorization": f"Bearer {self.jwt_token}"})
             url = urljoin(self.base_url, resource)
-            return super(AirflowRestClient, self).request(method, url, **kwargs)
+            response = super().request(method, url, **kwargs)
+            if response.status_code == 401:
+                # Token expired or invalid → re-authenticate
+                self.jwt_token = self._get_jwt_token()
+                self.headers.update({"Authorization": f"Bearer {self.jwt_token}"})
+                return super().request(method, url, **kwargs)
+            return response
         except Exception as e:
             self.logger.exception(e)
             raise e
 
-
     async def _get_jwt_token_async(self) -> str:
-        jwt_token = None
         url = urljoin(self.base_url, "auth/token")
         async with ClientSession() as session:
-            try:
-                resp = await session.post(url, json={
-                    "username": self.username,
-                    "password": self.password
-                })
-                resp.raise_for_status()
-                data = await resp.json()
-                jwt_token = data.get("access_token")
-                self.logger.info("Obtained JWT token (async).")
-            except Exception as e:
-                self.logger.exception(f"Failed to obtain JWT token (async): {e}")
-                raise
-            finally:
-                return jwt_token
-
+            resp = await session.post(url, json={
+                "username": self.username,
+                "password": self.password
+            })
+            resp.raise_for_status()
+            data = await resp.json()
+            return data.get("access_token")
 
     async def _request_async(self, session, method, resource, **kwargs):
         """
@@ -111,14 +82,16 @@ class AirflowRestClient(requests.Session):
             data (dict): data returned by the API
         """
         try:
-            if self._is_jwt_token_expired(self.jwt_token):
-                self.jwt_token = await self._get_jwt_token_async()
             if not self.jwt_token:
-                raise Exception(f'Could not obtain JWT token')
+                self.jwt_token = await self._get_jwt_token_async()
             headers = kwargs.pop("headers", {})
             headers["Authorization"] = f"Bearer {self.jwt_token}"
             url = urljoin(self.base_url, resource)
             response = await session.request(method, url, headers=headers, **kwargs)
+            if response.status == 401:
+                self.jwt_token = await self._get_jwt_token_async()
+                headers["Authorization"] = f"Bearer {self.jwt_token}"
+                response = await session.request(method, url, headers=headers, **kwargs)
             response.raise_for_status()
         except Exception:
             self.logger.exception(f'API {method} Request error. Url: {resource}. Params {kwargs}')
@@ -248,4 +221,3 @@ class AirflowRestClient(requests.Session):
                 file_type = ext if len(ext) > 1 else file_type
             result_dict["file_type"] = file_type
         return result_dict
-
