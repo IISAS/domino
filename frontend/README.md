@@ -55,7 +55,7 @@ Create a `.vscode` folder in the root project and add a `launch.json` file in it
 
 ```json
 {
-  "version": "0.2.0",
+  "version": "0.3.1",
   "configurations": [
     // Google Chrome configuration
     {

@@ -6,21 +6,21 @@ github_access_token_workflows: default-substitute-this-for-your-own-token
 # Frontend service
 frontend:
   enabled: true
-  image: ghcr.io/iisas/domino-frontend
-  tag: latest
+  image: ghcr.io/iisas/domino-frontend:k8s
+  deployMode: prod #local-k8s # TODO change to prod
   apiUrl: http://localhost/api
   baseName: /
 
 # REST service
 rest:
   enabled: true
-  image: ghcr.io/iisas/domino-rest
+  image: ghcr.io/iisas/domino-rest:latest
   tag: latest
-  deployMode: local-k8s # TODO change to prod
+  deployMode: prod #local-k8s # TODO change to prod
   # Github workflows repository name - Same one used in airflow gitSync ssh
   workflowsRepository: ~
   createDefaultUser: true
-  rootPath: /
+  rootPath: /api
 
 # Change this if using external Database
 database:

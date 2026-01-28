@@ -66,6 +66,10 @@ const storageSourceOptions =
           label: "None",
           value: "None",
         },
+         {
+          label: "Local",
+          value: "Local",
+        },
         {
           label: "AWS S3",
           value: "AWS S3",

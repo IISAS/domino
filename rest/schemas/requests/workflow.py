@@ -3,7 +3,7 @@ from enum import Enum
 from pydantic import BaseModel, field_validator, Field, ConfigDict
 from pydantic_core.core_schema import FieldValidationInfo
 from datetime import datetime
-from constants.default_pieces.storage import AWSS3StoragePiece
+from constants.default_pieces.storage import AWSS3StoragePiece, LocalStoragePiece
 from utils import parsers
 
 """
@@ -107,6 +107,7 @@ class WorkflowBaseSettings(BaseModel):
 
 storage_default_piece_model_map = {
     'none': None,
+    'Local': LocalStoragePiece,
     'aws_s3': AWSS3StoragePiece
 }
 

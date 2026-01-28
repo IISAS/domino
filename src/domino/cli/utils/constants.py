@@ -5,5 +5,5 @@ COLOR_PALETTE = {
 }
 
 DOMINO_HELM_PATH = 'domino-iisas/domino'
-DOMINO_HELM_VERSION = '0.2.0'
+DOMINO_HELM_VERSION = '0.3.1'
 DOMINO_HELM_REPOSITORY = 'https://iisas.github.io/domino/'

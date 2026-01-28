@@ -38,7 +38,9 @@ class AirflowRestClient(requests.Session):
             decoded = jwt.decode_complete(jwt_token, algorithms=[alg], options={"verify_signature": False})
             payload = decoded['payload']
             return payload['exp'] < datetime.now(timezone.utc).timestamp()
-        except:
+        except jwt.ExpiredSignatureError as e:
+            return True
+        except jwt.InvalidTokenError as e:
             return True
 
 
