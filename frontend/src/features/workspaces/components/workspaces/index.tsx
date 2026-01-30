@@ -167,7 +167,7 @@ const WorkspacesComponent: FC = () => {
       {workspacesLoading && (
         <Alert severity="info">Loading your workspaces...</Alert>
       )}
-      <Grid container spacing={{ xs: 1, lg: 2 }} alignItems="stretch">
+      <Grid container spacing={{ xs:1, lg:2 }} alignItems="stretch">
         <AddWorkspace />
 
         {workspaces.map((ws, index) =>

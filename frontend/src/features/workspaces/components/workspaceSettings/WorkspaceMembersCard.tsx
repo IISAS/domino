@@ -21,6 +21,10 @@ import {
 import { useWorkspaces } from "context/workspaces";
 import { useState, useMemo, useCallback } from "react";
 
+// Helper to capitalize strings safely
+const capitalize = (value: string | undefined | null): string =>
+  value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
+
 const WorkspaceMembersCard = () => {
   const {
     workspace,
@@ -57,15 +61,13 @@ const WorkspaceMembersCard = () => {
         field: "memberPermission",
         headerName: "Member Permission",
         flex: 1,
-        valueFormatter: ({ value }) =>
-          value.charAt(0).toUpperCase() + value.slice(1),
+        valueFormatter: ({ value }: { value: string }) => capitalize(value),
       },
       {
         field: "status",
         headerName: "Status",
         flex: 1,
-        valueFormatter: ({ value }) =>
-          value.charAt(0).toUpperCase() + value.slice(1),
+        valueFormatter: ({ value }: { value: string }) => capitalize(value),
       },
       {
         field: "actions",
@@ -75,8 +77,8 @@ const WorkspaceMembersCard = () => {
         flex: 0.6,
         hide: workspace?.user_permission !== "owner",
         getActions: (params) => [
-          // eslint-disable-next-line react/jsx-key
           <GridActionsCellItem
+            key={params.id}
             icon={
               <Tooltip title="Remove User">
                 <DeleteOutlineOutlinedIcon
@@ -100,7 +102,7 @@ const WorkspaceMembersCard = () => {
     if (!workspaceUsers) {
       return { rowsData: [], totalRows: 0 };
     }
-    const rowsData = [];
+    const rowsData: any[] = [];
     let count = workspaceUsersTablePage * workspaceUsersTablePageSize;
     for (const element of workspaceUsers.data) {
       count = count + 1;
@@ -197,3 +199,4 @@ const WorkspaceMembersCard = () => {
 };
 
 export default WorkspaceMembersCard;
+

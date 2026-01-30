@@ -103,3 +103,5 @@ body,
   background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%);
   background-size: 20px 20px;
 }
+
+@source '../node_modules/@llamaindex/chat-ui/**/*.{ts,tsx}';

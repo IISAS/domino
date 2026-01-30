@@ -194,7 +194,11 @@ const SettingsFormDrawer = forwardRef<
             minWidth: "300px",
           },
         }}
-        BackdropProps={{ style: { backgroundColor: "transparent" } }}
+        slotProps={{
+          backdrop: {
+            style: { backgroundColor: "transparent" }
+          }
+        }}
       >
         <Grid container>
           <Grid container padding={1}>
@@ -207,7 +211,7 @@ const SettingsFormDrawer = forwardRef<
             </Typography>
             <FormProvider {...methods}>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid size={{ xs:12 }}>
                   <TextInput
                     variant="outlined"
                     name="config.name"
@@ -215,7 +219,7 @@ const SettingsFormDrawer = forwardRef<
                     defaultValue={defaultSettingsData.config.name}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={{ xs:12 }}>
                   <SelectInput
                     name="config.scheduleInterval"
                     defaultValue={defaultSettingsData.config.scheduleInterval}
@@ -225,25 +229,26 @@ const SettingsFormDrawer = forwardRef<
                 </Grid>
                 <Grid
                   container
+                  columns={12}
                   spacing={2}
                   alignItems="center"
                   sx={{ margin: "0px" }}
                 >
-                  <Grid item xs={4}>
+                  <Grid size={{ xs:4 }}>
                     <SelectInput
                       name="config.startDateType"
-                      label="Start Date/Time"
+                      label="Start"
                       options={Object.values(startDateTypes)}
                       defaultValue={defaultSettingsData.config.startDateType}
                     />
                   </Grid>
                   {formData?.config?.startDateType ===
                     startDateTypes.UserDefined && (
-                    <Grid item xs={8}>
+                    <Grid size={{ xs:8 }}>
                       <DatetimeInput
                         disablePast={true}
                         name="config.startDate"
-                        label="Start Date/Time"
+                        label="Start Time"
                         type="date-time"
                       />
                     </Grid>
@@ -251,25 +256,26 @@ const SettingsFormDrawer = forwardRef<
                 </Grid>
                 <Grid
                   container
+                  columns={12}
                   spacing={2}
                   alignItems="center"
                   sx={{ margin: "0px" }}
                 >
-                  <Grid item xs={4}>
+                  <Grid size={{ xs:4 }}>
                     <SelectInput
                       name="config.endDateType"
-                      label="End Date/Time"
+                      label="End"
                       options={Object.values(endDateTypes)}
                       defaultValue={defaultSettingsData.config.endDateType}
                     />
                   </Grid>
                   {formData?.config?.endDateType ===
                     endDateTypes.UserDefined && (
-                    <Grid item xs={8}>
+                    <Grid size={{ xs:8 }}>
                       <DatetimeInput
                         disablePast={true}
                         name="config.endDate"
-                        label="End Date/Time"
+                        label="End Time"
                         type="date-time"
                       />
                     </Grid>
@@ -279,7 +285,7 @@ const SettingsFormDrawer = forwardRef<
             </FormProvider>
           </Grid>
           <Grid container padding={1}>
-            <Grid item xs={12}>
+            <Grid size={{ xs:12 }}>
               <Typography
                 variant="h5"
                 component="h5"
@@ -290,7 +296,7 @@ const SettingsFormDrawer = forwardRef<
             </Grid>
             <FormProvider {...methods}>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid size={{ xs:12 }}>
                   <SelectInput
                     label="Storage Source"
                     name="storage.storageSource"
@@ -301,7 +307,7 @@ const SettingsFormDrawer = forwardRef<
                 {formData?.storage?.storageSource ===
                 storageSourcesAWS.AWS_S3 ? (
                   <>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs:12 }}>
                       <TextInput
                         name="storage.bucket"
                         label="Bucket"
@@ -310,7 +316,7 @@ const SettingsFormDrawer = forwardRef<
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs:12 }}>
                       <TextInput
                         label="Base Folder"
                         defaultValue={defaultSettingsData.storage.baseFolder}

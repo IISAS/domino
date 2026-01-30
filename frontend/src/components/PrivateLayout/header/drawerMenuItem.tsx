@@ -28,17 +28,17 @@ export const DrawerMenuItem: FC<IDrawerMenuItemProps> = ({
   return (
     <Tooltip title={label} placement="right">
       <ListItem
-        selected={selected}
         disablePadding
-        sx={{ display: "block" }}
-        disabled={disabled}
+        sx={{
+          display: "block",
+          minHeight: 48,
+          justifyContent: isMenuOpen ? "initial" : "center",
+          px: 2.5,
+        }}
       >
         <ListItemButton
-          sx={{
-            minHeight: 48,
-            justifyContent: isMenuOpen ? "initial" : "center",
-            px: 2.5,
-          }}
+          selected={selected}
+          disabled={disabled}
           onClick={onClick}
         >
           <ListItemIcon

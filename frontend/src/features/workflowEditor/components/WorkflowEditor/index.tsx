@@ -1,4 +1,4 @@
-import { Grid, Paper } from "@mui/material";
+import { Box, Grid, Paper } from "@mui/material";
 import { AxiosError } from "axios";
 import Loading from "components/Loading";
 import { useWorkspaces } from "context/workspaces";
@@ -22,6 +22,7 @@ import {
 import { ContainerResourceFormSchema } from "../Drawers/PieceFormDrawer/ContainerResourceForm";
 import { storageFormSchema } from "../Drawers/PieceFormDrawer/StorageForm";
 import { type WorkflowPanelRef, WorkflowPanel } from "../Panel/WorkflowPanel";
+import { AIComposerPrompt } from "../AIComposerPrompt";
 
 export const WorkflowsEditorComponent: React.FC = () => {
   const workflowPanelRef = useRef<WorkflowPanelRef>(null);
@@ -226,12 +227,18 @@ export const WorkflowsEditorComponent: React.FC = () => {
       {loading && <Loading />}
       <Grid
         container
+        columns={12}
         direction="row"
         justifyContent="center"
         alignItems="center"
         style={{ marginLeft: 0, marginTop: 0 }}
       >
-        <Grid item xs={10}>
+        <Grid size={{ xs:2 }}>
+          <div className="llama-chat">
+            <AIComposerPrompt />
+          </div>
+        </Grid>
+        <Grid size={{ xs:6 }}>
           <ButtonsMenu
             handleClear={handleClear}
             handleExport={handleExport}
@@ -246,7 +253,7 @@ export const WorkflowsEditorComponent: React.FC = () => {
             />
           </Paper>
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={{ xs:2 }}>
           <PiecesDrawer
             setOrientation={setOrientation}
             orientation={orientation}

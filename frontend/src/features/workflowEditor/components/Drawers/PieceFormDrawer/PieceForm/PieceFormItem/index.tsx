@@ -37,7 +37,7 @@ const PieceFormItem: React.FC<PieceFormItemProps> = ({
       alignItems="flex-start"
       sx={{ paddingTop: "10px" }}
     >
-      <Grid item xs={10}>
+      <Grid size={{ xs:10 }}>
         {isArrayType(schema) ? (
           <ArrayInput
             schema={schema as any}
@@ -57,7 +57,7 @@ const PieceFormItem: React.FC<PieceFormItemProps> = ({
         )}
       </Grid>
 
-      <Grid item xs={2} sx={{ display: "flex", justifyContent: "center" }}>
+      <Grid size={{ xs:2 }} sx={{ display: "flex", justifyContent: "center" }}>
         <CheckboxInput
           name={`inputs.${itemKey}.fromUpstream`}
           disabled={disableUpstream}

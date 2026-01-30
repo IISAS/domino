@@ -4,9 +4,9 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  Grid,
   type DialogProps,
   DialogTitle,
-  Grid,
   IconButton,
 } from "@mui/material";
 import React, { useCallback, useImperativeHandle, useState } from "react";
@@ -97,14 +97,14 @@ export const Modal = React.forwardRef<ModalRef, Props>(
         <DialogActions>
           <Grid container justifyContent="center" spacing={4}>
             {cancelFn && (
-              <Grid item>
+              <Grid>
                 <Button onClick={handleClose} variant="contained">
                   {cancelText ?? "Cancel"}
                 </Button>
               </Grid>
             )}
             {confirmFn && (
-              <Grid item>
+              <Grid>
                 <Button onClick={handleConfirm} variant="contained">
                   {confirmText ?? "OK"}
                 </Button>

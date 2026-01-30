@@ -15,6 +15,7 @@ import {
   Button,
   List,
   ListItem,
+  ListItemButton,
   ListItemAvatar,
   Avatar,
   ListItemText,
@@ -288,41 +289,44 @@ export const RepositoriesCard: FC = () => {
 
         {repositories.length ? (
           <List>
-            {repositories.map((repo, index) => (
-              <ListItem
-                key={index}
-                selected={selectedIndex?.toString() === repo.id.toString()}
-              >
-                <ListItemAvatar>
-                  <IconButton value={repo.id}>
-                    <Avatar>
-                      {repo.source === repositorySource.github ? (
-                        <GitHubIcon />
-                      ) : (
-                        <FolderIcon />
-                      )}
-                    </Avatar>
-                  </IconButton>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={repo.name}
-                  secondary={`${repo.path} - version: ${repo.version}`}
-                />
-                <IconButton value={repo.id} onClick={handleSelectRepository}>
-                  <Tooltip title="Edit repository secrets.">
-                    <KeyIcon />
-                  </Tooltip>
-                </IconButton>
-                <IconButton
-                  value={repo.id}
-                  onClick={handleDeletePieceRepository}
-                >
-                  <Tooltip title="Delete repository.">
-                    <DeleteIcon />
-                  </Tooltip>
-                </IconButton>
-              </ListItem>
-            ))}
+            {repositories.map((repo) => {
+              const selected = selectedIndex?.toString() === repo.id.toString()
+
+              return (
+                <ListItem key={repo.id} disablePadding>
+                  <ListItemButton selected={selected}>
+                    <ListItemAvatar>
+                      <IconButton value={repo.id}>
+                        <Avatar>
+                          {repo.source === repositorySource.github ? (
+                            <GitHubIcon />
+                          ) : (
+                            <FolderIcon />
+                          )}
+                        </Avatar>
+                      </IconButton>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={repo.name}
+                      secondary={`${repo.path} - version: ${repo.version}`}
+                    />
+                    <IconButton value={repo.id} onClick={handleSelectRepository}>
+                      <Tooltip title="Edit repository secrets.">
+                        <KeyIcon />
+                      </Tooltip>
+                    </IconButton>
+                    <IconButton
+                      value={repo.id}
+                      onClick={handleDeletePieceRepository}
+                    >
+                      <Tooltip title="Delete repository.">
+                        <DeleteIcon />
+                      </Tooltip>
+                    </IconButton>
+                  </ListItemButton>
+                </ListItem>
+              )
+            })}
           </List>
         ) : (
           <Alert severity="warning" sx={{ mt: 1 }}>

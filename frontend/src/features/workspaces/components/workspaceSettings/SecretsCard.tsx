@@ -123,8 +123,8 @@ const SecretsCard = (props: SecretsCardProps, ref: Ref<any>) => {
     const auxListItems =
       secrets && secrets?.length > 0 ? (
         secrets.map((secret, index) => (
-          <Grid item xs={12} key={index} container spacing={2}>
-            <Grid item xs={7} sm={8} md={10}>
+          <Grid size={{ xs:12 }} key={index} container spacing={2}>
+            <Grid size={{ xs:7, sm:8, md:10 }}>
               <TextField
                 InputLabelProps={{ shrink: true }}
                 autoFocus
@@ -139,7 +139,7 @@ const SecretsCard = (props: SecretsCardProps, ref: Ref<any>) => {
                 {...register(`${secret.id}`)}
               />
             </Grid>
-            <Grid item xs={5} sm={4} md={2}>
+            <Grid size={{ xs:5, sm:4, md:2 }}>
               {currrentEdittingSecretId?.toString() === secret.id.toString() ? (
                 <div>
                   <Tooltip title="Save">
@@ -186,7 +186,7 @@ const SecretsCard = (props: SecretsCardProps, ref: Ref<any>) => {
           </Grid>
         ))
       ) : (
-        <Grid item xs={12}>
+        <Grid size={{ xs:12 }}>
           {repositoryId === null ? (
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
               No repository selected.

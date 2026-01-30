@@ -121,7 +121,7 @@ export const DrawerMenu: FC<IDrawerMenuProps> = ({ isOpen, handleClose }) => {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <List disablePadding>
+        <List disablePadding sx={{ m: 0 }}>
           <DrawerMenuItem
             selected={pathname === "/workspaces"}
             onClick={() => {

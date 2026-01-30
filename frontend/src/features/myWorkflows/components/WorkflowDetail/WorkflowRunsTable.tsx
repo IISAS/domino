@@ -144,7 +144,7 @@ export const WorkflowRunsTable: React.FC<Props> = ({
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={{ xs:12 }}>
         <Card sx={{ height: "36vh" }}>
           {isLoading ? (
             <Skeleton
@@ -155,15 +155,19 @@ export const WorkflowRunsTable: React.FC<Props> = ({
           ) : (
             <DataGrid
               density="compact"
-              onRowSelectionModelChange={([id]) => {
+              onRowSelectionModelChange={(selectionModel) => {
+                const firstId =
+                  Array.isArray(selectionModel)
+                    ? selectionModel[0]
+                    : selectionModel && typeof (selectionModel as any)[Symbol.iterator] === "function"
+                    ? Array.from(selectionModel as any)[0]
+                    : selectionModel && typeof selectionModel === "object"
+                    ? Object.keys(selectionModel).find((k) => (selectionModel as any)[k]) ?? null
+                    : selectionModel ?? null;
                 setSelectedRun(
-                  workflowRuns?.data?.find((wr) => wr.workflow_run_id === id) ??
-                    null,
+                  workflowRuns?.data?.find((wr) => wr.workflow_run_id === firstId) ?? null,
                 );
               }}
-              rowSelectionModel={
-                selectedRun ? [selectedRun.workflow_run_id] : []
-              }
               columns={columns}
               rows={rows}
               pagination

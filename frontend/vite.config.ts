@@ -19,5 +19,5 @@ export default defineConfig({
   build: {
     outDir: "build",
   },
-  base: process.env.BASENAME || "/",
+  base: process.env.BASENAME || "/"
 });

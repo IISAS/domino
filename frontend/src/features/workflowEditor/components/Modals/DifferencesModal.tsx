@@ -80,7 +80,7 @@ export const DifferencesModal = forwardRef<ModalRef, Props>(
         title="Missing or incompatibles Pieces Repositories"
         content={
           <Grid container>
-            <Grid item xs={12}>
+            <Grid size={{ xs:12 }}>
               <Typography style={{ textAlign: "justify" }}>
                 Some of the pieces necessary to run this workflow are not
                 present in this workspace or mismatch the correct version.
@@ -92,7 +92,7 @@ export const DifferencesModal = forwardRef<ModalRef, Props>(
                 )}
               </Typography>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs:12 }}>
               <List>
                 {installedPieces.map((item) => (
                   <ListItem
@@ -160,8 +160,8 @@ export const DifferencesModal = forwardRef<ModalRef, Props>(
               </List>
             </Grid>
             {!!uninstalledPieces.length && (
-              <Grid container item xs={12} justifyContent="center">
-                <Grid item xs="auto">
+              <Grid container size={{ xs:12 }} justifyContent="center">
+                <Grid size={{ xs:"auto" }}>
                   <Button
                     variant="outlined"
                     onClick={handleInstallMissingRepositories}
