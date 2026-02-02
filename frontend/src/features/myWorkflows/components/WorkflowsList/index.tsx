@@ -23,7 +23,6 @@ import { Actions } from "./Actions";
 import { Status } from "./Status";
 import { WorkflowsListSkeleton } from "./WorkflowsListSkeleton";
 
-
 /**
  * TODO Cancel run. []
  * TODO Pause run. []
@@ -139,8 +138,9 @@ export const WorkflowList: React.FC = () => {
         flex: 1,
         align: "center",
         minWidth: 220,
-
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueGetter: (_, row) => row.start_date ?? null,
+        valueFormatter: (value) => 
+          value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
       },
       {
@@ -158,8 +158,9 @@ export const WorkflowList: React.FC = () => {
         type: "string",
         flex: 1,
         minWidth: 220,
-        valueFormatter: (params: { value?: any } | null) =>
-          params?.value ? new Date(params.value).toLocaleString() : "None"
+        valueGetter: (_, row) => row.end_date ?? null,
+        valueFormatter: (value) =>
+          value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "created_at",
@@ -167,8 +168,9 @@ export const WorkflowList: React.FC = () => {
         flex: 1,
         align: "center",
         minWidth: 220,
-        valueFormatter: (params: { value?: any } | null) =>
-          params?.value ? new Date(params.value).toLocaleString() : "None",
+        valueGetter: (_, row) => row.created_at ?? null,
+        valueFormatter: (value) => 
+          value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
       },
       {
@@ -176,8 +178,9 @@ export const WorkflowList: React.FC = () => {
         headerName: "Last Modified",
         flex: 1,
         align: "center",
-        valueFormatter: (params: { value?: any } | null) =>
-          params?.value ? new Date(params.value).toLocaleString() : "None",
+        valueGetter: (_, row) => row.last_changed_at ?? null,
+        valueFormatter: (value) => 
+          value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
         minWidth: 220,
       },
@@ -198,8 +201,9 @@ export const WorkflowList: React.FC = () => {
         headerAlign: "center",
         minWidth: 220,
         sortable: false,
-                valueFormatter: (params: { value?: any } | null) =>
-          params?.value ? new Date(params.value).toLocaleString() : "None",
+        valueGetter: (_, row) => row.next_dagrun ?? null,
+        valueFormatter: (value) =>
+          value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "actions",

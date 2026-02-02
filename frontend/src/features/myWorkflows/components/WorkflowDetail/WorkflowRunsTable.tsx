@@ -62,7 +62,8 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         type: "string",
         flex: 1,
         minWidth: 150,
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueGetter: (_, row) => row.start_date ?? null,
+        valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "end_date",
@@ -72,7 +73,8 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         type: "string",
         flex: 1,
         minWidth: 150,
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueGetter: (_, row) => row.end_date ?? null,
+        valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "duration_in_seconds",
@@ -81,7 +83,8 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         align: "center",
         minWidth: 150,
         flex: 1,
-        valueFormatter: ({ value }) => (value ? secondsToHMS(value) : "N/A"),
+        valueGetter: (_, row) => row.duration ?? null,
+        valueFormatter: (value) => value ? secondsToHMS(value as number) : "N/A",
       },
       {
         field: "state",
@@ -155,18 +158,19 @@ export const WorkflowRunsTable: React.FC<Props> = ({
           ) : (
             <DataGrid
               density="compact"
-              onRowSelectionModelChange={(selectionModel) => {
-                const firstId =
-                  Array.isArray(selectionModel)
-                    ? selectionModel[0]
-                    : selectionModel && typeof (selectionModel as any)[Symbol.iterator] === "function"
-                    ? Array.from(selectionModel as any)[0]
-                    : selectionModel && typeof selectionModel === "object"
-                    ? Object.keys(selectionModel).find((k) => (selectionModel as any)[k]) ?? null
-                    : selectionModel ?? null;
+              rowSelectionModel={{
+                type: 'include',
+                ids: selectedRun ? new Set([selectedRun.workflow_run_id]) : new Set()
+              }}
+              onRowSelectionModelChange={(model) => {
+                const ids = Array.from(model.ids)
+                const id = ids.length > 0 ? ids[0] : null
+
                 setSelectedRun(
-                  workflowRuns?.data?.find((wr) => wr.workflow_run_id === firstId) ?? null,
-                );
+                  id
+                  ? workflowRuns?.data?.find((wr) => wr.workflow_run_id === id) ?? null
+                  : null
+                )
               }}
               columns={columns}
               rows={rows}
