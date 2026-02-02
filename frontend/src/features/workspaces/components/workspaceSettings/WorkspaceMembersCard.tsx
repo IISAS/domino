@@ -16,7 +16,7 @@ import {
 import {
   DataGrid,
   type GridColDef,
-  GridActionsCellItem,
+  GridActionsCellItem, GridActionsCell,
 } from "@mui/x-data-grid";
 import { useWorkspaces } from "context/workspaces";
 import { useState, useMemo, useCallback } from "react";
@@ -76,23 +76,24 @@ const WorkspaceMembersCard = () => {
         minWidth: 150,
         flex: 0.6,
         hide: workspace?.user_permission !== "owner",
-        getActions: (params) => [
-          <GridActionsCellItem
-            key={params.id}
-            icon={
-              <Tooltip title="Remove User">
-                <DeleteOutlineOutlinedIcon
-                  sx={{ color: "#e71d1d", fontSize: "26px" }}
-                />
-              </Tooltip>
-            }
-            label="Delete"
-            onClick={() => {
-              setRemoveUserId(params.id);
-              setIsOpenRemoveDialog(true);
-            }}
-          />,
-        ],
+        renderCell: (params) => (
+          <GridActionsCell {...params}>
+            <GridActionsCellItem
+              icon={
+                <Tooltip title="Remove User">
+                  <DeleteOutlineOutlinedIcon
+                    sx={{ color: "#e71d1d", fontSize: "26px" }}
+                  />
+                </Tooltip>
+              }
+              label="Delete"
+              onClick={() => {
+                setRemoveUserId(params.id);
+                setIsOpenRemoveDialog(true);
+              }}
+            />
+          </GridActionsCell>
+        ),
       },
     ],
     [workspace],

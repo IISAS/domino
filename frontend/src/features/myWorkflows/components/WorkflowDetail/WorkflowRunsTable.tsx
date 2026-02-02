@@ -62,7 +62,6 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         type: "string",
         flex: 1,
         minWidth: 150,
-        valueGetter: (_, row) => row.start_date ?? null,
         valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : "none",
       },
       {

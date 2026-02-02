@@ -229,7 +229,6 @@ const SettingsFormDrawer = forwardRef<
                 </Grid>
                 <Grid
                   container
-                  columns={12}
                   spacing={2}
                   alignItems="center"
                   sx={{ margin: "0px" }}
@@ -256,7 +255,6 @@ const SettingsFormDrawer = forwardRef<
                 </Grid>
                 <Grid
                   container
-                  columns={12}
                   spacing={2}
                   alignItems="center"
                   sx={{ margin: "0px" }}

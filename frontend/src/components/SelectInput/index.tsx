@@ -6,7 +6,6 @@ import {
   Select,
   type SelectProps,
 } from "@mui/material";
-import { minWidth } from "@mui/system";
 import React from "react";
 import {
   Controller,
@@ -43,7 +42,7 @@ function SelectInput<T extends FieldValues>({
   const error = fetchFromObject(errors, name);
 
   return (
-    <FormControl fullWidth error={!!error}>
+    <FormControl fullWidth>
       <InputLabel htmlFor={`${name}-select`} id={`${name}-select-label`} error={!!error}>
         {label}
       </InputLabel>

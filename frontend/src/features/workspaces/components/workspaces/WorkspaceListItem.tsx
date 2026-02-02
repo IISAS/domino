@@ -40,7 +40,12 @@ export const WorkspaceListItem: FC<{
 
   return (
     <Grid
-      size={{ xs:12, md:6, lg:4, xl:3 }}
+      size={{
+        xs:12,
+        md:6,
+        lg:4,
+        xl:3
+      }}
       sx={{ display: "flex", flexDirection: "column" }}
     >
       <Card

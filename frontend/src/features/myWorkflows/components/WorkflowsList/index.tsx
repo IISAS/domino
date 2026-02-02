@@ -138,8 +138,7 @@ export const WorkflowList: React.FC = () => {
         flex: 1,
         align: "center",
         minWidth: 220,
-        valueGetter: (_, row) => row.start_date ?? null,
-        valueFormatter: (value) => 
+        valueFormatter: (value) =>
           value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
       },
@@ -158,7 +157,6 @@ export const WorkflowList: React.FC = () => {
         type: "string",
         flex: 1,
         minWidth: 220,
-        valueGetter: (_, row) => row.end_date ?? null,
         valueFormatter: (value) =>
           value ? new Date(value as string).toLocaleString() : "none",
       },
@@ -168,8 +166,7 @@ export const WorkflowList: React.FC = () => {
         flex: 1,
         align: "center",
         minWidth: 220,
-        valueGetter: (_, row) => row.created_at ?? null,
-        valueFormatter: (value) => 
+        valueFormatter: (value) =>
           value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
       },
@@ -178,8 +175,7 @@ export const WorkflowList: React.FC = () => {
         headerName: "Last Modified",
         flex: 1,
         align: "center",
-        valueGetter: (_, row) => row.last_changed_at ?? null,
-        valueFormatter: (value) => 
+        valueFormatter: (value) =>
           value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
         minWidth: 220,
@@ -201,7 +197,6 @@ export const WorkflowList: React.FC = () => {
         headerAlign: "center",
         minWidth: 220,
         sortable: false,
-        valueGetter: (_, row) => row.next_dagrun ?? null,
         valueFormatter: (value) =>
           value ? new Date(value as string).toLocaleString() : "none",
       },
