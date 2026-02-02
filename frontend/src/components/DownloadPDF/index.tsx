@@ -10,7 +10,7 @@ export const DownloadAsPDF: React.FC<Props> = ({ contentId, ...props }) => {
   const [content, setContent] = useState<HTMLElement | null>(null);
   const handlePrint = useReactToPrint({
     content: () => content,
-  });
+  } as any);
 
   useEffect(() => {
     // Fetch the content element using the contentId

@@ -43,7 +43,7 @@ function SelectInput<T extends FieldValues>({
 
   return (
     <FormControl fullWidth>
-      <InputLabel id={name} error={!!error}>
+      <InputLabel htmlFor={`${name}-select`} id={`${name}-select-label`} error={!!error}>
         {label}
       </InputLabel>
       <Controller
@@ -51,7 +51,8 @@ function SelectInput<T extends FieldValues>({
         control={control}
         render={({ field }) => (
           <Select
-            labelId={name}
+            labelId={`${name}-select-label`}
+            id={`${name}-select`}
             label={label}
             error={!!error}
             {...rest}
@@ -59,6 +60,8 @@ function SelectInput<T extends FieldValues>({
             onChange={(e) => {
               field.onChange(e.target.value as any);
             }}
+            fullWidth
+            sx={{ minWidth: 80 }}
           >
             <MenuItem value="" disabled>
               <em>None</em>

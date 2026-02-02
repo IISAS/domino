@@ -9,13 +9,15 @@ import { WorkflowList } from "../components/WorkflowsList";
 
 export const WorkflowsPage: React.FC = () => {
   return (
-    <Grid container rowGap={2}>
-      <Grid item xs={12}>
-        <Breadcrumbs />
+    <>
+      <Grid container rowGap={2}>
+        <Grid size={{ xs:12 }}>
+          <Breadcrumbs />
+        </Grid>
+        <Grid size={{ xs:12 }}>
+          <WorkflowList />
+        </Grid>
       </Grid>
-      <Grid item xs={12}>
-        <WorkflowList />
-      </Grid>
-    </Grid>
+    </>
   );
 };

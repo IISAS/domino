@@ -231,7 +231,7 @@ export const WorkflowsEditorComponent: React.FC = () => {
         alignItems="center"
         style={{ marginLeft: 0, marginTop: 0 }}
       >
-        <Grid item xs={10}>
+        <Grid size={{ xs:10 }}>
           <ButtonsMenu
             handleClear={handleClear}
             handleExport={handleExport}
@@ -246,7 +246,7 @@ export const WorkflowsEditorComponent: React.FC = () => {
             />
           </Paper>
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={{ xs:2 }}>
           <PiecesDrawer
             setOrientation={setOrientation}
             orientation={orientation}

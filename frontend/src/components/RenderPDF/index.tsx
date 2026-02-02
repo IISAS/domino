@@ -1,13 +1,13 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { useState } from "react";
 import { pdfjs, Document, Page } from "react-pdf";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.js",
-  import.meta.url,
-).toString();
+// Vite-friendly PDF worker import
+import workerSrc from "pdfjs-dist/build/pdf.worker.min?url";
+
+pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 const options = {
   cMapUrl: "/cmaps/",
@@ -28,11 +28,9 @@ export const RenderPDF: React.FC<Props> = (props) => {
       ? props.file
       : `data:application/pdf;base64,${props.base64Content}`;
 
-  function onDocumentLoadSuccess({
-    numPages: nextNumPages,
-  }: PDFDocumentProxy): void {
-    setNumPages(nextNumPages);
-  }
+  const onDocumentLoadSuccess = (pdf: PDFDocumentProxy) => {
+    setNumPages(pdf.numPages);
+  };
 
   return (
     <Document
@@ -40,9 +38,14 @@ export const RenderPDF: React.FC<Props> = (props) => {
       onLoadSuccess={onDocumentLoadSuccess}
       options={options}
     >
-      {Array.from(new Array(numPages), (el, index) => (
-        <Page key={`page_${index + 1}`} pageNumber={index + 1} width={650} />
+      {Array.from({ length: numPages }, (_, index) => (
+        <Page
+          key={`page_${index + 1}`}
+          pageNumber={index + 1}
+          width={650}
+        />
       ))}
     </Document>
   );
 };
+

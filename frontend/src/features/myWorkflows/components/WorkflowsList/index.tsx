@@ -138,8 +138,8 @@ export const WorkflowList: React.FC = () => {
         flex: 1,
         align: "center",
         minWidth: 220,
-
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueFormatter: (value) =>
+          value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
       },
       {
@@ -157,8 +157,8 @@ export const WorkflowList: React.FC = () => {
         type: "string",
         flex: 1,
         minWidth: 220,
-        valueFormatter: ({ value }) =>
-          value ? new Date(value).toLocaleString() : "None",
+        valueFormatter: (value) =>
+          value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "created_at",
@@ -166,8 +166,8 @@ export const WorkflowList: React.FC = () => {
         flex: 1,
         align: "center",
         minWidth: 220,
-
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueFormatter: (value) =>
+          value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
       },
       {
@@ -175,7 +175,8 @@ export const WorkflowList: React.FC = () => {
         headerName: "Last Modified",
         flex: 1,
         align: "center",
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueFormatter: (value) =>
+          value ? new Date(value as string).toLocaleString() : "none",
         headerAlign: "center",
         minWidth: 220,
       },
@@ -196,8 +197,8 @@ export const WorkflowList: React.FC = () => {
         headerAlign: "center",
         minWidth: 220,
         sortable: false,
-        valueFormatter: ({ value }) =>
-          value ? new Date(value).toLocaleString() : "none",
+        valueFormatter: (value) =>
+          value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "actions",

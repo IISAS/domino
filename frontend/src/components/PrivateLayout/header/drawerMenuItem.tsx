@@ -27,35 +27,33 @@ export const DrawerMenuItem: FC<IDrawerMenuItemProps> = ({
 }) => {
   return (
     <Tooltip title={label} placement="right">
-      <ListItem
+      <ListItemButton
         selected={selected}
-        disablePadding
-        sx={{ display: "block" }}
+        sx={{
+          display: "flex",
+          padding: 0,
+          alignContent: "center",
+          minHeight: 48,
+          justifyContent: isMenuOpen ? "initial" : "center",
+          px: 2.5,
+        }}
         disabled={disabled}
+        onClick={onClick}
       >
-        <ListItemButton
+        <ListItemIcon
           sx={{
-            minHeight: 48,
-            justifyContent: isMenuOpen ? "initial" : "center",
-            px: 2.5,
+            minWidth: 0,
+            mr: isMenuOpen ? 3 : "auto",
+            justifyContent: "center",
           }}
-          onClick={onClick}
         >
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              mr: isMenuOpen ? 3 : "auto",
-              justifyContent: "center",
-            }}
-          >
-            {icon}
-          </ListItemIcon>
-          <ListItemText
-            primary={label}
-            sx={{ display: isMenuOpen ? "block" : "none" }}
-          />
-        </ListItemButton>
-      </ListItem>
+          {icon}
+        </ListItemIcon>
+        <ListItemText
+          primary={label}
+          sx={{ display: isMenuOpen ? "flex" : "none" }}
+        />
+      </ListItemButton>
     </Tooltip>
   );
 };

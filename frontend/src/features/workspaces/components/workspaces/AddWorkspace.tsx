@@ -27,7 +27,7 @@ export const AddWorkspace: FC = () => {
   }, [handleCreateWorkspace, name]);
 
   return (
-    <Grid item xs={12} md={6} lg={4} xl={3}>
+    <Grid size={{ xs:12, md:6, lg:4, xl:3 }}>
       <Card variant="outlined">
         <CardHeader
           title="Add Workspace"
