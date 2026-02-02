@@ -73,7 +73,6 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         type: "string",
         flex: 1,
         minWidth: 150,
-        valueGetter: (_, row) => row.end_date ?? null,
         valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : "none",
       },
       {
@@ -83,7 +82,6 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         align: "center",
         minWidth: 150,
         flex: 1,
-        valueGetter: (_, row) => row.duration ?? null,
         valueFormatter: (value) => value ? secondsToHMS(value as number) : "N/A",
       },
       {
