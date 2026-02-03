@@ -1,10 +1,20 @@
 # Stage 1: Build the React app
-FROM node:20-slim AS build
-ARG BASENAME
+FROM node:20.20.0-slim AS build
+
+ARG API_URL="http://localhost:8000"
+ARG BASENAME="/"
+ARG DOMINO_DEPLOY_MODE="local-compose"
+
+ENV API_URL="${API_URL}"
 ENV BASENAME="${BASENAME}"
+ENV DOMINO_DEPLOY_MODE="${DOMINO_DEPLOY_MODE}"
+
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+
 RUN corepack enable
+
 # Set the working directory
 WORKDIR /app
 
@@ -12,15 +22,22 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=pnpm,target=${PNPM_HOME}/store \
   if [ -f pnpm-lock.yaml ]; then \
      corepack enable && pnpm install --frozen-lockfile; \
   else \
      corepack enable && pnpm install; \
   fi
 
-RUN npx pkg ./node_modules/@import-meta-env/cli/bin/import-meta-env.js \
-  -o import-meta-env -y
+# Install esbuild so pnpm exec can find it
+RUN pnpm add -D esbuild
+
+# Bundle the CLI into a single JS file
+RUN pnpm exec esbuild ./node_modules/@import-meta-env/cli/bin/import-meta-env.js \
+    --bundle \
+    --platform=node \
+    --format=cjs \
+    --outfile=import-meta-env.cjs
 
 # Copy the rest of the source code
 COPY . .
@@ -31,9 +48,13 @@ RUN pnpm run build
 # Stage 2: Create a minimal NGINX image
 FROM nginx:1.29.1
 
+# Install minimal Node runtime
+RUN apt-get update && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
+
 # Copy the build output from the previous stage
+COPY --from=build /app/.env.production /usr/share/nginx/html
 COPY --from=build /app/build /usr/share/nginx/html
-COPY --from=build /app/import-meta-env /usr/share/nginx/html
+COPY --from=build /app/import-meta-env.cjs /usr/share/nginx/html
 
 # Configure nginx to serve the app
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
