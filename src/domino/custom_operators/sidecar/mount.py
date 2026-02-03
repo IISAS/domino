@@ -34,7 +34,6 @@ class SharedStorageMount(object):
             self.parser.write(f)
 
         self.rclone_base_path = f"{self.shared_storage_source_name}:{self.remote_base_folder_path}{self.workflow_run_subpath}"
-        #raise NotImplementedError("Local is not implemented yet")
 
     def _setup_gcs_shared_storage_config(self):
         raise NotImplementedError("GCS is not implemented yet")
@@ -66,6 +65,8 @@ class SharedStorageMount(object):
         self.workflow_shared_storage_secrets = ast.literal_eval(os.environ.get("DOMINO_WORKFLOW_SHARED_STORAGE_SECRETS", {}))
         self.shared_storage_source_name = self.workflow_shared_storage.get("source", None)
         self.shared_storage_mode = self.workflow_shared_storage.get("mode", None)
+
+        self.logger.debug(self)
 
         if self.shared_storage_source_name is None:
             raise Exception("SHARED_STORAGE_SOURCE_NAME is not set")

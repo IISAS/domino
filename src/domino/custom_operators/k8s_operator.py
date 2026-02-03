@@ -1,3 +1,4 @@
+from venv import logger
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.providers.cncf.kubernetes.utils.xcom_sidecar import PodDefaults
 
@@ -58,6 +59,8 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             "AIRFLOW_CONTEXT_EXECUTION_DATETIME": "{{ dag_run.logical_date | ts_nodash }}",
             "AIRFLOW_CONTEXT_DAG_RUN_ID": "{{ run_id }}",
         }
+
+        self.logger.debug(pod_env_vars)
 
         # Container resources
         if container_resources is None:
@@ -475,9 +478,10 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         Code from here onward is executed by the Worker and not by the Scheduler.
         """
         # TODO change url based on platform configuration
-        self.logger.info("CONTEXT")
-        self.logger.info(context)
+        self.logger.debug("PARAMS")
+        self.logger.debug(context["params"])
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest-service:8000/")
+        #self.domino_client = DominoBackendRestClient(base_url="http://localhost:8080/")
         self._prepare_execute_environment(context=context)
         remote_pod = None
         try:
