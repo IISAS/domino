@@ -30,38 +30,40 @@ export const WorkflowRunTableFooter = React.forwardRef<HTMLDivElement, Props>(
       );
 
     return (
-      <Grid container ref={ref}>
-        <Grid item xs={6}>
-          <Grid
-            container
-            alignContent="center"
-            justifyContent="start"
-            sx={{ height: "100%" }}
-          >
-            <Grid item sx={{ paddingLeft: "1rem" }}>
-              <AuthorizationComponent
-                allowedRoles={["owner", "admin", "write"]}
-              >
-                <Button variant="contained" onClick={triggerRun}>
-                  Run
+      <>
+        <Grid container ref={ref}>
+          <Grid size={{ xs:6 }}>
+            <Grid
+              container
+              alignContent="center"
+              justifyContent="start"
+              sx={{ height: "100%" }}
+            >
+              <Grid sx={{ paddingLeft: "1rem" }}>
+                <AuthorizationComponent
+                  allowedRoles={["owner", "admin", "write"]}
+                >
+                  <Button variant="contained" onClick={triggerRun}>
+                    Run
+                  </Button>
+                </AuthorizationComponent>
+              </Grid>
+              <Grid sx={{ paddingLeft: "1rem" }}>
+                <Button
+                  variant="contained"
+                  onClick={refresh}
+                  startIcon={<RefreshIcon />}
+                >
+                  Refresh
                 </Button>
-              </AuthorizationComponent>
-            </Grid>
-            <Grid item sx={{ paddingLeft: "1rem" }}>
-              <Button
-                variant="contained"
-                onClick={refresh}
-                startIcon={<RefreshIcon />}
-              >
-                Refresh
-              </Button>
+              </Grid>
             </Grid>
           </Grid>
+          <Grid size={{ xs:6 }}>
+            {paginationElement}
+          </Grid>
         </Grid>
-        <Grid item xs={6}>
-          {paginationElement}
-        </Grid>
-      </Grid>
+      </>
     );
   },
 );

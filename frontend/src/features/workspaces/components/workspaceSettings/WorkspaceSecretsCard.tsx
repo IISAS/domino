@@ -128,8 +128,8 @@ const WorkspaceSecretsCard = () => {
           </Typography>
         </Box>
         <form>
-          <Grid item xs={12} container spacing={2} sx={{ marginTop: "15px" }}>
-            <Grid item xs={7} sm={8} md={10}>
+          <Grid size={{ xs:12 }} container spacing={2} sx={{ marginTop: "15px" }}>
+            <Grid size={{ xs:7, sm:8, md:10 }}>
               <TextField
                 InputLabelProps={{ shrink: true }}
                 autoFocus
@@ -144,7 +144,7 @@ const WorkspaceSecretsCard = () => {
                 {...register(`github-token-workspace-${workspace.id}`)}
               />
             </Grid>
-            <Grid item xs={5} sm={4} md={2}>
+            <Grid size={{ xs:5, sm:4, md:2 }}>
               {currentEdittingToken ? (
                 <div>
                   <Tooltip title="Save">

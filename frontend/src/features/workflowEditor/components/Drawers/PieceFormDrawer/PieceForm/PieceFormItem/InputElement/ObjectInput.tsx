@@ -47,7 +47,7 @@ const ObjectInputComponent: React.FC<Prop> = ({
             justifyContent="space-between"
             sx={{ marginBottom: 1 }}
           >
-            <Grid item xs={10}>
+            <Grid size={{ xs:10 }}>
               <InputElement
                 isItemObject
                 schema={property}
@@ -57,7 +57,7 @@ const ObjectInputComponent: React.FC<Prop> = ({
                 definitions={definitions}
               />
             </Grid>
-            <Grid item xs={2} sx={{ margin: 0 }}>
+            <Grid size={{ xs:2 }} sx={{ margin: 0 }}>
               <CheckboxInput
                 name={`${inputKey}.fromUpstream.${key}`}
                 disabled={disableUpstream}

@@ -58,7 +58,7 @@ export const TaskDetails = (props: ITaskDetailsProps) => {
       }}
     >
       <Grid container>
-        <Grid item xs={12}>
+        <Grid size={{ xs:12 }}>
           <List>
             <ListItem
               sx={{ justifyContent: "space-between", marginTop: "10px" }}

@@ -51,8 +51,8 @@ export const PieceReport: React.FC<Props> = ({ taskData, id }) => {
   }, [taskData]);
 
   return (
-    <Grid id={id} container item xs={4} style={{ width: "100%" }}>
-      <Grid item xs={12}>
+    <Grid id={id} container size={{ xs:4 }} style={{ width: "100%" }}>
+      <Grid size={{ xs:12 }}>
         <Divider variant="middle">
           <Chip
             label={taskData.pieceName}
@@ -64,7 +64,7 @@ export const PieceReport: React.FC<Props> = ({ taskData, id }) => {
         </Divider>
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={{ xs:12 }}>
         {/* This is the result (if exists) */}
         <Container>
           <Suspense
@@ -90,7 +90,7 @@ export const PieceReport: React.FC<Props> = ({ taskData, id }) => {
         </Container>
       </Grid>
 
-      <Grid item xs={12} justifySelf="flex-end" marginRight={2}>
+      <Grid size={{ xs:12 }} justifySelf="flex-end" marginRight={2}>
         <Container
           sx={{
             marginRight: 0,

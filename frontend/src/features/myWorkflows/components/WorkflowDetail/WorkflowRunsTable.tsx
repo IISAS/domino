@@ -62,7 +62,7 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         type: "string",
         flex: 1,
         minWidth: 150,
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "end_date",
@@ -72,7 +72,7 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         type: "string",
         flex: 1,
         minWidth: 150,
-        valueFormatter: ({ value }) => new Date(value).toLocaleString(),
+        valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : "none",
       },
       {
         field: "duration_in_seconds",
@@ -81,7 +81,7 @@ export const WorkflowRunsTable: React.FC<Props> = ({
         align: "center",
         minWidth: 150,
         flex: 1,
-        valueFormatter: ({ value }) => (value ? secondsToHMS(value) : "N/A"),
+        valueFormatter: (value) => value ? secondsToHMS(value as number) : "N/A",
       },
       {
         field: "state",
@@ -144,7 +144,7 @@ export const WorkflowRunsTable: React.FC<Props> = ({
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={{ xs:12 }}>
         <Card sx={{ height: "36vh" }}>
           {isLoading ? (
             <Skeleton
@@ -155,15 +155,20 @@ export const WorkflowRunsTable: React.FC<Props> = ({
           ) : (
             <DataGrid
               density="compact"
-              onRowSelectionModelChange={([id]) => {
-                setSelectedRun(
-                  workflowRuns?.data?.find((wr) => wr.workflow_run_id === id) ??
-                    null,
-                );
+              rowSelectionModel={{
+                type: 'include',
+                ids: selectedRun ? new Set([selectedRun.workflow_run_id]) : new Set()
               }}
-              rowSelectionModel={
-                selectedRun ? [selectedRun.workflow_run_id] : []
-              }
+              onRowSelectionModelChange={(model) => {
+                const ids = Array.from(model.ids)
+                const id = ids.length > 0 ? ids[0] : null
+
+                setSelectedRun(
+                  id
+                  ? workflowRuns?.data?.find((wr) => wr.workflow_run_id === id) ?? null
+                  : null
+                )
+              }}
               columns={columns}
               rows={rows}
               pagination
