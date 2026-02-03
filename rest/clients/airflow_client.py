@@ -20,6 +20,7 @@ class AirflowRestClient(requests.Session):
             self.base_url += '/'
         self.username = settings.AIRFLOW_ADMIN_CREDENTIALS.get('username')
         self.password = settings.AIRFLOW_ADMIN_CREDENTIALS.get('password')
+        self.retrieving_jwt_token = False
         self.jwt_token = None
         self.logger = get_configured_logger(self.__class__.__name__)
 
@@ -47,9 +48,16 @@ class AirflowRestClient(requests.Session):
 
     def request(self, method, resource, **kwargs):
         try:
-            if not self.jwt_token:
-                self.jwt_token = self._get_jwt_token()
-            self.headers.update({"Authorization": f"Bearer {self.jwt_token}"})
+            if not self.jwt_token and not self.retrieving_jwt_token:
+                self.retrieving_jwt_token = True
+                try:
+                    self.jwt_token = self._get_jwt_token()
+                except Exception as e:
+                    raise e
+                finally:
+                    self.retrieving_jwt_token = False
+            if self.jwt_token:
+                self.headers.update({"Authorization": f"Bearer {self.jwt_token}"})
             url = urljoin(self.base_url, resource)
             response = super().request(method, url, **kwargs)
             if response.status_code == 401:
