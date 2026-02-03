@@ -60,7 +60,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             "AIRFLOW_CONTEXT_DAG_RUN_ID": "{{ run_id }}",
         }
 
-        self.logger.debug(pod_env_vars)
+        self.logger.info(pod_env_vars)
 
         # Container resources
         if container_resources is None:
@@ -478,8 +478,8 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         Code from here onward is executed by the Worker and not by the Scheduler.
         """
         # TODO change url based on platform configuration
-        self.logger.debug("PARAMS")
-        self.logger.debug(context["params"])
+        self.logger.info("PARAMS")
+        self.logger.info(context["params"])
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest-service:8000/")
         #self.domino_client = DominoBackendRestClient(base_url="http://localhost:8080/")
         self._prepare_execute_environment(context=context)

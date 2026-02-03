@@ -66,7 +66,7 @@ class SharedStorageMount(object):
         self.shared_storage_source_name = self.workflow_shared_storage.get("source", None)
         self.shared_storage_mode = self.workflow_shared_storage.get("mode", None)
 
-        self.logger.debug(self)
+        self.logger.info(self)
 
         if self.shared_storage_source_name is None:
             raise Exception("SHARED_STORAGE_SOURCE_NAME is not set")
