@@ -1,19 +1,31 @@
-import re
-from math import ceil
-from aiohttp import ClientSession
 import asyncio
-from copy import deepcopy
-from uuid import uuid4
 import io
+import re
+from copy import deepcopy
 from datetime import datetime, timezone
-from repository.piece_repository import PieceRepository
-from schemas.context.auth_context import AuthorizationContextData
+from math import ceil
+from pathlib import Path
+from uuid import uuid4
 
+import yaml
+from aiohttp import ClientSession
+
+from clients.airflow_client import AirflowRestClient
+from clients.github_rest_client import GithubRestClient
+from clients.local_files_client import LocalFilesClient
 from core.logger import get_configured_logger
 from core.settings import settings
-from pathlib import Path
-from utils.workflow_template import workflow_template
-from schemas.requests.workflow import CreateWorkflowRequest, ListWorkflowsFilters, WorkflowSharedStorageSourceEnum, storage_default_piece_model_map
+from database.models import Workflow, WorkflowPieceRepositoryAssociative
+from repository.piece_repository import PieceRepository
+from repository.piece_repository_repository import PieceRepositoryRepository
+from repository.secret_repository import SecretRepository
+from repository.workflow_repository import WorkflowRepository
+from schemas.context.auth_context import AuthorizationContextData
+from schemas.exceptions.base import ConflictException, ForbiddenException, ResourceNotFoundException, \
+    BadRequestException
+from schemas.requests.workflow import CreateWorkflowRequest, ListWorkflowsFilters, WorkflowSharedStorageSourceEnum, \
+    storage_default_piece_model_map
+from schemas.responses.base import PaginationSet
 from schemas.responses.workflow import (
     CreateWorkflowResponse,
     GetWorkflowsResponse,
@@ -28,18 +40,10 @@ from schemas.responses.workflow import (
     GetWorkflowRunTaskResultResponse,
     WorkflowStatus
 )
-from schemas.responses.base import PaginationSet
-from schemas.exceptions.base import ConflictException, ForbiddenException, ResourceNotFoundException, BadRequestException
-from repository.workflow_repository import WorkflowRepository
-from clients.airflow_client import AirflowRestClient
-from clients.local_files_client import LocalFilesClient
-from clients.github_rest_client import GithubRestClient
-from database.models import Workflow, WorkflowPieceRepositoryAssociative
-from repository.piece_repository_repository import PieceRepositoryRepository
-from repository.workflow_repository import WorkflowRepository
-from repository.secret_repository import SecretRepository
 from services.secret_service import SecretService
 from utils import parsers
+from utils.workflow_template import workflow_template
+
 
 class WorkflowService(object):
     def __init__(self) -> None:
@@ -89,6 +93,8 @@ class WorkflowService(object):
             last_changed_by=auth_context.user_id,
             workspace_id=workspace_id
         )
+        workflow.awpl = self.workflowToAWPL(workflow)
+        awpl_yaml = yaml.safe_dump(workflow.awpl, sort_keys=False)
         workflow = self.workflow_repository.create(new_workflow)
 
         data_dict = body.model_dump()
@@ -97,7 +103,8 @@ class WorkflowService(object):
         try:
             self._validate_workflow_tasks(tasks_dict=data_dict.get('tasks'), workspace_id=workspace_id)
 
-            _, workflow_code, pieces_repositories_ids = self._create_dag_code_from_raw_json(data_dict, workspace_id=workspace_id)
+            _, workflow_code, pieces_repositories_ids = self._create_dag_code_from_raw_json(data_dict,
+                                                                                            workspace_id=workspace_id)
 
             workflow_piece_repository_associations = [
                 WorkflowPieceRepositoryAssociative(
@@ -131,6 +138,8 @@ class WorkflowService(object):
                 name=workflow.name,
                 created_at=workflow.created_at,
                 schema=workflow.schema,
+                awpl=workflow.awpl,
+                awpl_yaml=awpl_yaml,
                 created_by=workflow.created_by,
                 last_changed_at=workflow.last_changed_at,
                 last_changed_by=workflow.last_changed_by,
@@ -145,7 +154,8 @@ class WorkflowService(object):
         Creates a session, create run_program list by each dag_id and call asyncio gather
         """
         async with ClientSession() as session:
-            res = await asyncio.gather(*[self.airflow_client.get_dag_by_id_async(session, dag_id) for dag_id in dag_ids])
+            res = await asyncio.gather(
+                *[self.airflow_client.get_dag_by_id_async(session, dag_id) for dag_id in dag_ids])
         return res
 
     async def list_workflows(
@@ -181,7 +191,8 @@ class WorkflowService(object):
             # TODO handle to many import errors
             raise BaseException("To many import errors in airflow API Server.")
 
-        import_errors_uuids = [e.get('filename').split('dags/')[1].split('.py')[0] for e in import_errors_response_content['import_errors']]
+        import_errors_uuids = [e.get('filename').split('dags/')[1].split('.py')[0] for e in
+                               import_errors_response_content['import_errors']]
 
         # Add more info to model if necessary
         data = []
@@ -247,7 +258,8 @@ class WorkflowService(object):
 
         return response
 
-    def get_workflow(self, workspace_id: int, workflow_id: str, auth_context: AuthorizationContextData) -> GetWorkflowResponse:
+    def get_workflow(self, workspace_id: int, workflow_id: str,
+                     auth_context: AuthorizationContextData) -> GetWorkflowResponse:
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException()
@@ -284,6 +296,8 @@ class WorkflowService(object):
             id=workflow.id,
             name=workflow.name,
             schema=workflow.schema,
+            awpl=workflow.awpl,
+            awpl_yaml=yaml.safe_dump(workflow.awpl, sort_keys=False),
             ui_schema=workflow.ui_schema,
             created_at=workflow.created_at,
             last_changed_at=workflow.last_changed_at,
@@ -295,7 +309,6 @@ class WorkflowService(object):
         )
 
         return response
-
 
     def check_existing_workflow(self):
         pass
@@ -374,7 +387,9 @@ class WorkflowService(object):
             'source': 'default',
             'name__like': 'default_storage_repository'
         }
-        workspace_storage_repository = self.piece_repository_repository.find_by_workspace_id(workspace_id=workspace_id, page=0, page_size=100, filters=filters)
+        workspace_storage_repository = self.piece_repository_repository.find_by_workspace_id(workspace_id=workspace_id,
+                                                                                             page=0, page_size=100,
+                                                                                             filters=filters)
         if not workspace_storage_repository:
             raise ResourceNotFoundException("Default storage repository not found for this workspace.")
 
@@ -402,9 +417,10 @@ class WorkflowService(object):
         - end_date (not none)
         """
         workflow_kwargs['dag_id'] = workflow_kwargs.pop('id')
-        select_end_date = workflow_kwargs.pop('select_end_date') # TODO define how to use select end date
+        select_end_date = workflow_kwargs.pop('select_end_date')  # TODO define how to use select end date
         workflow_kwargs.pop('select_start_date')
-        workflow_kwargs['schedule'] = None if workflow_kwargs['schedule'] == 'none' else f"@{workflow_kwargs['schedule']}"
+        workflow_kwargs['schedule'] = None if workflow_kwargs[
+                                                  'schedule'] == 'none' else f"@{workflow_kwargs['schedule']}"
 
         workflow_processed_schema = {
             'workflow': deepcopy(workflow_kwargs),
@@ -473,7 +489,6 @@ class WorkflowService(object):
                     input_kwargs[input_key] = array_input_kwargs
                 else:
                     input_kwargs[input_key] = input_value['value']
-
 
             # piece_request = {"id": 1, "name": "SimpleLogPiece"}
             piece_db = self.piece_repository.find_repository_by_piece_name_and_workspace_id(
@@ -552,7 +567,8 @@ class WorkflowService(object):
 
     async def delete_workspace_workflows(self, workspace_id: int):
         # TODO: improve this? Maybe running in a worker and not in the main thread? Pagination may take a while if there are a lot of workflows.
-        workflows = self.workflow_repository.find_by_workspace_id(workspace_id=workspace_id, paginate=False, count=False)
+        workflows = self.workflow_repository.find_by_workspace_id(workspace_id=workspace_id, paginate=False,
+                                                                  count=False)
 
         await asyncio.gather(*[self.delete_workflow_files(workflow_uuid=workflow.uuid_name) for workflow in workflows])
         self.workflow_repository.delete_by_workspace_id(workspace_id=workspace_id)
@@ -579,7 +595,7 @@ class WorkflowService(object):
             await self.delete_workflow_files(workflow_uuid=workflow.uuid_name)
             self.airflow_client.delete_dag(dag_id=workflow.uuid_name)
             self.workflow_repository.delete(id=workflow_id)
-        except Exception as e: # TODO improve exception handling
+        except Exception as e:  # TODO improve exception handling
             self.logger.exception(e)
             self.workflow_repository.delete(id=workflow_id)
             raise e
@@ -595,7 +611,8 @@ class WorkflowService(object):
                 "executions": [{
                     "execution_date": e["execution_date"],
                     "state": e["state"],
-                    "elapsed_time": "" if e['end_date'] is None else str(parsers.parse_iso_z(e['end_date']) - parsers.parse_iso_z(e['start_date']))
+                    "elapsed_time": "" if e['end_date'] is None else str(
+                        parsers.parse_iso_z(e['end_date']) - parsers.parse_iso_z(e['start_date']))
                 } for e in all_workflow_runs['workflow_runs']]
             }
             return response_payload
@@ -721,7 +738,7 @@ class WorkflowService(object):
 
     def generate_report(self, workflow_id: int, workflow_run_id: str):
         page_size = 100
-        page=0
+        page = 0
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException("Workflow not found")
@@ -744,7 +761,7 @@ class WorkflowService(object):
         all_run_tasks = response_data["task_instances"]
 
         while len(all_run_tasks) < total_tasks:
-            page+=1
+            page += 1
             response = self.airflow_client.get_all_run_tasks_instances(
                 dag_id=airflow_workflow_id,
                 dag_run_id=workflow_run_id,
@@ -753,7 +770,8 @@ class WorkflowService(object):
             )
             all_run_tasks.extend(response.json().get("task_instances"))
 
-        sorted_all_run_tasks = sorted(all_run_tasks, key=lambda item: datetime.strptime(item["end_date"], "%Y-%m-%dT%H:%M:%S.%f%z"))
+        sorted_all_run_tasks = sorted(all_run_tasks,
+                                      key=lambda item: datetime.strptime(item["end_date"], "%Y-%m-%dT%H:%M:%S.%f%z"))
 
         result_list = []
 
@@ -768,7 +786,7 @@ class WorkflowService(object):
 
                 node = workflow.ui_schema.get("nodes", {}).get(task["task_id"], {})
                 piece_name = node.get("data", {}).get("style", {}).get("label", None) or \
-                            node.get("data", {}).get("name", None)
+                             node.get("data", {}).get("name", None)
 
                 result_list.append(
                     dict(
@@ -815,7 +833,7 @@ class WorkflowService(object):
             # Remove duplicated datetimes if they exist (they are added by the airflow logger and the domino so in some cases we have 2 datetimes in one line)
             matches = list(re.finditer(datetime_pattern, l))
             if len(matches) > 1:
-                l = re.sub(datetime_pattern, '', l, len(matches) -1)
+                l = re.sub(datetime_pattern, '', l, len(matches) - 1)
 
             # Remove the start and stop patterns
             if stop_command_pattern in l or start_command_pattern in l:
@@ -830,7 +848,7 @@ class WorkflowService(object):
             # Remove all brackets from datetime - workaround by now
             datetime_brackets = r'\[\d{4}[-/]\d{2}[-/]\d{2} \d{2}:\d{2}:\d{2}(,|.)\d*]'
             regex = re.compile(datetime_brackets)
-            l = regex.sub(lambda m: '{0}'.format(m.group(0).replace('[','').replace(']', '')), l)
+            l = regex.sub(lambda m: '{0}'.format(m.group(0).replace('[', '').replace(']', '')), l)
 
             # Add brackets to datetime
             datetime_no_brackets_pattern = r'\d{4}[-/]\d{2}[-/]\d{2} \d{2}:\d{2}:\d{2}(,|.)\d*'
@@ -894,3 +912,64 @@ class WorkflowService(object):
             task_try_number=task_try_number
         )
         return GetWorkflowRunTaskResultResponse(**result_dict)
+
+    def workflowToAWPL(self, workflow: Workflow):
+        def get_resource_hints(piece_schema):
+            """
+            https://spice-uibk.github.io/awpl-docs/configuration/resource_hints.html
+            """
+            resource_hints = dict()
+            for k, v in piece_schema['container_resources'].items():
+                if k.lower() == 'use_gpu':
+                    resource_hints['gpu'] = dict(type='gpu')
+                    continue
+                for type, value in v.items():
+                    if type not in resource_hints.keys():
+                        resource_hints[type] = dict(type=type)
+                    if k.lower() == 'requests':
+                        resource_hints[type].update(dict(min=value))
+                    elif k.lower() == 'limits':
+                        resource_hints[type].update(dict(max=value))
+            return [hint for hint in resource_hints.values()]
+
+        awpl = dict(
+            name=f'{workflow.uuid_name}',
+            runtime="airflow",
+            config=dict(
+                resource_hints=list(
+                    # https://spice-uibk.github.io/awpl-docs/configuration/resource_hints.html
+                    dict()
+                ),
+                slo=list(
+                    # https://spice-uibk.github.io/awpl-docs/configuration/slo.html
+                    dict()
+                ),
+                runtime=dict(
+                    # https://spice-uibk.github.io/awpl-docs/configuration/runtime/apache_airflow.html
+                    schedule=f'@{workflow.schedule.value}',
+                ),
+            )
+        )
+
+        dependencies = dict()
+        for edge in workflow.schema['workflowEdges']:
+            source = edge['source']
+            target = edge['target']
+            if target not in dependencies.keys():
+                dependencies[target] = set()
+            dependencies[target].add(source)
+
+        tasks = dict()
+        for piece_id, piece_schema in workflow.schema['workflowPieces'].items():
+            task = dict(
+                id=piece_id,
+                description=piece_schema['description'],
+                depends_on=list(dependencies.get(piece_id, [])),
+                task_config=dict(
+                    resource_hints=get_resource_hints(piece_schema)
+                )
+            )
+            tasks[task['id']] = task
+
+        awpl.update(dict(nodes=[dict(task=task) for task in tasks.values()]))
+        return awpl

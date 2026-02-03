@@ -17,6 +17,7 @@ psycopg2-binary==2.9.10
 pydantic-settings==2.10.1
 pydantic[email]==2.11.7
 pytzdata==2020.1
+PyYAML==6.0.2
 sqlalchemy-redshift==0.8.14
 tomli==2.0.1
 tomli_w==1.0.0
