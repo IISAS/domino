@@ -178,19 +178,27 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.task_id_replaced = self.task_id.lower().replace("_", "-") # doing this because airflow doesn't allow underscores and upper case in mount names and max len is 63
         self.shared_storage_base_mount_path = '/home/shared_storage'
 
+        self.logger.info("self.workflow_shared_storage:")
+        self.logger.info(self.workflow_shared_storage)
+
         if not self.workflow_shared_storage or self.workflow_shared_storage.mode.name == 'none':
             return pod
-        if self.workflow_shared_storage.source.name in ["aws_s3", "local", "gcs"]:
+        if self.workflow_shared_storage.source.name in ["aws_s3", "gcs"]:
             pod = self.add_shared_storage_sidecar(pod)
-        #elif self.workflow_shared_storage.source.name == "local":
-        #    pod = self.add_local_shared_storage_volumes(pod)
+        elif self.workflow_shared_storage.source.name == "local":
+            pod = self.add_local_shared_storage_volumes(pod)
         return pod
 
 
     def add_local_shared_storage_volumes(self, pod: k8s.V1Pod) -> k8s.V1Pod:
         """Adds local shared storage volumes to the pod."""
         pod_cp = copy.deepcopy(pod)
+        self.logger.info("pod_cp.spec.containers:")
+        self.logger.info(pod_cp.spec.containers)
+        pod_cp.spec.containers[0].security_context=k8s.V1SecurityContext(privileged=True)
+        
         pod_cp.spec.volumes = pod.spec.volumes or []
+        
         pod_cp.spec.volumes.append(
             k8s.V1Volume(
                 name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
@@ -347,11 +355,11 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         )
         pod_cp.spec.containers.append(sidecar_container)
 
-        self.logger.info("pod_cp:")
-        self.logger.info(pod_cp)
+        #self.logger.info("pod_cp:")
+        #self.logger.info(pod_cp)
 
-        self.logger.info("self:")
-        self.logger.info(self)
+        #self.logger.info("self:")
+        #self.logger.info(self)
 
         return pod_cp
 
