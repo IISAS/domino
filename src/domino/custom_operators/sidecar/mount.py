@@ -159,7 +159,11 @@ class SharedStorageMount(object):
         self.logger.info('Mount is ready to unmount.')
 
     def mount(self):
+        self.logger.info("Mounting task:")
+        self.logger.info(self)
         shared_storage_upstream_ids_list = ast.literal_eval(os.environ.get("AIRFLOW_UPSTREAM_TASKS_IDS_SHARED_STORAGE", "[]"))
+        self.logger.infor("shared_storage_upstream_ids_list:")
+        self.logger.infor(shared_storage_upstream_ids_list)
         self._mount_upstreams(shared_storage_upstream_ids_list)
 
         if self.shared_storage_mode == 'Read':
