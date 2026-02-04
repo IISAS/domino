@@ -93,8 +93,11 @@ class WorkflowService(object):
             last_changed_by=auth_context.user_id,
             workspace_id=workspace_id
         )
-        workflow.awpl = self.workflowToAWPL(workflow)
-        awpl_yaml = yaml.safe_dump(workflow.awpl, sort_keys=False)
+
+        # AWPL
+        new_workflow.awpl = self.workflowToAWPL(new_workflow)
+        new_workflow.awpl_yaml = yaml.safe_dump(new_workflow.awpl, sort_keys=False)
+
         workflow = self.workflow_repository.create(new_workflow)
 
         data_dict = body.model_dump()
