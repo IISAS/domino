@@ -174,6 +174,8 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         We override this method to add the shared storage to the pod.
         This function runs after our own self.execute, by super().execute()
         """
+        self.logger.info("CONTEXT:")
+        self.logger.info(context)
         pod = super().build_pod_request_obj(context)
         self.task_id_replaced = self.task_id.lower().replace("_", "-") # doing this because airflow doesn't allow underscores and upper case in mount names and max len is 63
         self.shared_storage_base_mount_path = '/home/shared_storage'
@@ -225,6 +227,8 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 read_only=True,
             )
         )
+        self.logger.info("pod_cp.spec.containers:")
+        self.logger.info(pod_cp.spec.containers)
         return pod_cp
 
     def _validate_storage_piece_secrets(self, storage_piece_secrets: Dict[str, Any]):
