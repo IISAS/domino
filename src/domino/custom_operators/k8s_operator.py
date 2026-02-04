@@ -287,6 +287,14 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 empty_dir=k8s.V1EmptyDirVolumeSource()
             )
         )
+
+        self.logger.info("volume_mounts_main_container:")
+        self.logger.info(volume_mounts_main_container)
+        self.logger.info("volume_mounts_sidecar_container:")
+        self.logger.info(volume_mounts_sidecar_container)
+        self.logger.info("pod_volumes_list:")
+        self.logger.info(pod_volumes_list)
+
         pod_cp = copy.deepcopy(pod)
         pod_cp.spec.volumes = pod.spec.volumes or []
         pod_cp.spec.volumes.extend(pod_volumes_list)
@@ -338,6 +346,13 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             ),
         )
         pod_cp.spec.containers.append(sidecar_container)
+
+        self.logger.info("pod_cp:")
+        self.logger.info(pod_cp)
+
+        self.logger.info("self:")
+        self.logger.info(self)
+
         return pod_cp
 
 

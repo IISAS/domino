@@ -29,6 +29,8 @@ class SharedStorageMount(object):
         self._setup_shared_storage()
 
     def _setup_local_shared_storage_config(self):
+        self.logger.info("self:")
+        self.logger.info(self)
          # Update rclone config file with this session details
         with open(self.config_file_path, "w+") as f:
             self.parser.write(f)
