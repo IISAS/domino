@@ -142,7 +142,7 @@ class WorkflowService(object):
                 created_at=workflow.created_at,
                 schema=workflow.schema,
                 awpl=workflow.awpl,
-                awpl_yaml=awpl_yaml,
+                awpl_yaml=workflow.awpl_yaml,
                 created_by=workflow.created_by,
                 last_changed_at=workflow.last_changed_at,
                 last_changed_by=workflow.last_changed_by,
