@@ -176,8 +176,10 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         """
         self.logger.info("CONTEXT:")
         self.logger.info(context)
+        self.task_id_replaced = self.task_id.lower().replace("_", "-") # doing this because airflow doesn't allow underscores and upper case in mount names and max len is 63 and also the name of the pod can't contains underscores and capital letters
+        self.logger.info("NEW CONTEXT:")
+        self.logger.info(context)
         pod = super().build_pod_request_obj(context)
-        self.task_id_replaced = self.task_id.lower().replace("_", "-") # doing this because airflow doesn't allow underscores and upper case in mount names and max len is 63
         self.shared_storage_base_mount_path = '/home/shared_storage'
 
         self.logger.info("self.workflow_shared_storage:")
@@ -505,7 +507,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         Code from here onward is executed by the Worker and not by the Scheduler.
         """
         # TODO change url based on platform configuration
-        self.logger.info("PARAMS")
+        self.logger.info("PARAMS:")
         self.logger.info(context["params"])
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest-service:8000/")
         #self.domino_client = DominoBackendRestClient(base_url="http://localhost:8080/")
