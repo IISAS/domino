@@ -108,7 +108,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
 
         pvc_exists = False
         try:
-            k8s_client.read_namespaced_persistent_volume_claim(name=persistent_volume_claim_name, namespace='default')
+            k8s_client.read_namespaced_persistent_volume_claim(name=persistent_volume_claim_name, namespace='airflow')
             pvc_exists = True
         except client.rest.ApiException as e:
             if e.status != 404:
@@ -142,7 +142,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         domino_package_local_claim_name = 'domino-dev-volume-claim'
         pvc_exists = False
         try:
-            k8s_client.read_namespaced_persistent_volume_claim(name=domino_package_local_claim_name, namespace='default')
+            k8s_client.read_namespaced_persistent_volume_claim(name=domino_package_local_claim_name, namespace='airflow')
             pvc_exists = True
         except client.rest.ApiException as e:
             if e.status != 404:

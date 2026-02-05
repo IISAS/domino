@@ -67,7 +67,7 @@ class BasePiece(metaclass=abc.ABCMeta):
         Start logger.
         """
         self.logger.info(f"Started {self.task_id} of type {self.__class__.__name__} at {str(datetime.now().isoformat())}")
-        self.logger.info("Start cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b")
+        self.logger.info(f"Start cut point for logger {self.task_id}")
 
     def _wait_for_sidecar_paths(self):
         # Wait for sidecar create directories
@@ -89,6 +89,7 @@ class BasePiece(metaclass=abc.ABCMeta):
         """
         Generates paths for shared storage.
         """
+        self.logger.init("GENERATING PATHS:")
         # Base path for fetching and storing runs results
         if not Path(self.workflow_shared_storage_path).is_dir():
             Path(self.workflow_shared_storage_path).mkdir(parents=True, exist_ok=True)
@@ -255,12 +256,16 @@ class BasePiece(metaclass=abc.ABCMeta):
         # Start logger
         self.start_logger()
 
+        self.logger.info(piece_input_model)
         self.piece_input_model = piece_input_model
+        self.logger.info(piece_output_model)
         self.piece_output_model = piece_output_model
+        self.logger.info(piece_secrets_model)
         self.piece_secrets_model = piece_secrets_model
 
         # Airflow context dictionary: https://composed.blog/airflow/execute-context
         # For local-bash and kubernetes deploy modes, we assemble this ourselves and the context data is more limited
+        self.logger.info(airflow_context)
         if airflow_context is None:
             self.airflow_context = {
                 "execution_datetime": os.getenv('AIRFLOW_CONTEXT_EXECUTION_DATETIME', "123456789"),
