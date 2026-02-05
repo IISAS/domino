@@ -273,13 +273,16 @@ class BasePiece(metaclass=abc.ABCMeta):
         # Generate paths
         workflow_run_subpath = os.environ.get('DOMINO_WORKFLOW_RUN_SUBPATH', '')
         self.workflow_shared_storage_path = Path("/home/shared_storage")
-        if self.deploy_mode == 'local-compose':
+        shared_storage_source_name = os.environ.get('DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME', None)
+        self.logger.info("DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME:")
+        self.logger.info(shared_storage_source_name)
+        if self.deploy_mode == 'local-compose' or shared_storage_source_name == 'local':
             self.workflow_shared_storage_path = str(self.workflow_shared_storage_path / workflow_run_subpath)
         self.results_path = f"{self.workflow_shared_storage_path}/{self.task_id}/results"
         self.xcom_path = f"{self.workflow_shared_storage_path}/{self.task_id}/xcom"
         self.report_path = f"{self.workflow_shared_storage_path}/{self.task_id}/report"
-        shared_storage_source_name = os.environ.get('DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME', None)
-        if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose":
+        if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose" or shared_storage_source_name == "local":
+            self.logger.info("GENERATE PATHS:")
             self.generate_paths()
         else:
             self._wait_for_sidecar_paths()
