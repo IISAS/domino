@@ -281,11 +281,11 @@ class BasePiece(metaclass=abc.ABCMeta):
         self.results_path = f"{self.workflow_shared_storage_path}/{self.task_id}/results"
         self.xcom_path = f"{self.workflow_shared_storage_path}/{self.task_id}/xcom"
         self.report_path = f"{self.workflow_shared_storage_path}/{self.task_id}/report"
-        if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose" or shared_storage_source_name == "local":
-            self.logger.info("GENERATE PATHS:")
-            self.generate_paths()
-        else:
-            self._wait_for_sidecar_paths()
+        #if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose" or shared_storage_source_name == "local":
+        self.logger.info("GENERATE PATHS:")
+        self.generate_paths()
+        #else:
+        #    self._wait_for_sidecar_paths()
 
         # Using pydantic to validate input data
         input_model_obj = piece_input_model(**piece_input_data)
