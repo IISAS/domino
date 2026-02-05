@@ -378,7 +378,7 @@ services:
     #image: ghcr.io/iisas/domino-frontend:compose
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prod
     container_name: domino-frontend
     command: pnpm debug
     environment:
@@ -386,8 +386,7 @@ services:
       - API_URL=http://${HOSTNAME:-localhost}:${DOMINO_REST_PORT_HOST:-8000}${DOMINO_REST_BASENAME:-}
       - BASENAME=${DOMINO_FRONTEND_BASENAME:-}
     ports:
-      - ${DOMINO_FRONTEND_PORT_HOST:-3000}:3000
-      - ${DOMINO_FRONTEND_DEBUG_PORT_HOST:-9222}:9222  # Expose debug port
+      - ${DOMINO_FRONTEND_PORT_HOST:-3000}:80
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
