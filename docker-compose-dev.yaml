@@ -84,7 +84,11 @@ services:
     container_name: airflow-api-server
     environment:
       AIRFLOW__API__BASE_URL: "https://${HOSTNAME:-localhost}:${AIRFLOW_API_SERVER_PORT_HOST}${AIRFLOW_API_SERVER_BASENAME}"
-    command: api-server
+    command: >
+      bash -c "
+        airflow db migrate &&
+        exec airflow api-server
+      "
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 30s
