@@ -390,9 +390,6 @@ services:
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
-    depends_on:
-      domino-rest:
-        condition: service_started
 
   # Domino Docker Proxy
   docker-proxy:

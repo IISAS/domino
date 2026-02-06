@@ -52,7 +52,6 @@ FROM nginx:1.29.1
 RUN apt-get update && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/*
 
 # Copy the build output from the previous stage
-COPY --from=build /app/.env.production /usr/share/nginx/html
 COPY --from=build /app/build /usr/share/nginx/html
 COPY --from=build /app/import-meta-env.cjs /usr/share/nginx/html
 
