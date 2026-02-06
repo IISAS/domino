@@ -52,12 +52,12 @@ export const ConfirmDeleteModal: React.FC<Props> = ({
       </DialogContent>
       <DialogActions>
         <Grid container justifyContent="center" spacing={4}>
-          <Grid item>
+          <Grid>
             <Button onClick={cancel} autoFocus variant="contained">
               {cancelText ?? "Cancel"}
             </Button>
           </Grid>
-          <Grid item>
+          <Grid>
             <Button onClick={confirm} variant="outlined" color="error">
               {confirmText ?? "Confirm"}
             </Button>

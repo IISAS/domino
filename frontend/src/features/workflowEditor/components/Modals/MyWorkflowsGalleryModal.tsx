@@ -58,7 +58,7 @@ const MyWorkflowExamplesGalleryModal = forwardRef(
           <Container>
             <Grid container justifyContent="center" spacing={2}>
               {cardsContents.map((card, index) => (
-                <Grid item key={index} xs={12} sm={12} md={12}>
+                <Grid key={index} size={{ xs:12, sm:12, md:12 }}>
                   <Card
                     elevation={4}
                     sx={{
@@ -101,10 +101,10 @@ const MyWorkflowExamplesGalleryModal = forwardRef(
                   </Card>
                 </Grid>
               ))}
-              <Grid item xs={12}>
+              <Grid size={{ xs:12 }}>
                 <Divider sx={{ height: 20 }} />
               </Grid>
-              <Grid xs={12} item>
+              <Grid size={{ xs:12 }}>
                 <Stack spacing={2} alignItems="center">
                   <Pagination
                     count={workflows?.metadata?.last_page}

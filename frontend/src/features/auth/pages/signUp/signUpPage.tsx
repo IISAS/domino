@@ -124,14 +124,14 @@ export const SignUpPage: FC = () => {
             {authLoading ? <CircularProgress size={20} /> : "Sign Up"}
           </Button>
           <Grid container>
-            <Grid item xs>
+            <Grid size="grow">
               <Link to="/recover-password">
                 <Typography variant="body2" color="text.primary">
                   Forgot password?
                 </Typography>
               </Link>
             </Grid>
-            <Grid item>
+            <Grid>
               <Link to="/sign-in">
                 <Typography variant="body2" color="text.primary">
                   Do you have an account? Sign In

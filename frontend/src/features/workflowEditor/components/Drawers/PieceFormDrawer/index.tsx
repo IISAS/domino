@@ -238,7 +238,7 @@ export const PieceFormDrawer: React.FC<ISidebarPieceFormProps> = (props) => {
               }}
             >
               <Grid container spacing={2} sx={{ marginBottom: "20px" }}>
-                <Grid item xs={10}>
+                <Grid size={{ xs:10 }}>
                   <Typography
                     variant="subtitle2"
                     component="div"
@@ -247,7 +247,7 @@ export const PieceFormDrawer: React.FC<ISidebarPieceFormProps> = (props) => {
                     Input Arguments
                   </Typography>
                 </Grid>
-                <Grid item xs={12 - 10}>
+                <Grid size={{ xs:12 - 10 }}>
                   <Typography
                     variant="subtitle2"
                     component="div"
@@ -261,8 +261,8 @@ export const PieceFormDrawer: React.FC<ISidebarPieceFormProps> = (props) => {
               <Grid container sx={{ paddingBottom: "25px" }}>
                 {formLoaded && (
                   <FormProvider {...methods}>
-                    <Grid item xs={12} className="sidebar-jsonforms-grid">
-                      <Grid item xs={12}>
+                    <Grid size={{ xs:12 }} className="sidebar-jsonforms-grid">
+                      <Grid size={{ xs:12 }}>
                         <PieceForm
                           formId={formId}
                           schema={piece.input_schema}

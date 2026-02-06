@@ -14,13 +14,13 @@
 @font-face {
   font-family: 'Rethink-Sans';
   src: url("../fonts/RethinkSans-ExtraBold.ttf");
-  font-weight: bolder;
+  font-weight: 800;
 }
 
 @font-face {
   font-family: 'Rethink-Sans';
   src: url("../fonts/RethinkSans-ExtraBoldItalic.ttf");
-  font-weight: bolder;
+  font-weight: 800;
   font-style: italic;
 }
 

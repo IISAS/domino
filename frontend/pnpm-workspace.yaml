@@ -1,0 +1,8 @@
+ignoredBuiltDependencies:
+  - es5-ext
+
+onlyBuiltDependencies:
+  - '@import-meta-env/unplugin'
+  - canvas
+  - esbuild
+  - unrs-resolver

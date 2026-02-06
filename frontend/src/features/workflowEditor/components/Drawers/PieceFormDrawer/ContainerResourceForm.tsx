@@ -37,7 +37,7 @@ export const ContainerResourceFormSchema = yup.object().shape({
 const ContainerResourceForm: React.FC = () => {
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} marginBottom={2}>
+      <Grid size={{ xs:12 }} marginBottom={2}>
         <Typography
           variant="subtitle2"
           component="div"
@@ -46,7 +46,7 @@ const ContainerResourceForm: React.FC = () => {
           Container Resources
         </Typography>
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={{ xs:6 }}>
         <NumberInput
           label="Available CPU"
           name="containerResources.cpu"
@@ -58,7 +58,7 @@ const ContainerResourceForm: React.FC = () => {
           }}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={{ xs:6 }}>
         <NumberInput
           label="Available Memory"
           name="containerResources.memory"
@@ -71,7 +71,7 @@ const ContainerResourceForm: React.FC = () => {
         />
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={{ xs:12 }}>
         <CheckboxInput name="containerResources.useGpu" label="Use GPU" />
       </Grid>
     </Grid>

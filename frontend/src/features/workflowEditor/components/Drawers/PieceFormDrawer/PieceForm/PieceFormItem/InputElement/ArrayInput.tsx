@@ -103,7 +103,7 @@ const ArrayInput: React.FC<ArrayInputItemProps> = React.memo(
                       borderRadius: "6px",
                     }}
                   >
-                    <Grid item xs={1}>
+                    <Grid size={{ xs:1 }}>
                       <IconButton
                         onClick={() => {
                           remove(index);
@@ -113,7 +113,7 @@ const ArrayInput: React.FC<ArrayInputItemProps> = React.memo(
                         <DeleteIcon />
                       </IconButton>
                     </Grid>
-                    <Grid item xs={10}>
+                    <Grid size={{ xs:10 }}>
                       <InputElement
                         isItemArray
                         schema={subItemSchema}
@@ -124,7 +124,7 @@ const ArrayInput: React.FC<ArrayInputItemProps> = React.memo(
                       />
                     </Grid>
                     {isObject ? null : (
-                      <Grid item xs={1}>
+                      <Grid size={{ xs:1 }}>
                         <CheckboxInput
                           name={`${inputKey}.value.${index}.fromUpstream`}
                           disabled={disableUpstream}

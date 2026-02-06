@@ -126,14 +126,14 @@ export const SignInPage: FC = () => {
             Sign In
           </Button>
           <Grid container>
-            <Grid item xs>
+            <Grid size="grow">
               <Link to="/recover-password">
                 <Typography variant="body2" color="text.primary">
                   Forgot password?
                 </Typography>
               </Link>
             </Grid>
-            <Grid item>
+            <Grid>
               <Link to="/sign-up">
                 <Typography variant="body2" color="text.primary">
                   {"Don't have an account? Sign Up"}

@@ -11,12 +11,15 @@ Auxiliary data models
 """
 class ScheduleIntervalType(str, Enum):
     none = "none"
-    once =	"once"
+    once = "once"
     hourly = "hourly"
     daily = "daily"
     weekly = "weekly"
     monthly = "monthly"
     yearly = "yearly"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class UiSchema(BaseModel):

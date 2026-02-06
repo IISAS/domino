@@ -59,12 +59,13 @@ export const RenderB64: React.FC<Props> = ({
           style={{ overflow: "auto", maxWidth: "100%", width: "100%" }}
           className="markdown-container"
         >
-          <ReactMarkdown
-            className="react-markdown-component"
-            remarkPlugins={[remarkGfm]}
-          >
-            {window.atob(base64_content)}
-          </ReactMarkdown>
+          <div className="react-markdown-component">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+            >
+              {window.atob(base64_content)}
+            </ReactMarkdown>
+          </div>
           ;
         </div>
       );

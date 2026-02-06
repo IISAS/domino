@@ -117,7 +117,7 @@ export const ButtonsMenu: React.FC<Props> = ({
       alignItems="center"
       style={{ marginBottom: 10 }}
     >
-      <Grid item>
+      <Grid>
         <AuthorizationComponent allowedRoles={["admin", "owner", "write"]}>
           <Button
             variant="contained"
@@ -128,7 +128,7 @@ export const ButtonsMenu: React.FC<Props> = ({
           </Button>
         </AuthorizationComponent>
       </Grid>
-      <Grid item>
+      <Grid>
         <AuthorizationComponent allowedRoles={["admin", "owner", "write"]}>
           <Button
             variant="contained"
@@ -139,7 +139,7 @@ export const ButtonsMenu: React.FC<Props> = ({
           </Button>
         </AuthorizationComponent>
       </Grid>
-      <Grid item>
+      <Grid>
         <AuthorizationComponent allowedRoles={["admin", "owner", "write"]}>
           <Button
             variant="contained"
@@ -150,7 +150,7 @@ export const ButtonsMenu: React.FC<Props> = ({
           </Button>
         </AuthorizationComponent>
       </Grid>
-      <Grid item>
+      <Grid>
         <AuthorizationComponent allowedRoles={["admin", "owner", "write"]}>
           <Button
             variant="contained"
@@ -208,7 +208,7 @@ export const ButtonsMenu: React.FC<Props> = ({
           ref={incompatiblePiecesModalRef}
         />
       </Grid>
-      <Grid item>
+      <Grid>
         <AuthorizationComponent allowedRoles={["admin", "owner", "write"]}>
           <Button
             variant="contained"

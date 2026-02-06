@@ -99,7 +99,7 @@ export const ResultsReport: React.FC = () => {
         margin: 0,
       }}
     >
-      <Grid item xs={12}>
+      <Grid size={{ xs:12 }}>
         <Button
           onClick={() => {
             navigate(-1);
@@ -110,7 +110,7 @@ export const ResultsReport: React.FC = () => {
           <Typography component="span">{`< Go back to ${workflow?.name} Detail`}</Typography>
         </Button>
       </Grid>
-      <Grid container item xs={2} direction="column">
+      <Grid container size={{ xs:2 }} direction="column">
         <Paper sx={{ width: "inherit"}}>
           <Container sx={{ paddingTop: 2 }}>
             <Typography variant="h6" component="h2">
@@ -167,14 +167,14 @@ export const ResultsReport: React.FC = () => {
               justifyContent="center"
               alignItems="center"
             >
-              <Grid item xs={12} marginBottom={1}>
+              <Grid size={{ xs:12 }} marginBottom={1}>
                 <DownloadAsPDF contentId="DownloadAsPDF" />{" "}
               </Grid>
             </Grid>
           </Container>
         </Paper>
       </Grid>
-      <Grid item xs={isPrint ? 12 : 10}>
+      <Grid size={{ xs: isPrint ? 12 : 10 }}>
         <PaperA4 id="DownloadAsPDF">
           <Grid
             container
@@ -185,14 +185,13 @@ export const ResultsReport: React.FC = () => {
           >
             <Grid
               container
-              item
-              xs={12}
+              size={{ xs:12 }}
               alignItems="center"
               justifyContent="center"
               sx={{ marginTop: 10 }}
               direction="column"
             >
-              <Grid item xs={12} marginLeft={2}>
+              <Grid size={{ xs:12 }} marginLeft={2}>
                 <Container>
                   <Typography
                     variant="h3"
@@ -203,7 +202,7 @@ export const ResultsReport: React.FC = () => {
                   </Typography>
                 </Container>
               </Grid>
-              <Grid item xs={12} marginLeft={2} marginBottom={16}>
+              <Grid size={{ xs:12 }} marginLeft={2} marginBottom={16}>
                 <Container>
                   <Typography
                     variant="h2"
@@ -216,7 +215,7 @@ export const ResultsReport: React.FC = () => {
                 </Container>
               </Grid>
 
-              <Grid item xs={12} alignSelf="flex-end" marginRight={2}>
+              <Grid size={{ xs:12 }} alignSelf="flex-end" marginRight={2}>
                 <Container
                   sx={{
                     marginRight: 0,
@@ -267,7 +266,7 @@ export const ResultsReport: React.FC = () => {
               />
             ))}
 
-            <Grid item xs={12} marginBottom={8}></Grid>
+            <Grid size={{ xs:12 }} marginBottom={8}></Grid>
           </Grid>
         </PaperA4>
       </Grid>
