@@ -89,7 +89,7 @@ class BasePiece(metaclass=abc.ABCMeta):
         """
         Generates paths for shared storage.
         """
-        self.logger.init("GENERATING PATHS:")
+        self.logger.info("GENERATING PATHS:")
         # Base path for fetching and storing runs results
         if not Path(self.workflow_shared_storage_path).is_dir():
             Path(self.workflow_shared_storage_path).mkdir(parents=True, exist_ok=True)
@@ -314,7 +314,7 @@ class BasePiece(metaclass=abc.ABCMeta):
         xcom_obj['_shared_storage_usage_in_bytes'] = self._shared_storage_usage_in_bytes
         self.push_xcom(xcom_obj=xcom_obj)
         self.logger.info(f"Piece used {self._shared_storage_usage_in_bytes} bytes of storage.")
-        self.logger.info("End cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b")
+        self.logger.info(f"End cut point for logger {self.task_id}")
 
 
     @classmethod
