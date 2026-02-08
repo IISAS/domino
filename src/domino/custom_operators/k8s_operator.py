@@ -537,7 +537,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             if self.do_xcom_push:
                 result = self.extract_xcom(pod=self.pod)
 
-            if self.workflow_shared_storage and self.workflow_shared_storage.mode.name != 'none':
+            if self.workflow_shared_storage and self.workflow_shared_storage.mode.name != 'none' and self.workflow_shared_storage.mode.name != 'local':
                 self._kill_shared_storage_sidecar(pod=self.pod)
             remote_pod = self.pod_manager.await_pod_completion(self.pod)
         finally:
