@@ -300,7 +300,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 empty_dir=k8s.V1EmptyDirVolumeSource()
             )
         )
-
         pod_cp = copy.deepcopy(pod)
         pod_cp.spec.volumes = pod.spec.volumes or []
         pod_cp.spec.volumes.extend(pod_volumes_list)
