@@ -9,7 +9,7 @@ on:
 
 jobs:
   release-domino-frontend-k8s:
-    name: Domino Frontend Image
+    name: Domino k8s Frontend Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,7 +33,7 @@ jobs:
           file: frontend/Dockerfile.prod # Path to the Dockerfile
 
   release-domino-frontend-compose:
-    name: Domino Frontend Image
+    name: Domino compose Frontend Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
