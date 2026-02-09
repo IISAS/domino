@@ -29,8 +29,6 @@ class SharedStorageMount(object):
         self._setup_shared_storage()
 
     def _setup_local_shared_storage_config(self):
-        self.logger.info("self:")
-        self.logger.info(self)
          # Update rclone config file with this session details
         with open(self.config_file_path, "w+") as f:
             self.parser.write(f)
@@ -67,8 +65,6 @@ class SharedStorageMount(object):
         self.workflow_shared_storage_secrets = ast.literal_eval(os.environ.get("DOMINO_WORKFLOW_SHARED_STORAGE_SECRETS", {}))
         self.shared_storage_source_name = self.workflow_shared_storage.get("source", None)
         self.shared_storage_mode = self.workflow_shared_storage.get("mode", None)
-
-        self.logger.info(self)
 
         if self.shared_storage_source_name is None:
             raise Exception("SHARED_STORAGE_SOURCE_NAME is not set")
@@ -159,11 +155,7 @@ class SharedStorageMount(object):
         self.logger.info('Mount is ready to unmount.')
 
     def mount(self):
-        self.logger.info("Mounting task:")
-        self.logger.info(self)
         shared_storage_upstream_ids_list = ast.literal_eval(os.environ.get("AIRFLOW_UPSTREAM_TASKS_IDS_SHARED_STORAGE", "[]"))
-        self.logger.info("shared_storage_upstream_ids_list:")
-        self.logger.info(shared_storage_upstream_ids_list)
         self._mount_upstreams(shared_storage_upstream_ids_list)
 
         if self.shared_storage_mode == 'Read':
