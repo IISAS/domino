@@ -141,6 +141,17 @@ class ProdSettings(Settings):
     CORS: dict = {
         "origins": [
             "*",
+            "http://localhost",
+            "http://localhost:8000",
+            "http://localhost:8080",
+            "http://localhost:3000"
+        ],
+        "allow_origins": [
+            "*",
+            "http://localhost",
+            "http://localhost:8000",
+            "http://localhost:8080",
+            "http://localhost:3000"
         ],
         "allow_credentials": True,
         "allow_methods": ["*"],
@@ -153,9 +164,9 @@ class ProdSettings(Settings):
 
 class K8sSettings(Settings):
     SERVER_HOST: str = "0.0.0.0"
-    DEBUG: bool = True
+    DEBUG: bool = False
     PORT: int = int(os.environ.get('DOMINO_REST_PORT_HOST', 8000))
-    RELOAD: bool = True
+    RELOAD: bool = False
     CORS: dict = {
         "origins": [
             "*",
