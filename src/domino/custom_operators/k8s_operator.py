@@ -189,9 +189,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         """Adds local shared storage volumes to the pod."""
         pod_cp = copy.deepcopy(pod)
         pod_cp.spec.containers[0].security_context=k8s.V1SecurityContext(privileged=True)
-        
         pod_cp.spec.volumes = pod.spec.volumes or []
-        
         pod_cp.spec.volumes.append(
             k8s.V1Volume(
                 name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
