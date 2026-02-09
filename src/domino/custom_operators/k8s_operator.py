@@ -209,6 +209,19 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name="domino-workflow-shared-storage-volume-claim")
             )
         )
+
+        # Add root volume mount
+        pod_cp.spec.containers[0].volume_mounts = pod_cp.spec.containers[0].volume_mounts or []
+        pod_cp.spec.containers[0].volume_mounts.append(
+            k8s.V1VolumeMount(
+                name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
+                mount_path=f"{self.shared_storage_base_mount_path}",  # path inside main container
+                mount_propagation="Bidirectional",
+                read_only=False,
+            )
+        )
+
+        '''
         # Add volume mounts for upstream tasks, using subpaths
         pod_cp.spec.containers[0].volume_mounts = pod_cp.spec.containers[0].volume_mounts or []
         for tid in self.shared_storage_upstream_ids_list:
@@ -216,8 +229,8 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 k8s.V1VolumeMount(
                     name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
                     mount_path=f"{self.shared_storage_base_mount_path}/{tid}",  # path inside main container
-                    mount_propagation="HostToContainer",
-                    read_only=True,
+                    mount_propagation="Bidirectional",
+                    read_only=False,
                 )
             )
         # Add volume mount for this task
@@ -229,6 +242,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 read_only=False,
             )
         )
+        '''
         self.logger.info("pod_cp.spec.containers:")
         self.logger.info(pod_cp.spec.containers)
         return pod_cp
