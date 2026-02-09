@@ -60,8 +60,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             "AIRFLOW_CONTEXT_DAG_RUN_ID": "{{ run_id }}",
         }
 
-        self.logger.info(pod_env_vars)
-
         # Container resources
         if container_resources is None:
             container_resources = {}
@@ -174,16 +172,9 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         We override this method to add the shared storage to the pod.
         This function runs after our own self.execute, by super().execute()
         """
-        self.logger.info("CONTEXT:")
-        self.logger.info(context)
         self.task_id_replaced = self.task_id.lower().replace("_", "-") # doing this because airflow doesn't allow underscores and upper case in mount names and max len is 63 and also the name of the pod can't contains underscores and capital letters
-        self.logger.info("NEW CONTEXT:")
-        self.logger.info(context)
         pod = super().build_pod_request_obj(context)
         self.shared_storage_base_mount_path = '/home/shared_storage'
-
-        self.logger.info("self.workflow_shared_storage:")
-        self.logger.info(self.workflow_shared_storage)
 
         if not self.workflow_shared_storage or self.workflow_shared_storage.mode.name == 'none':
             return pod
@@ -197,8 +188,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
     def add_local_shared_storage_volumes(self, pod: k8s.V1Pod) -> k8s.V1Pod:
         """Adds local shared storage volumes to the pod."""
         pod_cp = copy.deepcopy(pod)
-        self.logger.info("pod_cp.spec.containers:")
-        self.logger.info(pod_cp.spec.containers)
         pod_cp.spec.containers[0].security_context=k8s.V1SecurityContext(privileged=True)
         
         pod_cp.spec.volumes = pod.spec.volumes or []
@@ -243,8 +232,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             )
         )
         '''
-        self.logger.info("pod_cp.spec.containers:")
-        self.logger.info(pod_cp.spec.containers)
         return pod_cp
 
     def _validate_storage_piece_secrets(self, storage_piece_secrets: Dict[str, Any]):
@@ -316,13 +303,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             )
         )
 
-        self.logger.info("volume_mounts_main_container:")
-        self.logger.info(volume_mounts_main_container)
-        self.logger.info("volume_mounts_sidecar_container:")
-        self.logger.info(volume_mounts_sidecar_container)
-        self.logger.info("pod_volumes_list:")
-        self.logger.info(pod_volumes_list)
-
         pod_cp = copy.deepcopy(pod)
         pod_cp.spec.volumes = pod.spec.volumes or []
         pod_cp.spec.volumes.extend(pod_volumes_list)
@@ -374,13 +354,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             ),
         )
         pod_cp.spec.containers.append(sidecar_container)
-
-        #self.logger.info("pod_cp:")
-        #self.logger.info(pod_cp)
-
-        #self.logger.info("self:")
-        #self.logger.info(self)
-
         return pod_cp
 
 
@@ -521,8 +494,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         Code from here onward is executed by the Worker and not by the Scheduler.
         """
         # TODO change url based on platform configuration
-        self.logger.info("PARAMS:")
-        self.logger.info(context["params"])
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest-service:8000/")
         #self.domino_client = DominoBackendRestClient(base_url="http://localhost:8080/")
         self._prepare_execute_environment(context=context)
