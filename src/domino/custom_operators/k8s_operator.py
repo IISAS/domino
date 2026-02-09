@@ -217,7 +217,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                     name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
                     mount_path=f"{self.shared_storage_base_mount_path}/{tid}",  # path inside main container
                     mount_propagation="HostToContainer",
-                    read_only=False,
+                    read_only=True,
                 )
             )
         # Add volume mount for this task
@@ -226,7 +226,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63],  # max resource name in k8s is 63 chars
                 mount_path=f"{self.shared_storage_base_mount_path}/{self.task_id}",  # path inside main container
                 mount_propagation="Bidirectional",
-                read_only=True,
+                read_only=False,
             )
         )
         self.logger.info("pod_cp.spec.containers:")
