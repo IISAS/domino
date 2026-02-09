@@ -1,4 +1,4 @@
-name: Build and publish Domino Frontend images
+name: Build and publish Domino Frontend dev images
 
 on:
   push:
