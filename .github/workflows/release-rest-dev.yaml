@@ -1,4 +1,4 @@
-name: Build and publish Domino REST production image
+name: Build and publish Domino REST development image
 
 on:
   push:
