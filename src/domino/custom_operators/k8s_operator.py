@@ -1,4 +1,3 @@
-from venv import logger
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.providers.cncf.kubernetes.utils.xcom_sidecar import PodDefaults
 
@@ -8,7 +7,6 @@ from kubernetes import client, config
 from kubernetes.stream import stream as kubernetes_stream
 from typing import Dict, Optional, Any
 from contextlib import closing
-import ast
 import copy
 
 from domino.utils import dict_deep_update
