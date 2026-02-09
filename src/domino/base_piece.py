@@ -89,7 +89,6 @@ class BasePiece(metaclass=abc.ABCMeta):
         """
         Generates paths for shared storage.
         """
-        self.logger.info("GENERATING PATHS:")
         # Base path for fetching and storing runs results
         if not Path(self.workflow_shared_storage_path).is_dir():
             Path(self.workflow_shared_storage_path).mkdir(parents=True, exist_ok=True)
@@ -256,16 +255,8 @@ class BasePiece(metaclass=abc.ABCMeta):
         # Start logger
         self.start_logger()
 
-        self.logger.info(piece_input_model)
-        self.piece_input_model = piece_input_model
-        self.logger.info(piece_output_model)
-        self.piece_output_model = piece_output_model
-        self.logger.info(piece_secrets_model)
-        self.piece_secrets_model = piece_secrets_model
-
         # Airflow context dictionary: https://composed.blog/airflow/execute-context
         # For local-bash and kubernetes deploy modes, we assemble this ourselves and the context data is more limited
-        self.logger.info(airflow_context)
         if airflow_context is None:
             self.airflow_context = {
                 "execution_datetime": os.getenv('AIRFLOW_CONTEXT_EXECUTION_DATETIME', "123456789"),
@@ -279,18 +270,15 @@ class BasePiece(metaclass=abc.ABCMeta):
         workflow_run_subpath = os.environ.get('DOMINO_WORKFLOW_RUN_SUBPATH', '')
         self.workflow_shared_storage_path = Path("/home/shared_storage")
         shared_storage_source_name = os.environ.get('DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME', None)
-        self.logger.info("DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME:")
-        self.logger.info(shared_storage_source_name)
         if self.deploy_mode == 'local-compose' or shared_storage_source_name == 'local':
             self.workflow_shared_storage_path = str(self.workflow_shared_storage_path / workflow_run_subpath)
         self.results_path = f"{self.workflow_shared_storage_path}/{self.task_id}/results"
         self.xcom_path = f"{self.workflow_shared_storage_path}/{self.task_id}/xcom"
         self.report_path = f"{self.workflow_shared_storage_path}/{self.task_id}/report"
-        #if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose" or shared_storage_source_name == "local":
-        self.logger.info("GENERATE PATHS:")
-        self.generate_paths()
-        #else:
-        #    self._wait_for_sidecar_paths()
+        if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose" or shared_storage_source_name == "local":
+            self.generate_paths()
+        else:
+            self._wait_for_sidecar_paths()
 
         # Using pydantic to validate input data
         input_model_obj = piece_input_model(**piece_input_data)
