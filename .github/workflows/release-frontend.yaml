@@ -1,4 +1,4 @@
-name: Build and publish Domino Frontend prod images
+name: Build and publish Domino Frontend production images
 
 on:
   push:
