@@ -10,15 +10,15 @@ ARG GROUP_ID=1000
 
 RUN pip install --upgrade pip
 
-RUN groupadd -g ${GROUP_ID} domino 
-#&& \
-    #useradd --system -m -u ${USER_ID} -g ${GROUP_ID} domino && \
+RUN groupadd -g ${GROUP_ID} domino && \
+    useradd --system -m -u ${USER_ID} -g ${GROUP_ID} domino 
+    #&& \
     #usermod -a -G root domino && \
     #adduser domino sudo
 
 #RUN echo '%sudo ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers ;
 
-RUN echo "domino:domino" | chpasswd
+#RUN echo "domino:domino" | chpasswd
 
 USER domino
 
