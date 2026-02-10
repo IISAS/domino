@@ -2,9 +2,8 @@ export {};
 
 declare global {
   interface Window {
-    __RUNTIME_ENV__?: {
+    import_meta_env?: {
       API_URL?: string;
-      BASENAME?: string;
       DOMINO_DEPLOY_MODE?: string;
     };
   }
