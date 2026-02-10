@@ -15,11 +15,16 @@ function renderPieceProperties(
     let typeName: string = "type" in argument ? argument.type : "enum";
     let valuesOptions: string[] = [];
 
-    if ("allOf" in argument && argument.allOf.length > 0) {
+    if ("$ref" in argument && argument.$ref != "") {
+      typeName = "enum";
+      const typeClass = argument.$ref.split("/").pop()!;
+      valuesOptions = (schema?.$defs?.[typeClass] as EnumDefinition).enum;
+    }
+    /*if ("allOf" in argument && argument.allOf.length > 0) {
       typeName = "enum";
       const typeClass = argument.allOf[0].$ref.split("/").pop()!;
       valuesOptions = (schema?.$defs?.[typeClass] as EnumDefinition).enum;
-    }
+    }*/
 
     return (
       <React.Fragment key={key}>

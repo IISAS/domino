@@ -13,7 +13,8 @@ export const EnumInput: React.FC<EnumInputProps> = ({
   itemKey,
   definitions,
 }) => {
-  const typeClass = schema.allOf[0].$ref.split("/").pop()!;
+  //const typeClass = schema.allOf[0].$ref.split("/").pop()!;
+  const typeClass = schema.$ref.split("/").pop()!;
   const definition = definitions?.[typeClass] ? definitions[typeClass] : null;
   let enumOptions: string[] = [];
 
