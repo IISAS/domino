@@ -7,12 +7,11 @@ import {
   Link as LinkMui,
   useTheme,
 } from "@mui/material";
-import { buildAssetSrc } from "@utils/assetUtils";
 import PublicLayout from "components/PublicLayout";
 import TextInput from "components/TextInput";
 import { useAuthentication } from "context/authentication";
 import { type FC, useCallback } from "react";
-import {FormProvider, Resolver, useForm} from "react-hook-form";
+import { FormProvider, Resolver, useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { yupResolver } from "utils";
 import * as yup from "yup";
@@ -65,11 +64,11 @@ export const SignUpPage: FC = () => {
           }}
         >
           <img
-            src={buildAssetSrc(
+            src={
               theme.palette.mode === "light"
-                ? "/assets/main_logo_black.png"
-                : "/assets/main_logo_white.png",
-            )}
+                ? "./assets/main_logo_black.png"
+                : "./assets/main_logo_white.png"
+            }
             alt="logo"
             style={{ width: "360px" }}
           />

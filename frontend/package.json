@@ -12,7 +12,7 @@
   ],
   "type": "module",
   "scripts": {
-    "debug": "vite dev",
+    "debug": "node scripts/inject-env.mjs && vite dev",
     "start": "vite serve",
     "build": "tsc && vite build",
     "lint": "eslint . --ext js,jsx,ts,tsx",

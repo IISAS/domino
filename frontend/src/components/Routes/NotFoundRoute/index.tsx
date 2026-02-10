@@ -1,5 +1,4 @@
 import { useAuthentication } from "@context/authentication";
-import { getBasename } from "@utils/basenameUtils";
 import { type ReactNode, type FC } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
@@ -10,11 +9,9 @@ export interface Props {
 export const NotFoundRoute: FC<Props> = () => {
   const { isLogged } = useAuthentication();
   const { state } = useLocation();
-  const basename = getBasename();
 
   if (isLogged) {
-    return state &&
-      state.from === basename + (state.from.endsWith("/") ? "/" : "") ? (
+    return state && state.from === "/" ? (
       <>
         <Navigate to="/workspaces" replace />
       </>
@@ -24,8 +21,7 @@ export const NotFoundRoute: FC<Props> = () => {
       </>
     );
   } else {
-    return state &&
-      state.from === basename + (state.from.endsWith("/") ? "/" : "") ? (
+    return state && state.from === "/" ? (
       <>
         <Navigate to="/sign-in" replace />
       </>

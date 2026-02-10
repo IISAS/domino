@@ -4,7 +4,6 @@ import { ColorModeProvider } from "@context/theme";
 import { queryClient } from "@services/clients/react-query.client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { getBasename } from "@utils/basenameUtils";
 import { type FC } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -20,7 +19,7 @@ export const App: FC = () => (
           initialIsOpen={false}
           buttonPosition="bottom-right"
         />
-        <BrowserRouter basename={getBasename()}>
+        <BrowserRouter>
           <AuthenticationProvider>
             <AppRoutes />
           </AuthenticationProvider>
