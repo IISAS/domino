@@ -112,6 +112,8 @@ class GetWorkflowResponse(BaseModel):
     name: str
     created_at: datetime
     schema_: dict = Field(alias="schema", default=None) # TODO add data model
+    awpl_: Optional[dict] = Field(alias="awpl", default=None)
+    awpl_yaml: Optional[str]
     ui_schema: Optional[BaseUiSchema] = None
     last_changed_at: datetime
     last_changed_by: int
@@ -217,6 +219,8 @@ class CreateWorkflowResponse(BaseModel):
     name: str
     created_at: datetime
     schema_: dict = Field(..., alias='schema') # TODO add data modal
+    awpl_: Optional[dict] = Field(..., alias='awpl')
+    awpl_yaml: Optional[str]
     created_by: int
     last_changed_at: datetime
     last_changed_by: int

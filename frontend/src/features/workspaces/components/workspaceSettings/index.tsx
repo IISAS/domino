@@ -52,16 +52,16 @@ const WorkspaceSettingsComponent = () => {
             spacing={1}
             style={{ maxWidth: "1440px", margin: "0 auto" }}
           >
-            <Grid item xs={12} lg={12}>
+            <Grid size={{ xs:12, lg:12 }}>
               <WorkspaceSecretsCard />
             </Grid>
-            <Grid item xs={12} lg={12}>
+            <Grid size={{ xs:12, lg:12 }}>
               <RepositoriesCard />
             </Grid>
-            <Grid item xs={12} lg={12}>
+            <Grid size={{ xs:12, lg:12 }}>
               <SecretsCard repositoryId={selectedRepositoryId} />
             </Grid>
-            <Grid item xs={12} lg={12}>
+            <Grid size={{ xs:12, lg:12 }}>
               <StorageSecretsCard />
             </Grid>
           </Grid>
@@ -72,10 +72,10 @@ const WorkspaceSettingsComponent = () => {
             spacing={1}
             style={{ maxWidth: "1440px", margin: "0 auto" }}
           >
-            <Grid item xs={12} lg={12}>
+            <Grid size={{ xs:12, lg:12 }}>
               <UsersCard />
             </Grid>
-            <Grid item xs={12} lg={12}>
+            <Grid size={{ xs:12, lg:12 }}>
               <WorkspaceMembersCard />
             </Grid>
           </Grid>

@@ -6,8 +6,18 @@ export interface IEnvironment {
   BASENAME: string;
 }
 
+const defaults: IEnvironment = {
+  API_URL: "",
+  DOMINO_DEPLOY_MODE: "development" as DeployMode,
+  BASENAME: "/",
+};
+
+function getRuntimeEnv<K extends keyof IEnvironment>(key: K): IEnvironment[K] {
+  return window.__RUNTIME_ENV__?.[key] as IEnvironment[K] ?? defaults[key];
+}
+
 export const environment: IEnvironment = {
-  API_URL: import.meta.env.API_URL as string,
-  DOMINO_DEPLOY_MODE: import.meta.env.DOMINO_DEPLOY_MODE as DeployMode,
-  BASENAME: import.meta.env.BASENAME as string,
+  API_URL: getRuntimeEnv("API_URL"),
+  DOMINO_DEPLOY_MODE: getRuntimeEnv("DOMINO_DEPLOY_MODE"),
+  BASENAME: getRuntimeEnv("BASENAME"),
 };

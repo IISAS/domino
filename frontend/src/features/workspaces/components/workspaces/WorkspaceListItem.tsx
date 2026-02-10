@@ -40,11 +40,12 @@ export const WorkspaceListItem: FC<{
 
   return (
     <Grid
-      item
-      xs={12}
-      md={6}
-      lg={4}
-      xl={3}
+      size={{
+        xs:12,
+        md:6,
+        lg:4,
+        xl:3
+      }}
       sx={{ display: "flex", flexDirection: "column" }}
     >
       <Card
@@ -106,7 +107,7 @@ export const WorkspaceListItem: FC<{
             }}
           >
             <Grid container columns={13}>
-              <Grid item xs={6} md={3} sx={{ mr: "auto" }}>
+              <Grid size={{ xs:6, md:3 }} sx={{ mr: "auto" }}>
                 <Typography sx={{ fontSize: 16, my: 0 }} color="text.secondary">
                   Permission:
                 </Typography>

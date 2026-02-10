@@ -179,45 +179,47 @@ export const WorkflowDetail: React.FC = () => {
   );
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <Breadcrumbs />
-      </Grid>
-      <Grid item xs={12} container spacing={3}>
-        {/* Left Column */}
-        <Grid item lg={7} xs={12}>
-          {/* WorkflowRunsTable */}
-          <Grid item xs={12} sx={{ paddingLeft: "1rem" }}>
-            <WorkflowRunsTable
+    <>
+      <Grid container spacing={3}>
+        <Grid size={{ xs:12 }}>
+          <Breadcrumbs />
+        </Grid>
+        <Grid size={{ xs:12 }} container spacing={3}>
+          {/* Left Column */}
+          <Grid size={{ lg:7, xs:12 }}>
+            {/* WorkflowRunsTable */}
+            <Grid size={{ xs:12 }} sx={{ paddingLeft: "1rem" }}>
+              <WorkflowRunsTable
+                autoUpdate={autoUpdate}
+                triggerRun={triggerRun}
+                selectedRun={selectedRun}
+                onSelectedRunChange={handleSelectRun}
+                workflowId={id!}
+              />
+            </Grid>
+            {/* WorkflowPanel */}
+            <Grid size={{ xs:12 }} sx={{ paddingLeft: "1rem", paddingTop: "2vh" }}>
+              <Paper sx={{ height: "44vh" }}>
+                <WorkflowPanel
+                  ref={workflowPanelRef}
+                  onNodeDoubleClick={onNodeDoubleClick}
+                />
+              </Paper>
+            </Grid>
+          </Grid>
+
+          {/* Right Column */}
+          <Grid size={{ lg:5, xs:12 }}>
+            <WorkflowRunDetail
               autoUpdate={autoUpdate}
-              triggerRun={triggerRun}
-              selectedRun={selectedRun}
-              onSelectedRunChange={handleSelectRun}
-              workflowId={id!}
+              runId={selectedRun?.workflow_run_id}
+              tasks={statusTasks}
+              nodeId={selectedNodeId}
+              workflowId={id}
             />
           </Grid>
-          {/* WorkflowPanel */}
-          <Grid item xs={12} sx={{ paddingLeft: "1rem", paddingTop: "2vh" }}>
-            <Paper sx={{ height: "44vh" }}>
-              <WorkflowPanel
-                ref={workflowPanelRef}
-                onNodeDoubleClick={onNodeDoubleClick}
-              />
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* Right Column */}
-        <Grid item lg={5} xs={12}>
-          <WorkflowRunDetail
-            autoUpdate={autoUpdate}
-            runId={selectedRun?.workflow_run_id}
-            tasks={statusTasks}
-            nodeId={selectedNodeId}
-            workflowId={id}
-          />
         </Grid>
       </Grid>
-    </Grid>
+    </>
   );
 };

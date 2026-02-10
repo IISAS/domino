@@ -25,7 +25,6 @@ import ReactFlow, {
 
 import DefaultEdge from "./DefaultEdge";
 import RunNodeComponent from "./RunNode";
-import "reactflow/dist/style.css";
 import { type RunNode } from "./types";
 
 const RUN_NODE_TYPES: NodeTypes = {

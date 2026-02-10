@@ -15,6 +15,7 @@ import {
   Button,
   List,
   ListItem,
+  ListItemButton,
   ListItemAvatar,
   Avatar,
   ListItemText,
@@ -289,7 +290,7 @@ export const RepositoriesCard: FC = () => {
         {repositories.length ? (
           <List>
             {repositories.map((repo, index) => (
-              <ListItem
+              <ListItemButton
                 key={index}
                 selected={selectedIndex?.toString() === repo.id.toString()}
               >
@@ -321,7 +322,7 @@ export const RepositoriesCard: FC = () => {
                     <DeleteIcon />
                   </Tooltip>
                 </IconButton>
-              </ListItem>
+              </ListItemButton>
             ))}
           </List>
         ) : (

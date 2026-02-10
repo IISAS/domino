@@ -13,6 +13,7 @@ class Workflow(Base):
     uuid_name = Column(String(50), unique=True, nullable=False, default=lambda: str(uuid4()).replace('-',''))
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
     schema = Column(JSON, nullable=True)
+    awpl = Column(JSON, nullable=True)
     ui_schema = Column(JSON, nullable=True)
     created_by = Column(Integer, ForeignKey("user.id"), nullable=False)
     last_changed_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)

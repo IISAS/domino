@@ -33,7 +33,7 @@ const StorageForm: React.FC = () => {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} marginBottom={2}>
+      <Grid size={{ xs:12 }} marginBottom={2}>
         <Typography
           variant="subtitle2"
           component="div"
@@ -42,7 +42,7 @@ const StorageForm: React.FC = () => {
           Storage
         </Typography>
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={{ xs:12 }}>
         <FormControl fullWidth>
           <InputLabel>Storage Access Mode</InputLabel>
           <Controller
