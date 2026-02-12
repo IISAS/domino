@@ -104,7 +104,7 @@ class WorkflowBaseSettings(BaseModel):
 
 storage_default_piece_model_map = {
     'none': None,
-    'Local': LocalStoragePiece,
+    'local': LocalStoragePiece,
     'aws_s3': AWSS3StoragePiece
 }
 

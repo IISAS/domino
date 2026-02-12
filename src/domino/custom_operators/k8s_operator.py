@@ -13,6 +13,7 @@ from domino.utils import dict_deep_update
 from domino.client.domino_backend_client import DominoBackendRestClient
 from domino.schemas import WorkflowSharedStorage, ContainerResourcesModel
 from domino.storage.s3 import S3StorageRepository
+from domino.storage.local import LocalStorageRepository
 from domino.logger import get_configured_logger
 from airflow.exceptions import AirflowException
 
@@ -240,7 +241,10 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 bucket=self.workflow_shared_storage.bucket,
             )
         elif self.workflow_shared_storage.source.name == 'local':
-            validated = True
+            local_storage_repository = LocalStorageRepository()
+            validated = local_storage_repository.validate_local_credentials_access(
+                access_key=storage_piece_secrets.get('LOCAL_TEST_SECRET'),
+            )
         return validated
 
     def add_shared_storage_sidecar(self, pod: k8s.V1Pod) -> k8s.V1Pod:

@@ -59,6 +59,7 @@ const PiecesProvider: React.FC<{ children: React.ReactNode }> = ({
   const queryClient = useQueryClient();
 
   const { data: defaultRepositories } = useRepositories({
+    workspaceId: workspace?.id,
     source: "default",
   });
 
