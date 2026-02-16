@@ -1,6 +1,7 @@
 name: Build and publish Domino Frontend production images
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
