@@ -118,9 +118,9 @@ class Task(object):
                 # ----------------- Kubernetes -----------------
                 namespace='airflow',
                 image=self.piece.get("source_image"),
-                hostname=f"airflow-worker-pod-{self.task_id.lower().replace('_', '-')}",
                 image_pull_policy='IfNotPresent',
-                name=f"airflow-worker-pod-{self.task_id}",
+                #name=f"airflow-worker-pod-{self.task_id}",
+                name=f"airflow-worker-pod-{self.task_id.lower().replace('_', '-')}", # kubernetes doesn't allow undersoceres and capital letters in hostname
                 startup_timeout_seconds=600,
                 annotations={"sidecar.istio.io/inject": "false"}, # TODO - remove this when istio is working with airflow k8s pod
                 # cmds=["/bin/bash"],
