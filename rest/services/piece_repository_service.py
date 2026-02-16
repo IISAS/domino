@@ -221,8 +221,9 @@ class PieceRepositoryService(object):
         self.logger.info("DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN:")
         self.logger.info(settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN)
         token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        token=token.replace("\n", "")
         self.logger.info("TOKEN:")
-        self.logger.info(token)
+        self.logger.info(token)        
         if token is not None and not token.strip():
             token = None
         repository_files_metadata = self._read_repository_data(
