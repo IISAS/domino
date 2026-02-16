@@ -88,7 +88,7 @@ class PieceRepositoryService(object):
         self.logger.info(f"Getting releases for repository {path}")
 
         token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
-        if not token.strip():
+        if token is not None and not token.strip():
             token = None
         github_client = GithubRestClient(token=token)
         if source == getattr(RepositorySource, 'github').value:
@@ -219,7 +219,8 @@ class PieceRepositoryService(object):
             raise ConflictException(message=f"Repository {piece_repository_data.path} already exists for this workspace")
 
         token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
-        token=token.replace("\n", "")    
+        if token is not None:
+            token=token.replace("\n", "")    
         if token is not None and not token.strip():
             token = None
         repository_files_metadata = self._read_repository_data(

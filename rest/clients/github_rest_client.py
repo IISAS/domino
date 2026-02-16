@@ -5,10 +5,13 @@ from schemas.exceptions.base import ResourceNotFoundException, ForbiddenExceptio
 
 class GithubRestClient(Github):
     def __init__(self, token: str | None = None):
+        if token is not None and not token.strip():
+            token = None
         if token == "":
             token = None
-        else:
+        if token is not None:
             token=token.replace("\n", "")
+        
         super().__init__(login_or_token=token)
         self.logger = get_configured_logger(self.__class__.__name__)
 
