@@ -7,6 +7,8 @@ class GithubRestClient(Github):
     def __init__(self, token: str | None = None):
         if token == "":
             token = None
+        else:
+            token=token.replace("\n", "")
         super().__init__(login_or_token=token)
         self.logger = get_configured_logger(self.__class__.__name__)
 
