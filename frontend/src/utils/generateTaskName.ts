@@ -2,9 +2,7 @@ import { getUuid } from "./getUuidSlice";
 
 export function generateTaskName(pieceName: string, pieceId: string) {
   const hashId = getUuid(pieceId).replaceAll("-", "");
-  //const pieceNameTrunk = pieceName.replaceAll(" ", "").slice(0, 10);
-  const pieceNameTrunk = pieceName.toLowerCase().replaceAll(" ", "").replace("piece", "");
-  //const taskName = `${pieceNameTrunk}_${hashId}`;
-  const taskName = `${pieceNameTrunk}-${hashId}`;
+  const pieceNameTrunk = pieceName.replaceAll(" ", "").slice(0, 10);
+  const taskName = `${pieceNameTrunk}_${hashId}`;
   return taskName;
 }
