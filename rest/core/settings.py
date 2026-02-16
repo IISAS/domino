@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # Default DB mock data
     AIRFLOW_ADMIN_CREDENTIALS: dict = {
         "username": os.environ.get('AIRFLOW_ADMIN_USERNAME', "admin"),
-        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "airflow")
+        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "admin")
     }
     AIRFLOW_API_SERVER_PORT_HOST: int = int(os.environ.get('AIRFLOW_API_SERVER_PORT_HOST', 8080))
     AIRFLOW_API_SERVER_HOST: str = os.environ.get('AIRFLOW_API_SERVER_HOST', "http://airflow-api-server:8080/")
@@ -169,18 +169,10 @@ class K8sSettings(Settings):
     RELOAD: bool = False
     CORS: dict = {
         "origins": [
-            "*",
             "http://localhost",
             "http://localhost:8000",
             "http://localhost:8080",
-            "http://localhost:3000"
-        ],
-        "allow_origins": [
-            "*",
-            "http://localhost",
-            "http://localhost:8000",
-            "http://localhost:8080",
-            "http://localhost:3000"
+            "http://localhost:3000",
         ],
         "allow_credentials": True,
         "allow_methods": ["*"],

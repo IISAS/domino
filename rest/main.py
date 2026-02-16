@@ -62,8 +62,6 @@ def configure_app():
 app, settings = configure_app()
 
 
-
-
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
