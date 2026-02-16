@@ -219,6 +219,8 @@ class PieceRepositoryService(object):
             raise ConflictException(message=f"Repository {piece_repository_data.path} already exists for this workspace")
 
         token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        print("TOKEN:")
+        print(token)
         if token is not None and not token.strip():
             token = None
         repository_files_metadata = self._read_repository_data(
