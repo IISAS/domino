@@ -118,6 +118,7 @@ class Task(object):
                 # ----------------- Kubernetes -----------------
                 namespace='airflow',
                 image=self.piece.get("source_image"),
+                hostname=f"airflow-worker-pod-{self.task_id.lower().replace('_', '-')}",
                 image_pull_policy='IfNotPresent',
                 name=f"airflow-worker-pod-{self.task_id}",
                 startup_timeout_seconds=600,
