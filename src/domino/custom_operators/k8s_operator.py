@@ -35,8 +35,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         **k8s_operator_kwargs
     ):
         self.logger = get_configured_logger("DominoKubernetesPodOperator")
-        self.logger.info("k8s_operator_kwargs:")
-        self.logger.info(k8s_operator_kwargs)
         self.task_id = task_id
         self.piece_name = piece_name
         self.deploy_mode = deploy_mode
