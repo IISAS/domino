@@ -11,7 +11,7 @@ const defaults: IEnvironment = {
 };
 
 function getRuntimeEnv<K extends keyof IEnvironment>(key: K): IEnvironment[K] {
-  return window.import_meta_env?.[key] as IEnvironment[K] ?? defaults[key];
+  return window.__RUNTIME_ENV__?.[key] as IEnvironment[K] ?? defaults[key];
 }
 
 export const environment: IEnvironment = {

@@ -6,29 +6,6 @@ export interface Props {
   children?: ReactNode;
 }
 
-export const NotFoundRoute: FC<Props> = () => {
-  const { isLogged } = useAuthentication();
-  const { state } = useLocation();
-
-  if (isLogged) {
-    return state && state.from === "/" ? (
-      <>
-        <Navigate to="/workspaces" replace />
-      </>
-    ) : (
-      <>
-        <h1>404 - Not Found</h1>
-      </>
-    );
-  } else {
-    return state && state.from === "/" ? (
-      <>
-        <Navigate to="/sign-in" replace />
-      </>
-    ) : (
-      <>
-        <h1>404 - Not Found</h1>
-      </>
-    );
-  }
+export const NotFoundRoute: FC = () => {
+  return <h1>404 - Not Found</h1>;
 };

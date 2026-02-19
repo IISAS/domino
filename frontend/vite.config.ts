@@ -1,6 +1,5 @@
-import importMetaEnv from "@import-meta-env/unplugin";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import {defineConfig} from "vite";
 import svgrPlugin from "vite-plugin-svgr";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 
@@ -14,10 +13,9 @@ export default defineConfig({
     react(),
     viteTsconfigPaths(),
     svgrPlugin(),
-    importMetaEnv.vite({ example: ".env.production" }),
   ],
   build: {
     outDir: "build",
   },
-  base: "./"
+  base: "/domino/"
 });

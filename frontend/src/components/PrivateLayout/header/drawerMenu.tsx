@@ -55,7 +55,7 @@ export const DrawerMenu: FC<IDrawerMenuProps> = ({ isOpen, handleClose }) => {
             {theme.direction === "rtl" ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
           <img
-            src="./assets/main_logo_white.png"
+            src="/domino/assets/main_logo_white.png"
             alt="logo"
             style={{ width: "190px", marginRight: "8px", marginLeft: "20px" }}
           />

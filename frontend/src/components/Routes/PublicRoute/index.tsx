@@ -13,9 +13,10 @@ export interface Props {
 
 export const PublicRoute: FC<Props> = ({ publicOnly }) => {
   const { isLogged } = useAuthentication();
-  return publicOnly && isLogged ? (
-    <Navigate to="/workspaces" replace />
-  ) : (
-    <Outlet />
-  );
+
+  if (publicOnly && isLogged) {
+    return <Navigate to="/workspaces" replace />;
+  }
+
+  return <Outlet />;
 };

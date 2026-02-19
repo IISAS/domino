@@ -69,24 +69,9 @@ export const protectedRoutes = [
       { path: "workspaces/*", element: <WorkspaceRoute /> },
       { path: "my-workflows/*", element: <MyWorkflowsRoutes /> },
       { path: "workflows-editor/*", element: <WorkflowEditorRoute /> },
-      {
-        path: "forbidden",
-        element: <ForbiddenPage />,
-      },
-      {
-        path: "404",
-        element: (
-          <PrivateLayout>
-            <NotFoundRoute />
-          </PrivateLayout>
-        ),
-      },
-      {
-        path: "*",
-        element: (
-          <Navigate to="/404" replace state={{ from: location.pathname }} />
-        ),
-      },
+      { path: "forbidden", element: <ForbiddenPage /> },
+      // Catch-all for invalid protected routes
+      { path: "*", element: <Navigate to="/workspaces" replace /> },
     ],
   },
 ];

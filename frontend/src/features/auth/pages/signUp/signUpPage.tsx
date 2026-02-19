@@ -66,8 +66,8 @@ export const SignUpPage: FC = () => {
           <img
             src={
               theme.palette.mode === "light"
-                ? "./assets/main_logo_black.png"
-                : "./assets/main_logo_white.png"
+                ? "/domino/assets/main_logo_black.png"
+                : "/domino/assets/main_logo_white.png"
             }
             alt="logo"
             style={{ width: "360px" }}
@@ -124,11 +124,11 @@ export const SignUpPage: FC = () => {
           </Button>
           <Grid container>
             <Grid size="grow">
-              <Link to="/recover-password">
-                <Typography variant="body2" color="text.primary">
-                  Forgot password?
-                </Typography>
-              </Link>
+              {/*<Link to="/recover-password">*/}
+              {/*  <Typography variant="body2" color="text.primary">*/}
+              {/*    Forgot password?*/}
+              {/*  </Typography>*/}
+              {/*</Link>*/}
             </Grid>
             <Grid>
               <Link to="/sign-in">

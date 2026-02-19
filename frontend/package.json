@@ -12,7 +12,7 @@
   ],
   "type": "module",
   "scripts": {
-    "debug": "node scripts/inject-env.mjs && vite dev",
+    "debug": "vite dev",
     "start": "vite serve",
     "build": "tsc && vite build",
     "lint": "eslint . --ext js,jsx,ts,tsx",
@@ -67,11 +67,12 @@
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@types/node": "^25.1.0",
-    "@types/react": "^18.3.27",
+    "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@types/react-plotly.js": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
+    "esbuild": "^0.27.3",
     "eslint": "^9.39.2",
     "eslint-config-love": "^149.0.0",
     "eslint-config-prettier": "^10.1.8",
@@ -92,5 +93,5 @@
       "react-app/jest"
     ]
   },
-  "packageManager": "pnpm@10.28.2"
+  "packageManager": "pnpm@10.29.3+sha512.498e1fb4cca5aa06c1dcf2611e6fafc50972ffe7189998c409e90de74566444298ffe43e6cd2acdc775ba1aa7cc5e092a8b7054c811ba8c5770f84693d33d2dc"
 }

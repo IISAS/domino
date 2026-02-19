@@ -19,7 +19,7 @@ export const App: FC = () => (
           initialIsOpen={false}
           buttonPosition="bottom-right"
         />
-        <BrowserRouter>
+        <BrowserRouter basename="/domino/">
           <AuthenticationProvider>
             <AppRoutes />
           </AuthenticationProvider>

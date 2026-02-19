@@ -33,11 +33,10 @@ export const AuthenticationProvider: React.FC<{ children: ReactNode }> = ({
   const { mutateAsync: postAuthLogin } = useAuthLogin();
   const { mutateAsync: postAuthRegister } = useAuthRegister();
 
-  const isLogged = useRef(!!store.token);
+  const isLogged = Boolean(store.token);
 
   const login = useCallback(
     (token: string, userId: string, tokenExpiresIn: number, redirect = "") => {
-      isLogged.current = true;
       setStore((store) => ({
         ...store,
         token,
@@ -61,7 +60,6 @@ export const AuthenticationProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = useCallback(() => {
     localStorage.clear();
-    isLogged.current = false;
     setStore((store) => ({
       ...store,
       token: null,
@@ -134,7 +132,7 @@ export const AuthenticationProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const expired = tokenExpired();
-    if (expired && isLogged.current) {
+    if (expired && isLogged) {
       logout();
     }
   }, [tokenExpired, isLogged]);
@@ -142,7 +140,7 @@ export const AuthenticationProvider: React.FC<{ children: ReactNode }> = ({
   const value = useMemo((): IAuthenticationContext => {
     return {
       store,
-      isLogged: isLogged.current,
+      isLogged: isLogged,
       authLoading,
       logout,
       authenticate,
