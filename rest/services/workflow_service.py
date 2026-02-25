@@ -7,7 +7,6 @@ from math import ceil
 from pathlib import Path
 from uuid import uuid4
 
-import yaml
 from aiohttp import ClientSession
 
 from clients.airflow_client import AirflowRestClient
@@ -96,7 +95,6 @@ class WorkflowService(object):
 
         # AWPL
         new_workflow.awpl = self.workflowToAWPL(new_workflow)
-        new_workflow.awpl_yaml = yaml.safe_dump(new_workflow.awpl, sort_keys=False)
 
         workflow = self.workflow_repository.create(new_workflow)
 
@@ -142,7 +140,6 @@ class WorkflowService(object):
                 created_at=workflow.created_at,
                 schema=workflow.schema,
                 awpl=workflow.awpl,
-                awpl_yaml=workflow.awpl_yaml,
                 created_by=workflow.created_by,
                 last_changed_at=workflow.last_changed_at,
                 last_changed_by=workflow.last_changed_by,
@@ -300,7 +297,6 @@ class WorkflowService(object):
             name=workflow.name,
             schema=workflow.schema,
             awpl=workflow.awpl,
-            awpl_yaml=yaml.safe_dump(workflow.awpl, sort_keys=False),
             ui_schema=workflow.ui_schema,
             created_at=workflow.created_at,
             last_changed_at=workflow.last_changed_at,
