@@ -29,6 +29,7 @@ class TestWorkflowRouter:
             name=workflow_request_model["workflow"]["name"],
             created_at=datetime.now(timezone.utc),
             schema=workflow_request_model['forageSchema'],
+            awpl=workflow_request_model["awpl"],
             created_by=user.id,
             last_changed_at=datetime.now(timezone.utc),
             last_changed_by=user.id
@@ -60,6 +61,7 @@ class TestWorkflowRouter:
                 ),
                 tasks=dict()
             ),
+            awpl=workflow.awpl,
             ui_schema=BaseUiSchema(
                 nodes=dict(),
                 edges=list(dict())

@@ -529,5 +529,6 @@ workflow_request_model = {
             }
         },
         "edges": []
-    }
+    },
+    "awpl": {}
 }
