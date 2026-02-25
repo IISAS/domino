@@ -22,13 +22,9 @@ export function disableCheckboxOptions(schema: Property): boolean {
     disable = true;
   }
 
-  if ("$ref" in schema && schema.$ref !='') {
+  if ("allOf" in schema && schema.allOf.length > 0) {
     disable = true;
   }
-
-  /*if ("allOf" in schema && schema.allOf.length > 0) {
-    disable = true;
-  }*/
 
   return disable;
 }

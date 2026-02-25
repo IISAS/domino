@@ -28,8 +28,7 @@ export const isEnumType = (
   property: Property | EnumDefinition,
   definitions?: Definitions,
 ) => {
-  //return "allOf" in property && property.allOf.length > 0 && definitions;  
-  return "$ref" in property && property.$ref != '' && definitions;
+  return "allOf" in property && property.allOf.length > 0 && definitions;
 };
 
 export const isNumberType = (property: Property | EnumDefinition) => {

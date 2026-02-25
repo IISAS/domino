@@ -67,8 +67,7 @@ export type StringProperty = DefaultPropertyAttrs & {
 };
 
 export type EnumProperty = DefaultPropertyAttrs & {
-  //allOf: Reference[];
-  $ref: string;
+  allOf: Reference[];
   default?: string;
 };
 
