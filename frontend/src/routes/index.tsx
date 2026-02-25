@@ -5,11 +5,10 @@ import { protectedRoutes } from "./protected";
 import { publicRoutes } from "./public";
 
 export const AppRoutes = () => {
-  const { isLogged } = useAuthentication();
-
-  const routes = isLogged ? protectedRoutes : publicRoutes;
-
-  const element = useRoutes(routes);
+  const element = useRoutes([
+    ...publicRoutes,
+    ...protectedRoutes,
+  ]);
 
   return <>{element}</>;
 };

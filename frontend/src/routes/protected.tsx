@@ -32,7 +32,7 @@ const App = () => {
   const { isLogged } = useAuthentication();
 
   if (!isLogged) {
-    redirect("/sign-in");
+    return <Navigate to="/sign-in" replace />;
   }
 
   return (
@@ -64,14 +64,21 @@ export const protectedRoutes = [
   {
     path: "/*",
     element: <App />,
-
     children: [
       { path: "workspaces/*", element: <WorkspaceRoute /> },
       { path: "my-workflows/*", element: <MyWorkflowsRoutes /> },
       { path: "workflows-editor/*", element: <WorkflowEditorRoute /> },
-      { path: "forbidden", element: <ForbiddenPage /> },
-      // Catch-all for invalid protected routes
-      { path: "*", element: <Navigate to="/workspaces" replace /> },
+      { path: "forbidden", element: <ForbiddenPage />},
+      {
+        path: "404",
+        element: (
+          <PrivateLayout>
+            <NotFoundRoute />
+          </PrivateLayout>
+        ),
+      },
+      { index: true, element: <Navigate to="/workspaces" replace /> },
+      { path: "*", element: <Navigate to="/404" replace /> },
     ],
   },
 ];

@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -43,20 +42,16 @@ export const AuthenticationProvider: React.FC<{ children: ReactNode }> = ({
         userId,
         tokenExpiresIn,
       }));
+
       const currentDate = new Date();
       const tokenExpirationDate = new Date(
         currentDate.getTime() + tokenExpiresIn * 1000,
       );
+
       localStorage.setItem("auth_token", token);
       localStorage.setItem("userId", userId);
-      localStorage.setItem(
-        "tokenExpiresAtTimestamp",
-        tokenExpirationDate.getTime().toString(),
-      );
-      navigate(redirect);
-    },
-    [navigate],
-  );
+      localStorage.setItem("tokenExpiresAtTimestamp", tokenExpirationDate.getTime().toString());
+    }, []);
 
   const logout = useCallback(() => {
     localStorage.clear();
@@ -64,24 +59,18 @@ export const AuthenticationProvider: React.FC<{ children: ReactNode }> = ({
       ...store,
       token: null,
     }));
-    navigate("/sign-in");
-  }, [navigate]);
+  }, []);
 
   const authenticate = useCallback(
     async (email: string, password: string) => {
       setAuthLoading(true);
-      await postAuthLogin({ email, password })
-        .then((res) => {
-          login(
-            res.access_token,
-            res.user_id,
-            res.token_expires_in,
-            "/workspaces",
-          );
-        })
-        .finally(() => {
-          setAuthLoading(false);
-        });
+      try {
+        const res = await postAuthLogin({ email, password });
+
+        login(res.access_token, res.user_id, res.token_expires_in);
+      } finally {
+        setAuthLoading(false);
+      }
     },
     [login],
   );
@@ -120,13 +109,12 @@ export const AuthenticationProvider: React.FC<{ children: ReactNode }> = ({
    * Listen to "logout" event and handles it (ie. unauthorized request)
    */
   useEffect(() => {
-    window.addEventListener(DOMINO_LOGOUT, () => {
-      logout();
-    });
+    const handler = () => logout();
+
+    window.addEventListener(DOMINO_LOGOUT, handler);
+
     return () => {
-      window.removeEventListener(DOMINO_LOGOUT, () => {
-        logout();
-      });
+      window.removeEventListener(DOMINO_LOGOUT, handler);
     };
   }, [logout]);
 

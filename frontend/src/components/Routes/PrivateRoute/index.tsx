@@ -14,7 +14,7 @@ export const PrivateRoute: FC<Props> = () => {
   const { isLogged } = useAuthentication();
 
   if (!isLogged) {
-    return <Navigate replace to="/sign-in" />;
+    return <Navigate to="/sign-in" replace />;
   }
 
   return (

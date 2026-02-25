@@ -9,9 +9,9 @@ import {
 import PublicLayout from "components/PublicLayout";
 import TextInput from "components/TextInput";
 import { useAuthentication } from "context/authentication";
-import { type FC, useCallback } from "react";
+import { type FC, startTransition, useCallback, useEffect } from "react";
 import {FormProvider, Resolver, useForm} from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { yupResolver } from "utils";
 import * as yup from "yup";
 
@@ -32,7 +32,16 @@ const validationSignIn: yup.ObjectSchema<ISignIn> = yup.object().shape({
 export const SignInPage: FC = () => {
   const theme = useTheme();
 
-  const { authenticate, authLoading } = useAuthentication();
+  const { authenticate, isLogged } = useAuthentication();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLogged) {
+      startTransition(() => {
+        navigate("/workspaces", { replace: true });
+      });
+    }
+  }, [isLogged, navigate]);
 
   const resolver = yupResolver(validationSignIn) as Resolver<ISignIn>;
 
@@ -118,7 +127,7 @@ export const SignInPage: FC = () => {
             type="submit"
             fullWidth
             variant="contained"
-            disabled={authLoading}
+            disabled={isLogged}
             sx={{ mt: 3, mb: 2, fontSize: 18 }}
             color="success"
           >

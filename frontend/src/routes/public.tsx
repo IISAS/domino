@@ -9,10 +9,7 @@ const { AuthRoutes } = lazyImport(
 );
 
 export const publicRoutes = [
-  { path: "sign-in", element: <SignInPage /> },
-  { path: "sign-up", element: <SignUpPage /> },
+  { path: "/sign-in", element: <SignInPage /> },
+  { path: "/sign-up", element: <SignUpPage /> },
   // { path: "recover-password", element: <RecoverPasswordPage /> },
-
-  // Catch-all for invalid public routes
-  { path: "*", element: <Navigate to="/sign-in" replace /> },
 ];
