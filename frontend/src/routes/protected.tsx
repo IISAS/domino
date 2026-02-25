@@ -77,8 +77,8 @@ export const protectedRoutes = [
           </PrivateLayout>
         ),
       },
-      { index: true, element: <Navigate to="workspaces" replace /> },
-      { path: "*", element: <Navigate to="404" replace /> },
+      { index: true, element: <Navigate to="/workspaces" replace /> },
+      { path: "*", element: <Navigate to="/404" replace /> },
     ],
   },
 ];
