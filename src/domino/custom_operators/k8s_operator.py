@@ -7,13 +7,13 @@ from kubernetes import client, config
 from kubernetes.stream import stream as kubernetes_stream
 from typing import Dict, Optional, Any
 from contextlib import closing
-import ast
 import copy
 
 from domino.utils import dict_deep_update
 from domino.client.domino_backend_client import DominoBackendRestClient
 from domino.schemas import WorkflowSharedStorage, ContainerResourcesModel
 from domino.storage.s3 import S3StorageRepository
+from domino.storage.local import LocalStorageRepository
 from domino.logger import get_configured_logger
 from airflow.exceptions import AirflowException
 
@@ -105,7 +105,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
 
         pvc_exists = False
         try:
-            k8s_client.read_namespaced_persistent_volume_claim(name=persistent_volume_claim_name, namespace='default')
+            k8s_client.read_namespaced_persistent_volume_claim(name=persistent_volume_claim_name, namespace='airflow')
             pvc_exists = True
         except client.rest.ApiException as e:
             if e.status != 404:
@@ -139,7 +139,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         domino_package_local_claim_name = 'domino-dev-volume-claim'
         pvc_exists = False
         try:
-            k8s_client.read_namespaced_persistent_volume_claim(name=domino_package_local_claim_name, namespace='default')
+            k8s_client.read_namespaced_persistent_volume_claim(name=domino_package_local_claim_name, namespace='airflow')
             pvc_exists = True
         except client.rest.ApiException as e:
             if e.status != 404:
@@ -171,22 +171,23 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         We override this method to add the shared storage to the pod.
         This function runs after our own self.execute, by super().execute()
         """
+        self.task_id_replaced = self.task_id.lower().replace("_", "-") # doing this because airflow doesn't allow underscores and upper case in mount names and max len is 63 and also the name of the pod can't contains underscores and capital letters
         pod = super().build_pod_request_obj(context)
-        self.task_id_replaced = self.task_id.lower().replace("_", "-") # doing this because airflow doesn't allow underscores and upper case in mount names and max len is 63
         self.shared_storage_base_mount_path = '/home/shared_storage'
 
         if not self.workflow_shared_storage or self.workflow_shared_storage.mode.name == 'none':
             return pod
-        if self.workflow_shared_storage.source.name in ["aws_s3", "local", "gcs"]:
+        if self.workflow_shared_storage.source.name in ["aws_s3", "gcs"]:
             pod = self.add_shared_storage_sidecar(pod)
-        #elif self.workflow_shared_storage.source.name == "local":
-        #    pod = self.add_local_shared_storage_volumes(pod)
+        elif self.workflow_shared_storage.source.name == "local":
+            pod = self.add_local_shared_storage_volumes(pod)
         return pod
 
 
     def add_local_shared_storage_volumes(self, pod: k8s.V1Pod) -> k8s.V1Pod:
         """Adds local shared storage volumes to the pod."""
         pod_cp = copy.deepcopy(pod)
+        pod_cp.spec.containers[0].security_context=k8s.V1SecurityContext(privileged=True)
         pod_cp.spec.volumes = pod.spec.volumes or []
         pod_cp.spec.volumes.append(
             k8s.V1Volume(
@@ -194,6 +195,19 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name="domino-workflow-shared-storage-volume-claim")
             )
         )
+
+        # Add root volume mount
+        pod_cp.spec.containers[0].volume_mounts = pod_cp.spec.containers[0].volume_mounts or []
+        pod_cp.spec.containers[0].volume_mounts.append(
+            k8s.V1VolumeMount(
+                name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
+                mount_path=f"{self.shared_storage_base_mount_path}",  # path inside main container
+                mount_propagation="Bidirectional",
+                read_only=False,
+            )
+        )
+
+        '''
         # Add volume mounts for upstream tasks, using subpaths
         pod_cp.spec.containers[0].volume_mounts = pod_cp.spec.containers[0].volume_mounts or []
         for tid in self.shared_storage_upstream_ids_list:
@@ -202,7 +216,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                     name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
                     mount_path=f"{self.shared_storage_base_mount_path}/{tid}",  # path inside main container
                     mount_propagation="HostToContainer",
-                    read_only=True,
+                    read_only=False,
                 )
             )
         # Add volume mount for this task
@@ -211,9 +225,10 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63],  # max resource name in k8s is 63 chars
                 mount_path=f"{self.shared_storage_base_mount_path}/{self.task_id}",  # path inside main container
                 mount_propagation="Bidirectional",
-                read_only=True,
+                read_only=False,
             )
         )
+        '''
         return pod_cp
 
     def _validate_storage_piece_secrets(self, storage_piece_secrets: Dict[str, Any]):
@@ -226,7 +241,10 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 bucket=self.workflow_shared_storage.bucket,
             )
         elif self.workflow_shared_storage.source.name == 'local':
-            validated = True
+            local_storage_repository = LocalStorageRepository()
+            validated = local_storage_repository.validate_local_credentials_access(
+                access_key=storage_piece_secrets.get('LOCAL_TEST_SECRET'),
+            )
         return validated
 
     def add_shared_storage_sidecar(self, pod: k8s.V1Pod) -> k8s.V1Pod:
@@ -475,9 +493,8 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         Code from here onward is executed by the Worker and not by the Scheduler.
         """
         # TODO change url based on platform configuration
-        self.logger.info("CONTEXT")
-        self.logger.info(context)
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest-service:8000/")
+        #self.domino_client = DominoBackendRestClient(base_url="http://localhost:8080/")
         self._prepare_execute_environment(context=context)
         remote_pod = None
         try:
@@ -504,7 +521,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             if self.do_xcom_push:
                 result = self.extract_xcom(pod=self.pod)
 
-            if self.workflow_shared_storage and self.workflow_shared_storage.mode.name != 'none':
+            if self.workflow_shared_storage and self.workflow_shared_storage.mode.name != 'none' and self.workflow_shared_storage.source.name != 'local':
                 self._kill_shared_storage_sidecar(pod=self.pod)
             remote_pod = self.pod_manager.await_pod_completion(self.pod)
         finally:

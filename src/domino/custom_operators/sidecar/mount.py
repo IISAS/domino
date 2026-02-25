@@ -29,7 +29,11 @@ class SharedStorageMount(object):
         self._setup_shared_storage()
 
     def _setup_local_shared_storage_config(self):
-        raise NotImplementedError("Local is not implemented yet")
+         # Update rclone config file with this session details
+        with open(self.config_file_path, "w+") as f:
+            self.parser.write(f)
+
+        self.rclone_base_path = f"{self.shared_storage_source_name}:{self.remote_base_folder_path}{self.workflow_run_subpath}"
 
     def _setup_gcs_shared_storage_config(self):
         raise NotImplementedError("GCS is not implemented yet")

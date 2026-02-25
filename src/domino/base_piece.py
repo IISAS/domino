@@ -67,7 +67,7 @@ class BasePiece(metaclass=abc.ABCMeta):
         Start logger.
         """
         self.logger.info(f"Started {self.task_id} of type {self.__class__.__name__} at {str(datetime.now().isoformat())}")
-        self.logger.info("Start cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b")
+        self.logger.info(f"Start cut point for logger {self.task_id}")
 
     def _wait_for_sidecar_paths(self):
         # Wait for sidecar create directories
@@ -255,10 +255,6 @@ class BasePiece(metaclass=abc.ABCMeta):
         # Start logger
         self.start_logger()
 
-        self.piece_input_model = piece_input_model
-        self.piece_output_model = piece_output_model
-        self.piece_secrets_model = piece_secrets_model
-
         # Airflow context dictionary: https://composed.blog/airflow/execute-context
         # For local-bash and kubernetes deploy modes, we assemble this ourselves and the context data is more limited
         if airflow_context is None:
@@ -273,13 +269,13 @@ class BasePiece(metaclass=abc.ABCMeta):
         # Generate paths
         workflow_run_subpath = os.environ.get('DOMINO_WORKFLOW_RUN_SUBPATH', '')
         self.workflow_shared_storage_path = Path("/home/shared_storage")
-        if self.deploy_mode == 'local-compose':
+        shared_storage_source_name = os.environ.get('DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME', None)
+        if self.deploy_mode == 'local-compose' or shared_storage_source_name == 'local':
             self.workflow_shared_storage_path = str(self.workflow_shared_storage_path / workflow_run_subpath)
         self.results_path = f"{self.workflow_shared_storage_path}/{self.task_id}/results"
         self.xcom_path = f"{self.workflow_shared_storage_path}/{self.task_id}/xcom"
         self.report_path = f"{self.workflow_shared_storage_path}/{self.task_id}/report"
-        shared_storage_source_name = os.environ.get('DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME', None)
-        if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose":
+        if not shared_storage_source_name or shared_storage_source_name == "none" or self.deploy_mode == "local-compose" or shared_storage_source_name == "local":
             self.generate_paths()
         else:
             self._wait_for_sidecar_paths()
@@ -306,7 +302,7 @@ class BasePiece(metaclass=abc.ABCMeta):
         xcom_obj['_shared_storage_usage_in_bytes'] = self._shared_storage_usage_in_bytes
         self.push_xcom(xcom_obj=xcom_obj)
         self.logger.info(f"Piece used {self._shared_storage_usage_in_bytes} bytes of storage.")
-        self.logger.info("End cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b")
+        self.logger.info(f"End cut point for logger {self.task_id}")
 
 
     @classmethod

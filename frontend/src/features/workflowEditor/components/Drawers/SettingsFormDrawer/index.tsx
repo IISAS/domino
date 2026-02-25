@@ -108,6 +108,12 @@ export const WorkflowSettingsFormSchema: ValidationSchema = yup.object().shape({
           .oneOf(Object.values(storageSourcesAWS))
           .required();
       }
+      if (value === storageSourcesAWS.Local) {
+        return yup
+          .mixed<StorageSourcesAWS>()
+          .oneOf(Object.values(storageSourcesAWS))
+          .required();
+      }
       return yup
         .mixed<StorageSourcesLocal>()
         .oneOf(Object.values(storageSourcesLocal))
@@ -316,6 +322,20 @@ const SettingsFormDrawer = forwardRef<
                     </Grid>
                     <Grid size={{ xs:12 }}>
                       <TextInput
+                        label="Base Folder"
+                        defaultValue={defaultSettingsData.storage.baseFolder}
+                        required
+                        fullWidth
+                        name="storage.baseFolder"
+                      />
+                    </Grid>
+                  </>
+                ) : null}
+                {formData?.storage?.storageSource ===
+                storageSourcesAWS.Local ? (
+                  <>
+                    <Grid item xs={12}>
+                       <TextInput
                         label="Base Folder"
                         defaultValue={defaultSettingsData.storage.baseFolder}
                         required

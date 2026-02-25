@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # Default DB mock data
     AIRFLOW_ADMIN_CREDENTIALS: dict = {
         "username": os.environ.get('AIRFLOW_ADMIN_USERNAME', "admin"),
-        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "airflow")
+        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "admin")
     }
     AIRFLOW_API_SERVER_PORT_HOST: int = int(os.environ.get('AIRFLOW_API_SERVER_PORT_HOST', 8080))
     AIRFLOW_API_SERVER_HOST: str = os.environ.get('AIRFLOW_API_SERVER_HOST', "http://airflow-api-server:8080/")
@@ -141,6 +141,17 @@ class ProdSettings(Settings):
     CORS: dict = {
         "origins": [
             "*",
+            "http://localhost",
+            "http://localhost:8000",
+            "http://localhost:8080",
+            "http://localhost:3000"
+        ],
+        "allow_origins": [
+            "*",
+            "http://localhost",
+            "http://localhost:8000",
+            "http://localhost:8080",
+            "http://localhost:3000"
         ],
         "allow_credentials": True,
         "allow_methods": ["*"],
@@ -151,18 +162,22 @@ class ProdSettings(Settings):
     ROOT_PATH: str = os.environ.get('ROOT_PATH', '/api')
 
 
-class ProdSettings1(Settings):
+class K8sSettings(Settings):
     SERVER_HOST: str = "0.0.0.0"
     DEBUG: bool = False
     PORT: int = int(os.environ.get('DOMINO_REST_PORT_HOST', 8000))
     RELOAD: bool = False
     CORS: dict = {
         "origins": [
-            "http://147.213.76.237:31801/domino/"
+            "*",
+            "http://localhost",
+            "http://localhost:8000",
+            "http://localhost:8080",
+            "http://localhost:3000",
         ],
         "allow_credentials": True,
-        "allow_methods": ["GET", "POST"],
-        #"allow_headers": ["*"],
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
     }
 
     # ROOT_PATH is based in proxy config. Must be the same as the path to the api in the proxy
@@ -176,7 +191,7 @@ def get_settings():
         "local-k8s-dev": LocalK8sSettings(),
         "local-compose": LocalComposeSettings(),
         "prod": ProdSettings(),
-        "prod1": ProdSettings1(),
+        "k8s": K8sSettings(),
     }
     return settings_type[env]
 

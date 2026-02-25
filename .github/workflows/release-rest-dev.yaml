@@ -1,6 +1,7 @@
-name: Build and publish Domino REST production image
+name: Build and publish Domino REST development image
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - dev

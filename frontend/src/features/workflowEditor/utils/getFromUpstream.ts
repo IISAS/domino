@@ -1,7 +1,8 @@
 import { getDefinition } from "./getDefinition";
 
 function isEnum(schema: Property | Definition): boolean {
-  if ("allOf" in schema || "enum" in schema) {
+  //if ("allOf" in schema || "enum" in schema) {
+  if ("$ref" in schema || "enum" in schema) {
     return true;
   }
   return false;
@@ -33,7 +34,8 @@ function getFromUpstream(
     } else if (definition && definition.type === "object") {
       const schema = definition.properties[key!];
 
-      if ("allOf" in schema || "enum" in schema) {
+      //if ("allOf" in schema || "enum" in schema) {
+      if ("$ref" in schema || "enum" in schema) {
         return false;
       }
 
