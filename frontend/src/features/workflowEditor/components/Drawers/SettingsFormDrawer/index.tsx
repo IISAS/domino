@@ -334,7 +334,7 @@ const SettingsFormDrawer = forwardRef<
                 {formData?.storage?.storageSource ===
                 storageSourcesAWS.Local ? (
                   <>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs:12 }}>
                        <TextInput
                         label="Base Folder"
                         defaultValue={defaultSettingsData.storage.baseFolder}
