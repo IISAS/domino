@@ -169,7 +169,6 @@ class K8sSettings(Settings):
     RELOAD: bool = False
     CORS: dict = {
         "origins": [
-            "*",
             "http://localhost",
             "http://localhost:8000",
             "http://localhost:8080",
