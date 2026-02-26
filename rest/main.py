@@ -1,7 +1,11 @@
 import uvicorn
 from dotenv import find_dotenv, load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+
 from routers.auth_router import router as auth_router
 from routers.user_router import router as user_router
 from routers.workflow_router import router as workflow_router
@@ -34,6 +38,33 @@ def configure_app():
         version=settings.VERSION,
         lifespan=lifespan
     )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request, exc):
+
+        headers = {
+            'Access-Control-Allow-Origin'      : ', '.join(settings.CORS["origins"]),
+            'Access-Control-Allow-Credentials' : 'true',
+            'Access-Control-Allow-Methods'     : '*',
+            'Access-Control-Allow-Headers'     : '*',
+        }
+
+        exc_str = ''
+
+        for err in exc._errors:
+            exc_str += f"{err['msg']} for input `{err['input']}` in the field {'->'.join(err['loc'])}. "
+
+        return JSONResponse(
+            jsonable_encoder(
+                {
+                    "status_code" : 422,
+                    "message"     : exc_str,
+                    "exception"   : "HTTP_422_UNPROCESSABLE_ENTITY"
+                }
+            ),
+            status_code = status.HTTP_422_UNPROCESSABLE_ENTITY,
+            headers = headers
+        )
 
     def home():
         return {"message":"Health Check Passed!"}
