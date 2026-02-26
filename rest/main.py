@@ -39,6 +39,14 @@ def configure_app():
         lifespan=lifespan
     )
 
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS["origins"],
+        allow_credentials=settings.CORS["allow_credentials"],
+        allow_methods=settings.CORS["allow_methods"],
+        allow_headers=settings.CORS["allow_headers"],
+    )
+    
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request, exc):
 
@@ -69,13 +77,6 @@ def configure_app():
     def home():
         return {"message":"Health Check Passed!"}
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS["origins"],
-        allow_credentials=settings.CORS["allow_credentials"],
-        allow_methods=settings.CORS["allow_methods"],
-        allow_headers=settings.CORS["allow_headers"],
-    )
 
     # Include routers
     app.include_router(auth_router, tags=["Auth"])
