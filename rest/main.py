@@ -95,7 +95,7 @@ def configure_app():
     return app, settings
 
 
-app, settings = configure_app()
+app, settings1 = configure_app()
 
 
 if __name__ == "__main__":
