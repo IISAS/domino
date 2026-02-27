@@ -41,14 +41,14 @@ def configure_app():
 
     app.add_middleware(
         CORSMiddleware,
-        #allow_origins=settings.CORS["origins"],
-        #allow_credentials=settings.CORS["allow_credentials"],
-        #allow_methods=settings.CORS["allow_methods"],
-        #allow_headers=settings.CORS["allow_headers"],
-        allow_origins=['*'],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=settings.CORS["origins"],
+        allow_credentials=settings.CORS["allow_credentials"],
+        allow_methods=settings.CORS["allow_methods"],
+        allow_headers=settings.CORS["allow_headers"],
+        #allow_origins=['*'],
+        #allow_credentials=True,
+        #allow_methods=["*"],
+        #allow_headers=["*"],
     )
 
     @app.exception_handler(RequestValidationError)
@@ -95,7 +95,7 @@ def configure_app():
     return app, settings
 
 
-app, settings1 = configure_app()
+app, settings = configure_app()
 
 
 if __name__ == "__main__":
