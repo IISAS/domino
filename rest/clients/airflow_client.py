@@ -197,7 +197,8 @@ class AirflowRestClient(requests.Session):
         return response
 
     def get_task_logs(self, dag_id: str, dag_run_id: str, task_id: str, task_try_number: int):
-        resource = f"/api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/logs/{task_try_number}"
+        # ref: https://airflow.apache.org/docs/apache-airflow/stable/stable-rest-api-ref.html#operation/get_log
+        resource = f"api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/logs/{task_try_number}"
         response = self.request(
             method='get',
             resource=resource,
@@ -208,7 +209,7 @@ class AirflowRestClient(requests.Session):
 
     def get_task_result(self, dag_id: str, dag_run_id: str, task_id: str, task_try_number: int):
         # ref: https://airflow.apache.org/docs/apache-airflow/stable/stable-rest-api-ref.html#operation/get_xcom_entries
-        resource = f"/api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/xcomEntries/return_value"
+        resource = f"api/v2/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/xcomEntries/return_value"
         response = self.request(
             method='get',
             resource=resource,
