@@ -48,7 +48,7 @@ class Settings(BaseSettings):
             require_token=False,
             url='https://github.com/IISAS/default_domino_pieces'
         ),
-        dict(
+        """dict(
             path="Tauffer-Consulting/openai_domino_pieces",
             version='0.7.2',
             source='github',
@@ -75,7 +75,7 @@ class Settings(BaseSettings):
             source='github',
             require_token=True,
             url='https://github.com/Tauffer-Consulting/ml_domino_pieces'
-        )
+        )"""
     ]
 
     # Default DB mock data
