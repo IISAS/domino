@@ -1,5 +1,6 @@
 import asyncio
 import io
+import json
 import re
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -808,6 +809,30 @@ class WorkflowService(object):
         return GetWorkflowResultReportResponse(data=result_list)
 
     @staticmethod
+    def parse_log_json(log_json):
+
+        start_command_pattern = "Start cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b"
+        stop_command_pattern = "End cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b"
+
+        output_lines = []
+        start_found = False
+        for event in log_json['content']:
+            # skip events before the start_command_pattern
+            if not start_found:
+                if start_command_pattern in event['event']:
+                    start_found = True
+                else:
+                    continue
+            # do not include events after the stop_command_pattern
+            if stop_command_pattern in event['event']:
+                break
+
+            # create log line and append it to output
+            output_lines.append(f"{event['event']}")
+
+        return output_lines
+
+    @staticmethod
     def parse_log(log_text: str):
         # Get the log lines between the start and stop patterns
         start_command_pattern = "Start cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b"
@@ -891,9 +916,15 @@ class WorkflowService(object):
         if response.status_code != 200:
             raise BaseException("Error while trying to get task logs")
 
-        parsed_log = self.parse_log(
-            response.text
-        )
+        if response.headers.get('Content-Type') == 'application/json':
+            log_json = json.loads(response.text)
+            parsed_log = self.parse_log_json(
+                log_json
+            )
+        else:
+            parsed_log = self.parse_log(
+                response.text
+            )
 
         return GetWorkflowRunTaskLogsResponse(
             data=parsed_log
