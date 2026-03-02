@@ -809,23 +809,23 @@ class WorkflowService(object):
         return GetWorkflowResultReportResponse(data=result_list)
 
     @staticmethod
-    def parse_log_json(log_json):
+    def parse_log_json(log_json, task_id):
 
-        start_command_pattern = "Start cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b"
-        stop_command_pattern = "End cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b"
+        start_command_pattern = "Start cut point for logger " + task_id
+        stop_command_pattern = "End cut point for logger " + task_id
 
         output_lines = []
         start_found = False
         for event in log_json['content']:
             # skip events before the start_command_pattern
-            #if not start_found:
-            #    if start_command_pattern in event['event']:
-            #        start_found = True
-            #    else:
-            #        continue
+            if not start_found:
+                if start_command_pattern in event['event']:
+                    start_found = True
+                else:
+                    continue
             # do not include events after the stop_command_pattern
-            #if stop_command_pattern in event['event']:
-            #    break
+            if stop_command_pattern in event['event']:
+                break
 
             # create log line and append it to output
             output_lines.append(f"{event['event']}")
@@ -919,7 +919,7 @@ class WorkflowService(object):
         if response.headers.get('Content-Type') == 'application/json':
             log_json = json.loads(response.text)
             parsed_log = self.parse_log_json(
-                log_json
+                log_json, task_id
             )
         else:
             parsed_log = self.parse_log(
