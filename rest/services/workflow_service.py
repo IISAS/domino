@@ -825,6 +825,7 @@ class WorkflowService(object):
                     continue
             # do not include events after the stop_command_pattern
             if stop_command_pattern in event['event']:
+                output_lines.append(f"{event['event']}")
                 break
 
             # create log line and append it to output
