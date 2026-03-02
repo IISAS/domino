@@ -809,7 +809,7 @@ class WorkflowService(object):
         return GetWorkflowResultReportResponse(data=result_list)
 
     @staticmethod
-    def parse_log_json(log_json, task_id):
+    def parse_log_json(log_json, task_id:str):
 
         start_command_pattern = "Start cut point for logger " + task_id
         stop_command_pattern = "End cut point for logger " + task_id
@@ -834,10 +834,10 @@ class WorkflowService(object):
         return output_lines
 
     @staticmethod
-    def parse_log(log_text: str):
+    def parse_log(log_text, task_id: str):
         # Get the log lines between the start and stop patterns
-        start_command_pattern = "Start cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b"
-        stop_command_pattern = "End cut point for logger 48c94577-0225-4c3f-87c0-8add3f4e6d4b"
+        start_command_pattern = "Start cut point for logger " + task_id
+        stop_command_pattern = "End cut point for logger " + task_id
         # Find all lines between the start and stop patterns
         # We are using re.DOTALL to match newlines
         log = re.findall(f"[^\n]*{start_command_pattern}.*?{stop_command_pattern}[^\n]*", log_text, re.DOTALL)
@@ -924,7 +924,7 @@ class WorkflowService(object):
             )
         else:
             parsed_log = self.parse_log(
-                response.text
+                response.text, task_id
             )
 
         return GetWorkflowRunTaskLogsResponse(
