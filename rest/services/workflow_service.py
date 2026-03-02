@@ -818,14 +818,14 @@ class WorkflowService(object):
         start_found = False
         for event in log_json['content']:
             # skip events before the start_command_pattern
-            if not start_found:
-                if start_command_pattern in event['event']:
-                    start_found = True
-                else:
-                    continue
+            #if not start_found:
+            #    if start_command_pattern in event['event']:
+            #        start_found = True
+            #    else:
+            #        continue
             # do not include events after the stop_command_pattern
-            if stop_command_pattern in event['event']:
-                break
+            #if stop_command_pattern in event['event']:
+            #    break
 
             # create log line and append it to output
             output_lines.append(f"{event['event']}")
