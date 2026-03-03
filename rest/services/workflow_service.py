@@ -11,6 +11,7 @@ from uuid import uuid4
 from aiohttp import ClientSession
 
 from clients.airflow_client import AirflowRestClient
+from clients.awpl_rest_client import AWPLRestClient
 from clients.github_rest_client import GithubRestClient
 from clients.local_files_client import LocalFilesClient
 from core.logger import get_configured_logger
@@ -51,6 +52,7 @@ class WorkflowService(object):
         self.file_system_client = LocalFilesClient()
         self.github_rest_client = GithubRestClient(token=settings.DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS)
         self.airflow_client = AirflowRestClient()
+        self.awpl_rest_client = AWPLRestClient()
 
         # Service
         self.secret_service = SecretService()
@@ -95,9 +97,23 @@ class WorkflowService(object):
         )
 
         # AWPL
-        new_workflow.awpl = self.workflowToAWPL(new_workflow)
+        awpl = self.workflowToAWPL(new_workflow)
 
+        # update workflow with generated AWPL
+        new_workflow.awpl = awpl
         workflow = self.workflow_repository.create(new_workflow)
+
+        try:
+            resp = self.awpl_rest_client.submit_workflow(
+                id=workflow.id,
+                name=workflow.name,
+                uuid_name=workflow.uuid_name,
+                created_at=workflow.created_at,
+                awpl=awpl
+            )
+            self.logger.debug(f'AWPL REST resp: {resp}')
+        except Exception as e:
+            self.logger.error(e)
 
         data_dict = body.model_dump()
         data_dict['workflow']['id'] = workflow_id
@@ -809,7 +825,7 @@ class WorkflowService(object):
         return GetWorkflowResultReportResponse(data=result_list)
 
     @staticmethod
-    def parse_log_json(log_json, task_id:str):
+    def parse_log_json(log_json, task_id: str):
 
         start_command_pattern = "Start cut point for logger " + task_id
         stop_command_pattern = "End cut point for logger " + task_id
