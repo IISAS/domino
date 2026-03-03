@@ -1,8 +1,8 @@
-from pydantic_settings import BaseSettings
-from typing import Union
 import os
-from database.models.enums import RepositorySource
 
+from pydantic_settings import BaseSettings
+
+from database.models.enums import RepositorySource
 
 
 class Settings(BaseSettings):
@@ -29,13 +29,15 @@ class Settings(BaseSettings):
 
     # Secrets config
     SECRETS_SECRET_KEY: str = os.environ.get('SECRETS_SECRET_KEY', b'j1DsRJ-ehxU_3PbXW0c_-U4nTOx3knRB4zzWguMVaio=')
-    GITHUB_TOKEN_SECRET_KEY: str = os.environ.get('GITHUB_TOKEN_SECRET_KEY', b'j1DsRJ-ehxU_3PbXW0c_-U4nTOx3knRB4zzWguMVaio=')
+    GITHUB_TOKEN_SECRET_KEY: str = os.environ.get('GITHUB_TOKEN_SECRET_KEY',
+                                                  b'j1DsRJ-ehxU_3PbXW0c_-U4nTOx3knRB4zzWguMVaio=')
 
     # Used by github rest client
     DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS: str | None = os.environ.get('DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS', None)
 
     # Workflows storage
-    DOMINO_GITHUB_WORKFLOWS_REPOSITORY: str = os.environ.get('DOMINO_GITHUB_WORKFLOWS_REPOSITORY', "IISAS/domino_workflows_dev")
+    DOMINO_GITHUB_WORKFLOWS_REPOSITORY: str = os.environ.get('DOMINO_GITHUB_WORKFLOWS_REPOSITORY',
+                                                             "IISAS/domino_workflows_dev")
     DOMINO_LOCAL_WORKFLOWS_REPOSITORY: str = '/opt/airflow/dags'
 
     # Default domino pieces repository
@@ -80,11 +82,11 @@ class Settings(BaseSettings):
 
     # Default DB mock data
     AIRFLOW_ADMIN_CREDENTIALS: dict = {
-        "username": os.environ.get('AIRFLOW_ADMIN_USERNAME', "admin"),
-        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', "admin")
+        "username": os.environ.get('AIRFLOW_ADMIN_USERNAME', 'admin'),
+        "password": os.environ.get('AIRFLOW_ADMIN_PASSWORD', 'admin')
     }
     AIRFLOW_API_SERVER_PORT_HOST: int = int(os.environ.get('AIRFLOW_API_SERVER_PORT_HOST', 8080))
-    AIRFLOW_API_SERVER_HOST: str = os.environ.get('AIRFLOW_API_SERVER_HOST', "http://airflow-api-server:8080/")
+    AIRFLOW_API_SERVER_HOST: str = os.environ.get('AIRFLOW_API_SERVER_HOST', 'http://airflow-api-server:8080/')
 
     # Default repositories
     DEFAULT_STORAGE_REPOSITORY: dict = dict(
@@ -98,6 +100,10 @@ class Settings(BaseSettings):
     DEPLOY_MODE: str = os.environ.get('DOMINO_DEPLOY_MODE', 'local-k8s')
 
     CONDITIONAL_ENDPOINTS_ENABLED: bool = False if DEPLOY_MODE.startswith('local-compose') else True
+
+    # AWPL REST API
+    AWPL_REST_API_URL: str = os.environ.get('AWPL_REST_API_URL', 'http://awpl-rest-api:3000/api/v1')
+    AWPL_REST_API_TOKEN: str = os.environ.get('AWPL_REST_API_TOKEN')
 
 
 class LocalK8sSettings(Settings):
