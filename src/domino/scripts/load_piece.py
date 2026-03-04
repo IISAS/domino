@@ -27,6 +27,10 @@ def load_piece_models_from_path(pieces_folder_path: str, piece_name: str):
         sys.path.append(pieces_folder_path)
 
     importlib.invalidate_caches()
+    try:
+        _ = importlib.import_module(f"common")
+    except ModuleNotFoundError:
+        pass
     piece_model_module = importlib.import_module(f"{piece_name}.models")
     piece_input_model_class = getattr(piece_model_module, "InputModel")
     piece_output_model_class = getattr(piece_model_module, "OutputModel")
