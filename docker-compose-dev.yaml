@@ -73,7 +73,7 @@ services:
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
     expose:
-      - ${REDIS_PORT_HOST:-6379}:6379
+      - ${AIRFLOW_REDIS_PORT_HOST:-6379}
     networks:
       airflow-network:
         aliases:
@@ -359,6 +359,9 @@ services:
       - AIRFLOW_ADMIN_PASSWORD=${AIRFLOW_ADMIN_PASSWORD:-airflow}
       - AIRFLOW_API_SERVER_HOST=http://airflow-apiserver:8080${AIRFLOW_API_SERVER_BASENAME:-}
       - ROOT_PATH=${DOMINO_REST_BASENAME:-}
+      - CHAT_APP_URL=http://host.docker.internal:6969
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - domino-postgres-network
       - default

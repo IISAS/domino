@@ -1,24 +1,15 @@
 import { AuthorizationComponent } from "@components/AuthorizationComponent";
+import ChatIcon from "@mui/icons-material/Chat";
 import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
 import IosShareIcon from "@mui/icons-material/IosShare";
 import SaveIcon from "@mui/icons-material/Save";
 import SettingsSuggestIcon from "@mui/icons-material/Settings";
 import { Button, Grid, Menu, MenuItem, styled } from "@mui/material";
-import { type ModalRef } from "components/Modal";
-import { useStorage } from "context/storage/useStorage";
-import {
-  type Differences,
-  findDifferencesInJsonImported,
-  importJsonWorkflow,
-  validateJsonImported,
-} from "features/workflowEditor/utils";
+import { importJsonWorkflow } from "features/workflowEditor/utils";
 import React, { useCallback, useRef, useState } from "react";
-import { toast } from "react-toastify";
-import * as yup from "yup";
 
 import {
-  DifferencesModal,
   MyWorkflowExamplesGalleryModal,
   WorkflowExamplesGalleryModal,
 } from "../Modals";
@@ -29,6 +20,7 @@ interface Props {
   handleExport: () => void;
   handleImported: (json: any) => void;
   handleClear: () => void;
+  handleChatOpen: () => void;
 }
 
 const VisuallyHiddenInput = styled("input")({
@@ -49,12 +41,11 @@ export const ButtonsMenu: React.FC<Props> = ({
   handleExport,
   handleImported,
   handleClear,
+  handleChatOpen,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const incompatiblePiecesModalRef = useRef<ModalRef>(null);
-  const workflowsGalleryModalRef = useRef<ModalRef>(null);
-  const myWorkflowsGalleryModalRef = useRef<ModalRef>(null);
-  const localStorage = useStorage();
+  const workflowsGalleryModalRef = useRef<any>(null);
+  const myWorkflowsGalleryModalRef = useRef<any>(null);
 
   const [menuElement, setMenuElement] = useState<null | HTMLElement>(null);
   const importMenuOpen = Boolean(menuElement);
@@ -77,36 +68,6 @@ export const ButtonsMenu: React.FC<Props> = ({
     setMenuElement(null);
     workflowsGalleryModalRef.current?.open();
   }, [workflowsGalleryModalRef]);
-
-  const [incompatiblesPieces, setIncompatiblesPieces] = useState<Differences[]>(
-    [],
-  );
-
-  const handleImportedJson = useCallback((json: any) => {
-    try {
-      validateJsonImported(json);
-      const pieces = localStorage.getItem<Piece[]>("pieces");
-      const differences = findDifferencesInJsonImported(json, pieces!);
-
-      if (differences.length) {
-        toast.error("Some repositories are missing or incompatible version");
-
-        setIncompatiblesPieces(differences);
-        incompatiblePiecesModalRef.current?.open();
-        return;
-      }
-      handleImported(json);
-    } catch (e: any) {
-      if (e instanceof yup.ValidationError) {
-        toast.error("This JSON file is incompatible or corrupted");
-      } else {
-        console.error(e);
-      }
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  }, []);
 
   return (
     <Grid
@@ -165,7 +126,10 @@ export const ButtonsMenu: React.FC<Props> = ({
               type="file"
               onChange={async (e) => {
                 const json = await importJsonWorkflow(e);
-                handleImportedJson(json);
+                if (json) handleImported(json);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
               }}
               ref={fileInputRef}
             />
@@ -197,16 +161,23 @@ export const ButtonsMenu: React.FC<Props> = ({
         </Menu>
         <WorkflowExamplesGalleryModal
           ref={workflowsGalleryModalRef}
-          confirmFn={handleImportedJson}
+          confirmFn={handleImported}
         />
         <MyWorkflowExamplesGalleryModal
           ref={myWorkflowsGalleryModalRef}
-          confirmFn={handleImportedJson}
+          confirmFn={handleImported}
         />
-        <DifferencesModal
-          incompatiblesPieces={incompatiblesPieces}
-          ref={incompatiblePiecesModalRef}
-        />
+      </Grid>
+      <Grid>
+        <AuthorizationComponent allowedRoles={["admin", "owner", "write"]}>
+          <Button
+            variant="contained"
+            startIcon={<ChatIcon />}
+            onClick={handleChatOpen}
+          >
+            Chat
+          </Button>
+        </AuthorizationComponent>
       </Grid>
       <Grid>
         <AuthorizationComponent allowedRoles={["admin", "owner", "write"]}>

@@ -1,6 +1,8 @@
 import { Grid, Paper } from "@mui/material";
 import { AxiosError } from "axios";
 import Loading from "components/Loading";
+import { type ModalRef } from "components/Modal";
+import { useStorage } from "context/storage/useStorage";
 import { useWorkspaces } from "context/workspaces";
 import { useWorkflowsEditor } from "features/workflowEditor/context";
 import React, { useCallback, useRef, useState } from "react";
@@ -11,8 +13,14 @@ import * as yup from "yup";
 
 import { type GenerateWorkflowsParams } from "../../context/workflowsEditor";
 import { createInputsSchemaValidation } from "../../utils/validation";
+import {
+  type Differences,
+  findDifferencesInJsonImported,
+  validateJsonImported,
+} from "../../utils";
 import { ButtonsMenu } from "../ButtonsMenu";
 import {
+  ChatDrawer,
   PiecesDrawer,
   SettingsFormDrawer,
   type SettingsFormDrawerRef,
@@ -21,13 +29,16 @@ import {
 } from "../Drawers";
 import { ContainerResourceFormSchema } from "../Drawers/PieceFormDrawer/ContainerResourceForm";
 import { storageFormSchema } from "../Drawers/PieceFormDrawer/StorageForm";
+import { DifferencesModal } from "../Modals";
 import { type WorkflowPanelRef, WorkflowPanel } from "../Panel/WorkflowPanel";
 
 export const WorkflowsEditorComponent: React.FC = () => {
   const workflowPanelRef = useRef<WorkflowPanelRef>(null);
   const sidebarSettingsRef = useRef<SettingsFormDrawerRef>(null);
+  const incompatiblePiecesModalRef = useRef<ModalRef>(null);
   const [sidebarSettingsDrawer, setSidebarSettingsDrawer] = useState(false);
   const [sidebarPieceDrawer, setSidebarPieceDrawer] = useState(false);
+  const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
   const [formId, setFormId] = useState<string>("");
   const [formTitle, setFormTitle] = useState<string>("");
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -37,8 +48,12 @@ export const WorkflowsEditorComponent: React.FC = () => {
   const [orientation, setOrientation] = useState<"horizontal" | "vertical">(
     "horizontal",
   );
+  const [incompatiblesPieces, setIncompatiblesPieces] = useState<Differences[]>(
+    [],
+  );
 
   const { workspace } = useWorkspaces();
+  const localStorage = useStorage();
 
   const saveDataToLocalForage = useCallback(() => {
     if (workflowPanelRef?.current) {
@@ -184,6 +199,31 @@ export const WorkflowsEditorComponent: React.FC = () => {
     [workflowPanelRef, importWorkflowToStorage],
   );
 
+  const validateAndImportJson = useCallback(
+    (json: any) => {
+      try {
+        validateJsonImported(json);
+        const pieces = localStorage.getItem<Piece[]>("pieces");
+        const differences = findDifferencesInJsonImported(json, pieces!);
+
+        if (differences.length) {
+          toast.error("Some repositories are missing or incompatible version");
+          setIncompatiblesPieces(differences);
+          incompatiblePiecesModalRef.current?.open();
+          return;
+        }
+        handleImportedJson(json);
+      } catch (e: any) {
+        if (e instanceof yup.ValidationError) {
+          toast.error("This JSON file is incompatible or corrupted");
+        } else {
+          console.error(e);
+        }
+      }
+    },
+    [handleImportedJson, localStorage],
+  );
+
   // Node double click open drawer with forms
   const onNodeDoubleClick = useCallback(
     (_e: any, node: Node) => {
@@ -235,9 +275,12 @@ export const WorkflowsEditorComponent: React.FC = () => {
           <ButtonsMenu
             handleClear={handleClear}
             handleExport={handleExport}
-            handleImported={handleImportedJson}
+            handleImported={validateAndImportJson}
             handleSave={handleSaveWorkflow}
             handleSettings={toggleSidebarSettingsDrawer(true)}
+            handleChatOpen={() => {
+              setChatDrawerOpen(true);
+            }}
           />
           <Paper sx={{ height: "80vh" }}>
             <WorkflowPanel
@@ -267,6 +310,17 @@ export const WorkflowsEditorComponent: React.FC = () => {
         onClose={toggleSidebarSettingsDrawer(false)}
         open={sidebarSettingsDrawer}
         ref={sidebarSettingsRef}
+      />
+      <ChatDrawer
+        open={chatDrawerOpen}
+        onClose={() => {
+          setChatDrawerOpen(false);
+        }}
+        onWorkflowReceived={validateAndImportJson}
+      />
+      <DifferencesModal
+        incompatiblesPieces={incompatiblesPieces}
+        ref={incompatiblePiecesModalRef}
       />
     </>
   );

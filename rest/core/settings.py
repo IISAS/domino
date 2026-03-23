@@ -103,7 +103,11 @@ class Settings(BaseSettings):
 
     # AWPL REST API
     AWPL_REST_API_URL: str = os.environ.get('AWPL_REST_API_URL', 'http://awpl-rest-api:3000/api/v1')
-    AWPL_REST_API_TOKEN: str = os.environ.get('AWPL_REST_API_TOKEN')
+    AWPL_REST_API_TOKEN: str | None = os.environ.get('AWPL_REST_API_TOKEN', None)
+
+    # Chat App
+    CHAT_APP_URL: str = os.environ.get('CHAT_APP_URL', 'http://host.docker.internal:6969')
+    CHAT_APP_TOKEN: str | None = os.environ.get('CHAT_APP_TOKEN', None)
 
 
 class LocalK8sSettings(Settings):
