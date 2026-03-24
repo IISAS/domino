@@ -49,14 +49,14 @@ spec:
             - name: "DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN"
               valueFrom:
                 secretKeyRef:
-                  key:  github_access_token_pieces
+                  key:  git_access_token_pieces
                   name: {{ .Release.Name }}-secrets
-            - name: "DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS"
+            - name: "DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS"
               valueFrom:
                 secretKeyRef:
-                  key:  github_access_token_workflows
+                  key:  git_access_token_workflows
                   name: {{ .Release.Name }}-secrets
-            - name: DOMINO_GITHUB_WORKFLOWS_REPOSITORY
+            - name: DOMINO_GIT_WORKFLOWS_REPOSITORY
               value: {{ .Values.rest.workflowsRepository }}
             - name: ROOT_PATH
               value: {{ .Values.rest.rootPath }}

@@ -1,6 +1,7 @@
 Jinja2==3.1.6
 MarkupSafe==2.1.5
 PyGithub==1.59.1
+python-gitlab==8.1.0
 PyJWT==2.10.1
 PyYAML==6.0.2
 SQLAlchemy-JSONField==1.0.2

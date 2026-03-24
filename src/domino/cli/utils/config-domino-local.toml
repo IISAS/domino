@@ -16,12 +16,12 @@ DOMINO_KIND_CLUSTER_NAME = "domino-cluster"
 DOMINO_KIND_CLUSTER_HTTP_PORT = 80
 DOMINO_KIND_CLUSTER_HTTPS_PORT = 443
 
-[github]
-DOMINO_GITHUB_WORKFLOWS_REPOSITORY = ""
+[git]
+DOMINO_GIT_WORKFLOWS_REPOSITORY = ""
 DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN = ""
-DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS = ""
-DOMINO_GITHUB_WORKFLOWS_SSH_PRIVATE_KEY = ""
-DOMINO_GITHUB_WORKFLOWS_SSH_PUBLIC_KEY = ""
+DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS = ""
+DOMINO_GIT_WORKFLOWS_SSH_PRIVATE_KEY = ""
+DOMINO_GIT_WORKFLOWS_SSH_PUBLIC_KEY = ""
 
 [domino_db]
 DOMINO_CREATE_DATABASE = true # Changing to false will use the existing database defined by below variables
@@ -37,3 +37,12 @@ API_URL = "http://localhost:80/api"
 
 [dev]
 DOMINO_LOCAL_DOMINO_PACKAGE=""
+
+# [images]
+# Override system images to use a different container registry.
+# All values are optional; defaults point to ghcr.io/iisas.
+# DOMINO_AIRFLOW_IMAGE = "ghcr.io/iisas/domino-airflow-base"
+# DOMINO_REST_IMAGE    = "ghcr.io/iisas/domino-rest:latest"
+# DOMINO_FRONTEND_IMAGE = "ghcr.io/iisas/domino-frontend:k8s"
+# DOMINO_SIDECAR_IMAGE  = "ghcr.io/iisas/domino-shared-storage-sidecar:latest"
+# DOMINO_BASE_PIECE_IMAGE = "ghcr.io/iisas/domino-base-piece:latest"

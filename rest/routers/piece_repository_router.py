@@ -71,6 +71,7 @@ def get_piece_repository_releases(
     source: RepositorySource,
     path: str,
     workspace_id: int,
+    url: str | None = None,
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> List[GetRepositoryReleasesResponse]:
     """Get piece repository releases"""
@@ -79,6 +80,7 @@ def get_piece_repository_releases(
             source=source,
             path=path,
             auth_context=auth_context,
+            url=url,
         )
         return response
     except (BaseException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
@@ -101,6 +103,7 @@ def get_piece_repository_release_data(
     source: RepositorySource,
     path: str,
     workspace_id: int,
+    url: str | None = None,
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> GetRepositoryReleaseDataResponse:
     """Get piece repository release data"""
@@ -110,6 +113,7 @@ def get_piece_repository_release_data(
             source=source,
             path=path,
             auth_context=auth_context,
+            url=url,
         )
         return response
     except (BaseException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:

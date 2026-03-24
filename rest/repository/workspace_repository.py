@@ -26,7 +26,7 @@ class WorkspaceRepository(object):
             if not saved_workspace:
                 raise Exception(f"Workspace {workspace.id} not found")
             saved_workspace.name = workspace.name
-            saved_workspace.github_access_token = workspace.github_access_token
+            saved_workspace.git_access_token = workspace.git_access_token
             session.flush()
             session.expunge(saved_workspace)
         return saved_workspace
@@ -103,7 +103,7 @@ class WorkspaceRepository(object):
     def find_by_id_and_user(self, id: int, user_id: int) -> Workspace:
         with session_scope() as session:
             """
-            SELECT workspace.id, workspace.name, workspace.github_access_token, user_workspace_associative.permission
+            SELECT workspace.id, workspace.name, workspace.git_access_token, user_workspace_associative.permission
             FROM workspace
             INNER JOIN user_workspace_associative
             ON  user_workspace_associative.workspace_id = workspace.id and user_id=1
@@ -112,7 +112,7 @@ class WorkspaceRepository(object):
             query = session.query(
                 Workspace.id.label('id'),
                 Workspace.name,
-                Workspace.github_access_token,
+                Workspace.git_access_token,
                 UserWorkspaceAssociative.permission.label('permission'),
                 UserWorkspaceAssociative.status.label('status')
             )\
@@ -144,7 +144,7 @@ class WorkspaceRepository(object):
 
     def find_by_id_and_user_id(self, id: int, user_id: int) -> Tuple[Workspace, UserWorkspaceAssociative]:
         with session_scope() as session:
-            query = session.query(Workspace.id.label('workspace_id'), Workspace.name, Workspace.github_access_token, UserWorkspaceAssociative.permission.label('permission'), UserWorkspaceAssociative.status.label('status'))\
+            query = session.query(Workspace.id.label('workspace_id'), Workspace.name, Workspace.git_access_token, UserWorkspaceAssociative.permission.label('permission'), UserWorkspaceAssociative.status.label('status'))\
                 .outerjoin(UserWorkspaceAssociative, and_(UserWorkspaceAssociative.workspace_id==id, UserWorkspaceAssociative.user_id==user_id))\
                     .filter(Workspace.id==id)
             result = query.first()

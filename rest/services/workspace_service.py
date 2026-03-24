@@ -32,7 +32,7 @@ class WorkspaceService(object):
         self.piece_repository_service = PieceRepositoryService()
         self.logger = get_configured_logger(self.__class__.__name__)
         self.workflow_service = WorkflowService()
-        self.github_token_fernet = Fernet(settings.GITHUB_TOKEN_SECRET_KEY)
+        self.git_token_fernet = Fernet(settings.GIT_TOKEN_SECRET_KEY)
 
 
     def create_workspace(
@@ -51,7 +51,7 @@ class WorkspaceService(object):
 
         new_workspace = Workspace(
             name=workspace_data.name,
-            github_access_token=None
+            git_access_token=None
         )
         workspace = self.workspace_repository.create(new_workspace)
         associative = UserWorkspaceAssociative(
@@ -71,7 +71,7 @@ class WorkspaceService(object):
             auth_context.workspace = WorkspaceAuthorizerData(
                 id=workspace.id,
                 name=workspace.name,
-                github_access_token=None,
+                git_access_token=None,
                 user_permission=Permission.owner.value
             )
             threads = []
@@ -120,20 +120,20 @@ class WorkspaceService(object):
         workspace = Workspace(
             id=_workspace.id,
             name=_workspace.name,
-            github_access_token=None
+            git_access_token=None
         )
         decoded_encrypted_secret = None
-        if workspace_data.github_access_token:
-            encrypted_secret = self.github_token_fernet.encrypt(
-                data=workspace_data.github_access_token.encode('utf-8')
+        if workspace_data.git_access_token:
+            encrypted_secret = self.git_token_fernet.encrypt(
+                data=workspace_data.git_access_token.encode('utf-8')
             )
             decoded_encrypted_secret = encrypted_secret.decode('utf-8')
-        workspace.github_access_token = decoded_encrypted_secret
+        workspace.git_access_token = decoded_encrypted_secret
         self.workspace_repository.update(workspace)
         return PatchWorkspaceResponse(
             id=workspace.id,
             workspace_name=workspace.name,
-            github_access_token_filled=workspace.github_access_token is not None,
+            git_access_token_filled=workspace.git_access_token is not None,
             status=_workspace.status,
             user_permission=_workspace.permission
         )
@@ -154,7 +154,7 @@ class WorkspaceService(object):
                 workspace_name=workspace.name,
                 user_permission=permission,
                 status=status,
-                github_access_token_filled=workspace.github_access_token is not None
+                git_access_token_filled=workspace.git_access_token is not None
             )
             for workspace, permission, status in workspaces
         ]
@@ -173,7 +173,7 @@ class WorkspaceService(object):
             workspace_name=workspace.name,
             user_permission=workspace.permission.value,
             status=workspace.status,
-            github_access_token_filled=workspace.github_access_token is not None
+            git_access_token_filled=workspace.git_access_token is not None
         )
         return response
 
@@ -253,7 +253,7 @@ class WorkspaceService(object):
             workspace_name=workspace.name,
             user_permission=updated_associative.permission,
             status=updated_associative.status,
-            github_access_token_filled=workspace.github_access_token is not None
+            git_access_token_filled=workspace.git_access_token is not None
         )
         return response
 

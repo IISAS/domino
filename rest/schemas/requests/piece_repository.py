@@ -6,6 +6,10 @@ import enum
 
 class RepositorySourceRequestEnum(str, enum.Enum):
     github = 'github'
+    gitlab = 'gitlab'
+    bitbucket = 'bitbucket'
+    generic = 'generic'
+
     @enum.member
     class Config:
         use_enum_values = True

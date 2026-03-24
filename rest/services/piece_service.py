@@ -58,7 +58,7 @@ class PieceService(object):
         ]
 
 
-    def check_pieces_to_update_github(
+    def check_pieces_to_update(
         self,
         repository_id: int,
         compiled_metadata: dict,

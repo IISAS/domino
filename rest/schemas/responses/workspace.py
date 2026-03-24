@@ -41,7 +41,7 @@ class ListUserWorkspacesResponse(BaseModel):
     workspace_name: str
     user_permission: Permission
     status: UserWorkspaceStatus
-    github_access_token_filled: bool
+    git_access_token_filled: bool
 
 
 class ListWorkspaceUsersResponseData(BaseModel):
@@ -61,7 +61,7 @@ class GetWorkspaceResponse(BaseModel):
     workspace_name: str
     user_permission: str
     status: UserWorkspaceStatus
-    github_access_token_filled: bool
+    git_access_token_filled: bool
 
 class PatchWorkspaceResponse(GetWorkspaceResponse):
     ...

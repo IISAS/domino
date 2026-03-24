@@ -11,7 +11,7 @@ class Workspace(Base, BaseDatabaseModel):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
-    github_access_token = Column(String, nullable=True)
+    git_access_token = Column(String, nullable=True)
 
 
     users = relationship(

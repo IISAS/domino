@@ -7,7 +7,7 @@ class CreateWorkspaceRequest(BaseModel):
 
 
 class PatchWorkspaceRequest(BaseModel):
-    github_access_token: Optional[str] = Field(description='Secret value', default=None)
+    git_access_token: Optional[str] = Field(description='Git provider personal access token', default=None)
 
 class AssignWorkspaceRequest(BaseModel):
     permission: MembersPermissions

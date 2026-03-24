@@ -12,7 +12,7 @@ from aiohttp import ClientSession
 
 from clients.airflow_client import AirflowRestClient
 from clients.awpl_rest_client import AWPLRestClient
-from clients.github_rest_client import GithubRestClient
+from clients.git_client_factory import make_git_client
 from clients.local_files_client import LocalFilesClient
 from core.logger import get_configured_logger
 from core.settings import settings
@@ -50,7 +50,11 @@ class WorkflowService(object):
     def __init__(self) -> None:
         # Clients
         self.file_system_client = LocalFilesClient()
-        self.github_rest_client = GithubRestClient(token=settings.DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS)
+        self.git_rest_client = make_git_client(
+            source=settings.DOMINO_GIT_PROVIDER,
+            token=settings.DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS,
+            repository_url=settings.DOMINO_GIT_HOST_URL,
+        )
         self.airflow_client = AirflowRestClient()
         self.awpl_rest_client = AWPLRestClient()
 
@@ -144,8 +148,8 @@ class WorkflowService(object):
                 )
             else:
                 workflow_path_git = f'workflows/{workflow_id}.py'
-                self.github_rest_client.create_file(
-                    repo_name=settings.DOMINO_GITHUB_WORKFLOWS_REPOSITORY,
+                self.git_rest_client.create_file(
+                    repo_name=settings.DOMINO_GIT_WORKFLOWS_REPOSITORY,
                     file_path=workflow_path_git,
                     content=workflow_code
                 )
@@ -596,8 +600,8 @@ class WorkflowService(object):
             )
             return
 
-        self.github_rest_client.delete_file(
-            repo_name=settings.DOMINO_GITHUB_WORKFLOWS_REPOSITORY,
+        self.git_rest_client.delete_file(
+            repo_name=settings.DOMINO_GIT_WORKFLOWS_REPOSITORY,
             file_path=f"workflows/{workflow_uuid}.py"
         )
 

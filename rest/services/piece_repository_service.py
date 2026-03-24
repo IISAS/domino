@@ -25,7 +25,7 @@ from repository.workflow_repository import WorkflowRepository
 from repository.secret_repository import SecretRepository
 from database.models.enums import RepositorySource
 from database.models import PieceRepository
-from clients.github_rest_client import GithubRestClient
+from clients.git_client_factory import make_git_client
 from core.settings import settings
 
 
@@ -84,27 +84,25 @@ class PieceRepositoryService(object):
         response = GetWorkspaceRepositoriesResponse(data=data, metadata=metadata)
         return response
 
-    def get_piece_repository_releases(self, source: str, path: str, auth_context: AuthorizationContextData) -> List[GetRepositoryReleasesResponse]:
+    def get_piece_repository_releases(self, source: str, path: str, auth_context: AuthorizationContextData, url: str | None = None) -> List[GetRepositoryReleasesResponse]:
         self.logger.info(f"Getting releases for repository {path}")
 
-        token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        token = auth_context.workspace.git_access_token if auth_context.workspace.git_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
         if token is not None and not token.strip():
             token = None
-        github_client = GithubRestClient(token=token)
-        if source == getattr(RepositorySource, 'github').value:
-            tags = github_client.get_tags(repo_name=path)
-        # TODO add other sources
+        git_client = make_git_client(source=source, token=token, repository_url=url)
+        tags = git_client.get_tags(repo_name=path)
         if not tags:
             return []
         return [GetRepositoryReleasesResponse(version=tag.name, last_modified=tag.last_modified) for tag in tags]
 
-    def get_piece_repository_release_data(self, version: str, source:str, path: str, auth_context: AuthorizationContextData) -> GetRepositoryReleaseDataResponse:
+    def get_piece_repository_release_data(self, version: str, source: str, path: str, auth_context: AuthorizationContextData, url: str | None = None) -> GetRepositoryReleaseDataResponse:
         self.logger.info(f'Getting release data for repository {path}')
 
-        token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        token = auth_context.workspace.git_access_token if auth_context.workspace.git_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
         if token is not None and not token.strip():
             token = None
-        tag_data = self._read_repository_data(path=path, source=source, version=version, github_access_token=token)
+        tag_data = self._read_repository_data(path=path, source=source, version=version, access_token=token, repository_url=url)
         name = tag_data.get('config_toml').get('repository').get("REPOSITORY_NAME")
         description = tag_data.get('config_toml').get('repository').get("DESCRIPTION")
         pieces_list = list(tag_data.get('compiled_metadata').keys())
@@ -129,7 +127,9 @@ class PieceRepositoryService(object):
         repository_files_metadata = self._read_repository_data(
             source=repository.source,
             path=repository.path,
-            version=piece_repository_data.version
+            version=piece_repository_data.version,
+            access_token=settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN,
+            repository_url=repository.url,
         )
         new_repo = PieceRepository(
             created_at=datetime.now(timezone.utc),
@@ -144,9 +144,9 @@ class PieceRepositoryService(object):
         repository = self.piece_repository_repository.update(piece_repository=new_repo, id=repository.id)
         self._update_repository_pieces(
             source=repository.source,
-            path=repository.path,
+            compiled_metadata=repository_files_metadata['compiled_metadata'],
+            dependencies_map=repository_files_metadata['dependencies_map'],
             repository_id=repository.id,
-            version=piece_repository_data.version
         )
 
         # Check secrets to update
@@ -218,16 +218,17 @@ class PieceRepositoryService(object):
         if repository:
             raise ConflictException(message=f"Repository {piece_repository_data.path} already exists for this workspace")
 
-        token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        token = auth_context.workspace.git_access_token if auth_context.workspace.git_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
         if token is not None:
-            token=token.replace("\n", "")    
+            token = token.replace("\n", "")
         if token is not None and not token.strip():
             token = None
         repository_files_metadata = self._read_repository_data(
             source=piece_repository_data.source,
             path=piece_repository_data.path,
             version=piece_repository_data.version,
-            github_access_token=token
+            access_token=token,
+            repository_url=piece_repository_data.url,
         )
         new_repo = PieceRepository(
             created_at=datetime.now(timezone.utc),
@@ -271,54 +272,43 @@ class PieceRepositoryService(object):
             self.piece_repository_repository.delete(id=repository.id)
             raise e
 
-    def _read_data_from_github(self, path: str, version: str, github_access_token: str = None) -> dict:
-        """Read files from a specific version of repository in github
-
-        Args:
-            path (str): Repository path
-            version (str): Tag version name
-
-        Raises:
-            ResourceNotFoundException: If tag version is not found raise exception
+    def _read_data_from_git(self, source: str, path: str, version: str, access_token: str = None, repository_url: str = None) -> dict:
+        """Read piece repository metadata files at a specific tagged version.
 
         Returns:
-            dict: dictionary containing repository data with the following keys:
-                - dependencies_map: dependencies_map file data
-                - compiled_metadata: compiled_metadata file data
-                - config_toml: config_toml file data
+            dict with keys: dependencies_map, compiled_metadata, config_toml
         """
-        github_client = GithubRestClient(token=github_access_token)
-        tag = github_client.get_tag(repo_name=path, tag_name=version)
+        git_client = make_git_client(source=source, token=access_token, repository_url=repository_url)
+        tag = git_client.get_tag(repo_name=path, tag_name=version)
         if not tag:
             raise ResourceNotFoundException(message=f"Version {version} not found in repository {path}")
 
         commit_sha_ref = str(tag.commit.sha)
-        dependencies_map = github_client.get_contents(
+        dependencies_map = git_client.get_contents(
             repo_name=path,
             file_path='.domino/dependencies_map.json',
             commit_sha=commit_sha_ref
         )
         dependencies_map = json.loads(dependencies_map.decoded_content.decode('utf-8'))
-        compiled_metadata = github_client.get_contents(
+        compiled_metadata = git_client.get_contents(
             repo_name=path,
             file_path='.domino/compiled_metadata.json',
             commit_sha=commit_sha_ref
         )
         compiled_metadata = json.loads(compiled_metadata.decoded_content.decode('utf-8'))
 
-        config_toml = github_client.get_contents(
+        config_toml = git_client.get_contents(
             repo_name=path,
             file_path='config.toml',
             commit_sha=commit_sha_ref
         )
         config_toml = tomli.loads(config_toml.decoded_content.decode('utf-8'))
 
-        data = {
+        return {
             "dependencies_map": dependencies_map,
             "compiled_metadata": compiled_metadata,
-            "config_toml": config_toml
+            "config_toml": config_toml,
         }
-        return data
 
     def _update_repository_pieces(
         self,
@@ -327,20 +317,20 @@ class PieceRepositoryService(object):
         dependencies_map: dict,
         repository_id: int,
     ):
-        read_pieces_from_github = {
-            "github": self.piece_service.check_pieces_to_update_github
-        }
-        read_pieces_from_github[source](
+        self.piece_service.check_pieces_to_update(
             repository_id=repository_id,
             compiled_metadata=compiled_metadata,
             dependencies_map=dependencies_map,
         )
 
-    def _read_repository_data(self, source: str, path: str, version: str, github_access_token: str):
-        read_metadata_from_source_map = {
-            "github": self._read_data_from_github,
-        }
-        return read_metadata_from_source_map[source](path=path, version=version, github_access_token=github_access_token)
+    def _read_repository_data(self, source: str, path: str, version: str, access_token: str, repository_url: str = None):
+        return self._read_data_from_git(
+            source=source,
+            path=path,
+            version=version,
+            access_token=access_token,
+            repository_url=repository_url,
+        )
 
     def delete_repository(self, piece_repository_id: int):
         repository = self.piece_repository_repository.find_by_id(id=piece_repository_id)

@@ -5,7 +5,7 @@
 
 ### 1. You will need to set some environement variables in your local environment.
   
-- **DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS** (required): This token is necessary so that Domino REST can use the Github API to access the Workflows repository.
+- **DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS** (required): This token is necessary so that Domino REST can use the Github API to access the Workflows repository.
 - **DOMINO_DB_USER** (optional): default is postgres
 - **DOMINO_DB_PASSWORD** (optional): default is postgres
 - **DOMINO_DB_HOST** (optional): default is localhost
@@ -14,7 +14,7 @@
 
 ```bash
 # Exporting env vars
-export DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS=<your-github-access-token>
+export DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS=<your-git-access-token>
 export DOMINO_DB_USER=<your-db-user>
 export DOMINO_DB_PASSWORD=<your-db-password>
 export DOMINO_DB_HOST=<your-db-host>
@@ -39,10 +39,10 @@ python main.py
 <br>
 
 ## Running Domino Rest API locally using docker-compose:
-The docker-compose also need the **DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS** environment variables to be set in your local environment to be able to access the operators and workflows in the repository.
+The docker-compose also need the **DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS** environment variables to be set in your local environment to be able to access the operators and workflows in the repository.
 
 ```bash
-export DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS=<your-github-access-token>
+export DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS=<your-git-access-token>
 ```
 
 Then you can run the server and the database using the docker-compose with:

@@ -36,7 +36,7 @@ class TestWorkspaceRouter:
             ListUserWorkspacesResponse(
                 id=workspace.id, 
                 workspace_name=workspace.name, 
-                github_access_token_filled=False,
+                git_access_token_filled=False,
                 user_permission=Permission.owner.value,
                 status=UserWorkspaceStatus.accepted.value
             )
@@ -57,7 +57,7 @@ class TestWorkspaceRouter:
         mock_response = GetWorkspaceResponse(
             id=workspace.id,
             workspace_name=workspace.name,
-            github_access_token_filled=False,
+            git_access_token_filled=False,
             user_permission=Permission.owner.value,
             status=UserWorkspaceStatus.accepted.value
         )
@@ -91,7 +91,7 @@ class TestWorkspaceRouter:
         mock_response = GetWorkspaceResponse(
             id=workspace.id,
             workspace_name=workspace.name,
-            github_access_token_filled=False,
+            git_access_token_filled=False,
             status=UserWorkspaceStatus.rejected.value,
             user_permission=Permission.read.value,
         )
@@ -115,7 +115,7 @@ class TestWorkspaceRouter:
         mock_response = GetWorkspaceResponse(
             id=workspace.id,
             workspace_name=workspace.name,
-            github_access_token_filled=False,
+            git_access_token_filled=False,
             status=UserWorkspaceStatus.accepted.value,
             user_permission=Permission.read.value,
         )
@@ -183,7 +183,7 @@ class TestWorkspaceRouter:
         mock_response = PatchWorkspaceResponse(
             id=workspace.id,
             workspace_name=workspace.name,
-            github_access_token_filled=True,
+            git_access_token_filled=True,
             user_permission=Permission.owner.value,
             status=UserWorkspaceStatus.accepted.value
         )

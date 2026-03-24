@@ -3,6 +3,9 @@ import enum
 
 class RepositorySource(str, enum.Enum):
     github = 'github'
+    gitlab = 'gitlab'
+    bitbucket = 'bitbucket'
+    generic = 'generic'
     default = 'default'
 
     @enum.member

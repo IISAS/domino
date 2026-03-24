@@ -70,7 +70,8 @@ cli = [
     "docker==7.1.0",
     "kubernetes==32.0.1",
     "bottle==0.13.4",
-    "requests==2.32.5"
+    "requests==2.32.5",
+    "python-gitlab==8.1.0"
 ]
 airflow = [
     "apache-airflow==3.0.6",
@@ -88,4 +89,5 @@ full = [
     "apache-airflow==3.0.6",
     "apache-airflow-providers-cncf-kubernetes==10.7.0",
     "apache-airflow-providers-docker==4.4.2",
+    "python-gitlab==8.1.0"
 ]

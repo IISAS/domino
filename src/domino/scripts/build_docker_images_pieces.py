@@ -20,10 +20,15 @@ def publish_image(source_image_name: str):
     print(f"Publishing docker image: {source_image_name}")
     print(Style.RESET_ALL + Style.DIM, end='')
     try:
-        registry_url = 'https://ghcr.io'
-        ghcr_username = os.environ.get("GHCR_USERNAME", None)
-        ghcr_password = os.environ.get("GHCR_PASSWORD", None)
-        client.login(username=ghcr_username, password=ghcr_password, registry=registry_url)
+        # Derive the registry host from the image name so any registry works.
+        registry_host = source_image_name.split('/')[0]
+        registry_url = f'https://{registry_host}'
+        username = (
+            os.environ.get("CONTAINER_REGISTRY_USERNAME")
+            or os.environ.get("GHCR_USERNAME")  # backwards compatibility
+        )
+        password = os.environ.get("CONTAINER_REGISTRY_PASSWORD")
+        client.login(username=username, password=password, registry=registry_url)
     except docker.errors.APIError:
         console.print("Unauthorized login")
         raise
@@ -79,23 +84,29 @@ def build_images_from_pieces_repository(tag_overwrite: str | None = None, dev: b
 
     docker_image_repository = repo_config.get("REPOSITORY_NAME")
     docker_image_version = repo_config.get("VERSION")
-    github_container_registry_name = f'ghcr.io/{repo_config.get("REGISTRY_NAME")}'.lower()
+    # REGISTRY_NAME is the full registry prefix set by the user, e.g.
+    # "ghcr.io/myorg" or "registry.gitlab.com/myorg" or "myregistry:5000/myorg".
+    # It must NOT be prefixed here — use it verbatim.
+    container_registry_name = repo_config.get("REGISTRY_NAME", "").lower().rstrip("/")
 
     # Load dependencies_map.json file
     with open(domino_path / "dependencies_map.json", "r") as f:
         pieces_dependencies_map = json.load(f)
+
+    # Base image used when the piece group has no extra Dockerfile/requirements.
+    # Can be overridden via DOMINO_BASE_PIECE_IMAGE env var.
+    _default_base = (
+        "ghcr.io/iisas/domino-base-piece:latest-dev" if dev
+        else "ghcr.io/iisas/domino-base-piece:latest"
+    )
+    base_image = os.environ.get("DOMINO_BASE_PIECE_IMAGE", _default_base)
 
     pieces_images_map = {}
     # Build docker images from unique definitions
     for group, v in pieces_dependencies_map.items():
         dependency_dockerfile = v["dependency"].get("dockerfile", None)
         dependency_requirements = v["dependency"].get("requirements_file", None)
-        source_image_name = f"{github_container_registry_name}/{docker_image_repository}:{docker_image_version}-{group}"
-
-        # If no extra dependency, use base Pod image and just copy the Pieces source code
-        base_image = "ghcr.io/iisas/domino-base-piece:latest"
-        if dev:
-            base_image = "ghcr.io/iisas/domino-base-piece:latest-dev"
+        source_image_name = f"{container_registry_name}/{docker_image_repository}:{docker_image_version}-{group}"
 
         if not any([dependency_dockerfile, dependency_requirements]):
             pieces_dependencies_map[group]["source_image"] = source_image_name

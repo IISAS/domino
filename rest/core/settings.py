@@ -29,14 +29,20 @@ class Settings(BaseSettings):
 
     # Secrets config
     SECRETS_SECRET_KEY: str = os.environ.get('SECRETS_SECRET_KEY', b'j1DsRJ-ehxU_3PbXW0c_-U4nTOx3knRB4zzWguMVaio=')
-    GITHUB_TOKEN_SECRET_KEY: str = os.environ.get('GITHUB_TOKEN_SECRET_KEY',
-                                                  b'j1DsRJ-ehxU_3PbXW0c_-U4nTOx3knRB4zzWguMVaio=')
+    GIT_TOKEN_SECRET_KEY: str = os.environ.get(
+        'GIT_TOKEN_SECRET_KEY',
+        os.environ.get('GITHUB_TOKEN_SECRET_KEY', b'j1DsRJ-ehxU_3PbXW0c_-U4nTOx3knRB4zzWguMVaio=')
+    )
 
-    # Used by github rest client
-    DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS: str | None = os.environ.get('DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS', None)
+    # Git provider for the workflows repository ('github', 'gitlab', 'generic')
+    DOMINO_GIT_PROVIDER: str = os.environ.get('DOMINO_GIT_PROVIDER', 'github')
+    # Base URL for self-hosted GitLab (ignored for github/bitbucket)
+    DOMINO_GIT_HOST_URL: str | None = os.environ.get('DOMINO_GIT_HOST_URL', None)
+    # Token used by the git client for the workflows repository
+    DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: str | None = os.environ.get('DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS', None)
 
     # Workflows storage
-    DOMINO_GITHUB_WORKFLOWS_REPOSITORY: str = os.environ.get('DOMINO_GITHUB_WORKFLOWS_REPOSITORY',
+    DOMINO_GIT_WORKFLOWS_REPOSITORY: str = os.environ.get('DOMINO_GIT_WORKFLOWS_REPOSITORY',
                                                              "IISAS/domino_workflows_dev")
     DOMINO_LOCAL_WORKFLOWS_REPOSITORY: str = '/opt/airflow/dags'
 
@@ -103,7 +109,7 @@ class Settings(BaseSettings):
 
     # AWPL REST API
     AWPL_REST_API_URL: str = os.environ.get('AWPL_REST_API_URL', 'http://awpl-rest-api:3000/api/v1')
-    AWPL_REST_API_TOKEN: str = os.environ.get('AWPL_REST_API_TOKEN')
+    AWPL_REST_API_TOKEN: str = os.environ.get('AWPL_REST_API_TOKEN', '')
 
 
 class LocalK8sSettings(Settings):

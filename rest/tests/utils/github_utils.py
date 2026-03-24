@@ -29,8 +29,8 @@ def add_ssh_key_to_workflows_repository():
     private_key = base64.b64encode(private_key).decode('utf-8')
     public_key = public_key.decode('utf-8')
     
-    github_token = os.environ.get('DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS')
-    github_workflows_repo = os.environ.get('DOMINO_GITHUB_WORKFLOWS_REPOSITORY')
+    github_token = os.environ.get('DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS')
+    github_workflows_repo = os.environ.get('DOMINO_GIT_WORKFLOWS_REPOSITORY')
 
     key_title = 'TESTS_DOMINO_WORKFLOWS_REPO_PUBLIC_KEY'
     github_client = GithubRestClient(token=github_token)
