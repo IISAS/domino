@@ -1,0 +1,450 @@
+# GitLab CI/CD — converted from .github/workflows/
+#
+# Required CI/CD variables (Settings → CI/CD → Variables):
+#   CONTAINER_REGISTRY           — registry host, e.g. "ghcr.io" or "registry.gitlab.example.com"
+#   CONTAINER_REGISTRY_BASE_PATH — namespace/org path, e.g. "iisas" or "myorg/domino"
+#   CONTAINER_REGISTRY_USERNAME  — username for registry login
+#   CONTAINER_REGISTRY_PASSWORD  — token/password for registry login
+#   TESTS_WORKFLOWS_REPOSITORY   — e.g. "myorg/domino_workflows_test"
+#   TESTS_GIT_WORKFLOWS_TOKEN    — token for the test workflows repository
+#   TESTS_GIT_PIECES_TOKEN       — token for the test pieces repository
+#   CODECOV_TOKEN                — Codecov upload token
+#   PYPI_TOKEN                   — PyPI API token (twine)
+#
+# The integration-tests job requires a privileged GitLab runner
+# (tag it "privileged" or adjust the `tags:` key below).
+
+stages:
+  - test
+  - build-dev
+  - build-prod
+  - release
+
+# ── shared: Docker build template ────────────────────────────────────────────
+
+.docker_build:
+  image: docker:24
+  services:
+    - name: docker:24-dind
+      alias: docker
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    # Derived convenience variable — override if needed
+    REGISTRY_BASE: "$CONTAINER_REGISTRY/$CONTAINER_REGISTRY_BASE_PATH"
+  before_script:
+    - docker login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
+
+# ── integration tests ─────────────────────────────────────────────────────────
+
+api-tests:
+  stage: test
+  image: python:3.11-slim
+  services:
+    - name: docker:24-dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/certs/client"
+    DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN: "$TESTS_GIT_PIECES_TOKEN"
+    DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: "$TESTS_GIT_WORKFLOWS_TOKEN"
+    DOMINO_GIT_WORKFLOWS_REPOSITORY: "$TESTS_WORKFLOWS_REPOSITORY"
+  tags:
+    - privileged
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^(main|dev|test\/.+)$/'
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl ca-certificates gnupg lsb-release
+    # Docker CLI
+    - install -m 0755 -d /etc/apt/keyrings
+    - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    - |
+      echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+        > /etc/apt/sources.list.d/docker.list
+    - apt-get update -qq && apt-get install -y -qq docker-ce-cli
+    # Kind
+    - curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 && chmod +x /usr/local/bin/kind
+    # kubectl
+    - KUBECTL_VER=$(curl -Ls https://dl.k8s.io/release/stable.txt)
+    - curl -Lo /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/amd64/kubectl" && chmod +x /usr/local/bin/kubectl
+    # Helm
+    - curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    # Domino CLI
+    - pip install -q -e .[cli]
+    # Build REST test image
+    - docker build -t domino-rest:test -f rest/Dockerfile rest/
+  script:
+    - >
+      domino platform prepare
+      --cluster-name=domino-cluster
+      --http-port=80
+      --https-port=443
+      --workflows-repository="$TESTS_WORKFLOWS_REPOSITORY"
+      --workflows-ssh-private-key=''
+      --workflows-token="$TESTS_GIT_WORKFLOWS_TOKEN"
+      --default-pieces-repository-token="$TESTS_GIT_PIECES_TOKEN"
+      --deploy-mode=local-k8s-dev
+      --local-pieces-repository-path=[]
+      --local-domino-path='./src/domino'
+      --local-rest-image='domino-rest:test'
+      --local-frontend-image=''
+      --local-airflow-image=''
+    - domino platform create --install-airflow=False
+    - pip install -q -r rest/requirements-test.txt
+    - python rest/tests/utils/kubernetes.py
+    - pytest --cov=rest --cov-report=xml --cov-report=term-missing rest/tests/ -v -s
+    # Upload coverage to Codecov
+    - curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov
+    - ./codecov -t "$CODECOV_TOKEN"
+  after_script:
+    - kind delete cluster --name domino-cluster || true
+  coverage: '/^TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    when: always
+
+# ── REST image ────────────────────────────────────────────────────────────────
+
+rest-image-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes: [rest/**/*]
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-rest:latest-dev
+      --file rest/Dockerfile
+      rest/
+
+rest-image-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [rest/**/*]
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-rest:latest
+      --file rest/Dockerfile
+      rest/
+
+# ── Frontend images ───────────────────────────────────────────────────────────
+
+frontend-k8s-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes: [frontend/**/*]
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-frontend:k8s-dev
+      --file frontend/Dockerfile.prod
+      frontend/
+
+frontend-compose-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes: [frontend/**/*]
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-frontend:dev-compose
+      --build-arg DOMINO_DEPLOY_MODE=local-compose
+      --file frontend/Dockerfile.prod
+      frontend/
+
+frontend-k8s-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [frontend/**/*]
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-frontend:k8s
+      --file frontend/Dockerfile.prod
+      frontend/
+
+frontend-compose-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [frontend/**/*]
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-frontend:compose
+      --build-arg DOMINO_DEPLOY_MODE=local-compose
+      --file frontend/Dockerfile.prod
+      frontend/
+
+# ── Airflow / piece base images ───────────────────────────────────────────────
+
+airflow-base-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - src/domino/**/*
+        - Dockerfile-airflow-domino.dev
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-airflow-base:latest-dev
+      --file Dockerfile-airflow-domino.dev .
+
+base-piece-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - src/domino/**/*
+        - Dockerfile-domino-piece.dev
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-base-piece:latest-dev
+      --file Dockerfile-domino-piece.dev .
+
+base-piece-gpu-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - Dockerfile-domino-piece.gpu-dev
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-base-piece:gpu-dev
+      --file Dockerfile-domino-piece.gpu-dev .
+
+base-piece-tensorflow-gpu-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - Dockerfile-domino-piece.tensorflow-gpu-dev
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-base-piece:tensorflow-gpu-dev
+      --file Dockerfile-domino-piece.tensorflow-gpu-dev .
+
+storage-sidecar-dev:
+  extends: .docker_build
+  stage: build-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      changes:
+        - src/domino/custom_operators/sidecar/**/*
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-shared-storage-sidecar:latest-dev
+      --file src/domino/custom_operators/sidecar/Dockerfile
+      src/domino/custom_operators/sidecar/
+
+airflow-base-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - src/domino/**/*
+        - Dockerfile-airflow-domino.prod
+    - when: manual
+      allow_failure: true
+  needs:
+    - job: pypi-release
+      optional: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-airflow-base:latest
+      --file Dockerfile-airflow-domino.prod .
+
+base-piece-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - src/domino/**/*
+        - Dockerfile-domino-piece.prod
+    - when: manual
+      allow_failure: true
+  needs:
+    - job: pypi-release
+      optional: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-base-piece:latest
+      --file Dockerfile-domino-piece.prod .
+
+base-piece-gpu-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - Dockerfile-domino-piece.gpu-prod
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-base-piece:gpu
+      --file Dockerfile-domino-piece.gpu-prod .
+
+base-piece-tensorflow-gpu-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - Dockerfile-domino-piece.tensorflow-gpu-prod
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-base-piece:tensorflow-gpu
+      --file Dockerfile-domino-piece.tensorflow-gpu-prod .
+
+storage-sidecar-prod:
+  extends: .docker_build
+  stage: build-prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - src/domino/custom_operators/sidecar/**/*
+    - when: manual
+      allow_failure: true
+  script:
+    - docker buildx create --use
+    - >
+      docker buildx build --push
+      --tag $REGISTRY_BASE/domino-shared-storage-sidecar:latest
+      --file src/domino/custom_operators/sidecar/Dockerfile
+      src/domino/custom_operators/sidecar/
+
+# ── Python package release ────────────────────────────────────────────────────
+
+gitlab-release:
+  stage: release
+  image: python:3.11-slim
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [src/domino/**/*]
+  before_script:
+    - pip install -q tomli
+  script:
+    - PACKAGE_VERSION=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])")
+    - echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> release.env
+  artifacts:
+    reports:
+      dotenv: release.env
+
+create-gitlab-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: gitlab-release
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [src/domino/**/*]
+  script:
+    - echo "Creating GitLab release v${PACKAGE_VERSION}"
+  release:
+    tag_name: "v${PACKAGE_VERSION}"
+    name: "domino-py v${PACKAGE_VERSION}"
+    description: "Release v${PACKAGE_VERSION}"
+    ref: "$CI_COMMIT_SHA"
+
+pypi-release:
+  stage: release
+  image: python:3.11-slim
+  needs:
+    - job: gitlab-release
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [src/domino/**/*]
+  before_script:
+    - pip install -q build twine
+  script:
+    - python -m build
+    - twine upload dist/*
+  variables:
+    TWINE_USERNAME: __token__
+    TWINE_PASSWORD: "$PYPI_TOKEN"
+
+# ── Helm chart release ────────────────────────────────────────────────────────
+
+helm-release:
+  stage: release
+  image: alpine/helm:3.14.0
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [helm/**/*]
+  before_script:
+    - helm registry login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN"
+  script:
+    - helm package helm/domino
+    - helm push domino-*.tgz "oci://${CI_REGISTRY}/${CI_PROJECT_PATH}/charts"
