@@ -35,7 +35,6 @@ msg = r"""
 _TOKEN_RULES = {
     "github":    ("ghp_",   35, 40),   # classic PATs; fine-grained use "github_pat_"
     "gitlab":    ("glpat-", 20, 20),   # GitLab PATs (since 14.5)
-    "bitbucket": (None,     32, 64),   # Bitbucket app passwords / access tokens
     "generic":   (None,     1,  None), # self-hosted or other providers
 }
 
@@ -48,7 +47,7 @@ def validate_git_token(token: str, provider: str = "github") -> bool:
 
     Args:
         token (str): The access token to validate.
-        provider (str): One of 'github', 'gitlab', 'bitbucket', 'generic'.
+        provider (str): One of 'github', 'gitlab', 'generic'.
 
     Returns:
         bool: True if the token looks valid for the given provider.
@@ -98,10 +97,6 @@ def validate_github_token(value: str) -> bool:
 
 def validate_gitlab_token(value: str) -> bool:
     return validate_git_token(value, provider="gitlab")
-
-
-def validate_bitbucket_token(value: str) -> bool:
-    return validate_git_token(value, provider="bitbucket")
 
 
 ###############################################################################
@@ -220,7 +215,7 @@ def get_git_token_pieces_from_config_or_env():
 )
 @click.option(
     "--git-provider",
-    prompt="Git provider (github | gitlab | bitbucket | generic)",
+    prompt="Git provider (github | gitlab | generic)",
     default=get_git_provider_from_env,
     type=click.Choice(SUPPORTED_PROVIDERS, case_sensitive=False),
     help="Git provider for workflows and pieces repositories.",
@@ -542,7 +537,6 @@ def cli_create_release(tag_name: str, commit_sha: str, git_provider: str):
     Requires the following env vars depending on provider:
       GitHub:    GITHUB_TOKEN, GITHUB_REPOSITORY
       GitLab:    GITLAB_TOKEN, GITLAB_REPOSITORY (or CI_PROJECT_PATH)
-      Bitbucket: BITBUCKET_TOKEN, BITBUCKET_REPOSITORY
     """
     pieces_repository.create_release(tag_name=tag_name, commit_sha=commit_sha)
 
@@ -562,7 +556,6 @@ def cli_delete_release(tag_name: str, git_provider: str):
     Requires the following env vars depending on provider:
       GitHub:    GITHUB_TOKEN, GITHUB_REPOSITORY
       GitLab:    GITLAB_TOKEN, GITLAB_REPOSITORY (or CI_PROJECT_PATH)
-      Bitbucket: BITBUCKET_TOKEN, BITBUCKET_REPOSITORY
     """
     pieces_repository.delete_release(tag_name=tag_name)
 

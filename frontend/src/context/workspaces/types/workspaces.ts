@@ -2,6 +2,8 @@ import { type Roles } from "@utils/roles";
 
 export enum repositorySource {
   github = "github",
+  gitlab = "gitlab",
+  generic = "generic",
 }
 
 export enum workspaceStatus {
@@ -15,5 +17,5 @@ export interface WorkspaceSummary {
   workspace_name: string;
   user_permission: Roles;
   status: workspaceStatus;
-  github_access_token_filled: boolean;
+  git_access_token_filled: boolean;
 }

@@ -66,7 +66,6 @@ const PiecesProvider: React.FC<{ children: React.ReactNode }> = ({
   const { data: repositories, isLoading: repositoriesLoading } =
     useRepositories({
       workspaceId: workspace?.id,
-      source: "github",
     });
 
   const { data: pieces } = usePieces({

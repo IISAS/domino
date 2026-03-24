@@ -36,7 +36,7 @@ class Settings(BaseSettings):
 
     # Git provider for the workflows repository ('github', 'gitlab', 'generic')
     DOMINO_GIT_PROVIDER: str = os.environ.get('DOMINO_GIT_PROVIDER', 'github')
-    # Base URL for self-hosted GitLab (ignored for github/bitbucket)
+    # Base URL for self-hosted GitLab (ignored for github)
     DOMINO_GIT_HOST_URL: str | None = os.environ.get('DOMINO_GIT_HOST_URL', None)
     # Token used by the git client for the workflows repository
     DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: str | None = os.environ.get('DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS', None)

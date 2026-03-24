@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Modal, type ModalRef } from "components/Modal";
 import { useWorkspaces, usesPieces } from "context/workspaces";
+import { detectSourceFromUrl } from "@utils/gitProviders";
 import { type Differences } from "features/workflowEditor/utils/importWorkflow";
 import React, { forwardRef, useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -50,10 +51,10 @@ export const DifferencesModal = forwardRef<ModalRef, Props>(
       async (e: Omit<Differences, "installedVersion">) => {
         const addRepository = {
           workspace_id: workspace?.id ?? "",
-          source: "github",
+          source: detectSourceFromUrl(e.repository_url),
           path: e.source,
           version: e.requiredVersion,
-          url: `https://github.com/${e.source}`,
+          url: e.repository_url,
         };
         try {
           await handleAddRepository(addRepository);

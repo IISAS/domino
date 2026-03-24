@@ -7,7 +7,6 @@ import enum
 class RepositorySourceRequestEnum(str, enum.Enum):
     github = 'github'
     gitlab = 'gitlab'
-    bitbucket = 'bitbucket'
     generic = 'generic'
 
     @enum.member
@@ -21,7 +20,7 @@ class ListRepositoryFilters(BaseModel):
     version: Optional[str] = None
     url: Optional[str] = None
     workspace_id: Optional[int] = None
-    source: Optional[RepositorySource] = Field(description="Source of the repository.", default=RepositorySource.github.value)
+    source: Optional[RepositorySource] = Field(description="Source of the repository.", default=None)
 
 
 class CreateRepositoryRequest(BaseModel):

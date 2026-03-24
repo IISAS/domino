@@ -37,7 +37,7 @@ const WorkspaceSecretsCard = () => {
   useEffect(() => {
     if (workspace) {
       handleUpdateWorkspace(workspace);
-      if (workspace.github_access_token_filled) {
+      if (workspace.git_access_token_filled) {
         setDefaultValue("******");
       } else {
         setDefaultValue("");
@@ -56,7 +56,7 @@ const WorkspaceSecretsCard = () => {
 
       if (e.currentTarget.ariaLabel === "clear") {
         const payload = {
-          github_access_token: null,
+          git_access_token: null,
         };
         patchWorkspace({
           ...payload,
@@ -64,7 +64,7 @@ const WorkspaceSecretsCard = () => {
           .then((response) => {
             toast.success("Secret updated.");
             handleUpdateWorkspace(response);
-            resetField(`github-token-workspace-${workspace?.id}`, {
+            resetField(`git-token-workspace-${workspace?.id}`, {
               keepTouched: false,
             });
           })
@@ -75,7 +75,7 @@ const WorkspaceSecretsCard = () => {
         return;
       }
 
-      const formValue = getValues(`github-token-workspace-${workspace?.id}`);
+      const formValue = getValues(`git-token-workspace-${workspace?.id}`);
       if (!formValue) {
         toast.warning("Please enter a valid value for the secret.");
         return;
@@ -86,7 +86,7 @@ const WorkspaceSecretsCard = () => {
       }
 
       const payload = {
-        github_access_token: formValue,
+        git_access_token: formValue,
       };
       patchWorkspace({
         ...payload,
@@ -122,9 +122,9 @@ const WorkspaceSecretsCard = () => {
       <CardContent>
         <Box>
           <Typography variant="body1">
-            Workspace github token is used to access private pieces
-            repositories. Furhtermore, authenticated requests get a higher rate
-            limit from Github.
+            Workspace git access token is used to access private pieces
+            repositories. Authenticated requests also get a higher rate limit
+            from the git provider.
           </Typography>
         </Box>
         <form>
@@ -133,15 +133,15 @@ const WorkspaceSecretsCard = () => {
               <TextField
                 InputLabelProps={{ shrink: true }}
                 autoFocus
-                id={`github-token-workspace-${workspace.id}`}
-                label="Github Access Token"
+                id={`git-token-workspace-${workspace.id}`}
+                label="Git Access Token"
                 disabled={!currentEdittingToken}
                 defaultValue={
-                  workspace.github_access_token_filled ? "******" : ""
+                  workspace.git_access_token_filled ? "******" : ""
                 }
                 type="password"
                 fullWidth
-                {...register(`github-token-workspace-${workspace.id}`)}
+                {...register(`git-token-workspace-${workspace.id}`)}
               />
             </Grid>
             <Grid size={{ xs:5, sm:4, md:2 }}>

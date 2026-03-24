@@ -8,6 +8,7 @@ import { dominoApiClient } from "services/clients/domino.client";
 export interface RepositoriesReleasesParams {
   source: repositorySource;
   path: string;
+  url?: string;
 }
 
 export interface RepositoriesReleasesResponse {
@@ -27,7 +28,7 @@ export const useRepositoriesReleases = (
   > = {},
 ) => {
   return useMutation({
-    mutationFn: async ({ source, path }) => {
+    mutationFn: async ({ source, path, url }) => {
       if (!workspaceId) {
         throw new Error("No workspace selected");
       }
@@ -35,6 +36,7 @@ export const useRepositoriesReleases = (
       return await getPiecesRepositoriesReleases({
         path,
         source,
+        url,
         workspaceId,
       });
     },
@@ -53,6 +55,7 @@ export const useRepositoriesReleases = (
 const getPiecesRepositoriesReleases = async ({
   source,
   path,
+  url,
   workspaceId,
 }: RepositoriesReleasesParams & { workspaceId: string }): Promise<
   RepositoriesReleasesResponse[]
@@ -61,6 +64,7 @@ const getPiecesRepositoriesReleases = async ({
   search.set("source", source);
   search.set("path", path);
   search.set("workspace_id", workspaceId);
+  if (url) search.set("url", url);
 
   return await dominoApiClient.get(
     `/pieces-repositories/releases?${search.toString()}`,

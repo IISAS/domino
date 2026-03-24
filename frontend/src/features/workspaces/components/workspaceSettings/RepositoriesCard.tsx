@@ -5,6 +5,7 @@ import {
   ChevronRight as ChevronRightIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
+import { parseRepoUrl } from "@utils/gitProviders";
 import KeyIcon from "@mui/icons-material/Key";
 import {
   Card,
@@ -66,22 +67,18 @@ export const RepositoriesCard: FC = () => {
    */
   type StepType = "FETCH_METADATA" | "SELECT_VERSION";
 
-  /** TODO improve when more sources become available */
   const { source, path } = useMemo(() => {
     if (url.length > 5) {
-      const [source, path] = url
-        .trim()
-        .toLowerCase()
-        .replace("https://", "")
-        .split(".com/");
-
-      if (source !== "github")
-        setError(`Invalid repository source ${source}. Expected github.`);
-
-      return { source, path };
+      const parsed = parseRepoUrl(url);
+      if (!parsed.path) {
+        setError(`Could not parse repository URL: ${url}`);
+      } else {
+        setError(false);
+      }
+      return parsed;
     } else {
       setError(false);
-      return { source: "", path: "" };
+      return { source: repositorySource.github, path: "" };
     }
   }, [url]);
 
@@ -110,6 +107,7 @@ export const RepositoriesCard: FC = () => {
         handleFetchRepoReleases({
           path,
           source: source as repositorySource,
+          url,
         })
           .then((data) => {
             if (data && data.length > 0) {

@@ -73,7 +73,6 @@ def _git_ssh_url(provider: str, repository: str) -> str:
     Examples:
       github    → ssh://git@github.com/org/repo.git
       gitlab    → ssh://git@gitlab.com/org/repo.git
-      bitbucket → ssh://git@bitbucket.org/org/repo.git
       generic   → ssh://git@<DOMINO_GIT_SSH_HOST>/org/repo.git
     """
     host = _GIT_SSH_HOSTS.get(provider)

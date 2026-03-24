@@ -36,7 +36,7 @@ CONFIG_REQUIRED_FIELDS = {}
 # GIT PROVIDER ABSTRACTION
 ###############################################################################
 
-SUPPORTED_PROVIDERS = ("github", "gitlab", "bitbucket", "generic")
+SUPPORTED_PROVIDERS = ("github", "gitlab", "generic")
 
 # Maps each provider to the env vars it uses for token and repository identity.
 _PROVIDER_ENV = {
@@ -47,10 +47,6 @@ _PROVIDER_ENV = {
     "gitlab": {
         "token":      ["GITLAB_TOKEN", "CI_JOB_TOKEN"],
         "repository": ["GITLAB_REPOSITORY", "CI_PROJECT_PATH"],
-    },
-    "bitbucket": {
-        "token":      ["BITBUCKET_TOKEN", "BITBUCKET_ACCESS_TOKEN"],
-        "repository": ["BITBUCKET_REPOSITORY", "BITBUCKET_REPO_FULL_NAME"],
     },
     "generic": {
         "token":      ["GIT_TOKEN"],
@@ -110,7 +106,6 @@ def _validate_token(token: str, provider: str) -> bool:
     Token format rules per provider:
       github    — prefix 'ghp_'       + 35-40 alphanumeric chars
       gitlab    — prefix 'glpat-'     + exactly 20 alphanumeric/hyphen/underscore chars
-      bitbucket — no prefix           + 32-64 chars (app password or access token)
       generic   — any non-empty string
     """
     if not token:
@@ -119,8 +114,7 @@ def _validate_token(token: str, provider: str) -> bool:
     rules = {
         "github":    (r"ghp_[0-9a-zA-Z]{35,40}",    True),
         "gitlab":    (r"glpat-[0-9a-zA-Z_-]{20}",   True),
-        "bitbucket": (r"[0-9a-zA-Z_\-]{32,64}",     True),
-        "generic":   (r".+",                          False),
+        "generic":   (r".+",                       False),
     }
 
     pattern_str, use_fullmatch = rules.get(provider, (r".+", False))
@@ -140,10 +134,6 @@ def validate_gitlab_token(token: str) -> bool:
     return _validate_token(token, "gitlab")
 
 
-def validate_bitbucket_token(token: str) -> bool:
-    return _validate_token(token, "bitbucket")
-
-
 ###############################################################################
 # ENV VAR VALIDATION
 ###############################################################################
@@ -152,7 +142,7 @@ def _build_env_validators() -> dict:
     """
     Build REQUIRED_ENV_VARS_VALIDATORS dynamically based on the active provider.
     Token env var names and validator functions are resolved at runtime so the
-    same code works for GitHub, GitLab, Bitbucket, or a generic provider.
+    same code works for GitHub, GitLab, or a generic provider.
     """
     provider = _get_provider()
     token_vars = _PROVIDER_ENV.get(provider, _PROVIDER_ENV["generic"])["token"]
@@ -583,7 +573,7 @@ def _resolve_client_and_repo(provider: str | None = None):
 def create_release(tag_name: str | None = None, commit_sha: str | None = None):
     """
     Create a new release and tag in the repository for the latest commit.
-    Works with GitHub, GitLab, Bitbucket, or any generic provider by reading
+    Works with GitHub, GitLab, or any generic provider by reading
     DOMINO_GIT_PROVIDER (defaults to 'github').
     """
     provider = _get_provider()
@@ -627,7 +617,7 @@ def create_release(tag_name: str | None = None, commit_sha: str | None = None):
 def delete_release(tag_name: str):
     """
     Delete a release (and its tag) from the repository.
-    Works with GitHub, GitLab, Bitbucket, or any generic provider by reading
+    Works with GitHub, GitLab, or any generic provider by reading
     DOMINO_GIT_PROVIDER (defaults to 'github').
     """
     provider = _get_provider()

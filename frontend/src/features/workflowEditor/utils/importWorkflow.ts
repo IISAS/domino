@@ -1,4 +1,4 @@
-import { isEmpty } from "utils";
+import { isEmpty, repoPathFromUrl } from "utils";
 import * as yup from "yup";
 
 import { type GenerateWorkflowsParams } from "../context/workflowsEditor";
@@ -101,6 +101,7 @@ export const validateJsonImported = (json: any): void => {
 
 export interface Differences {
   source: string;
+  repository_url: string;
   installedVersion: string | null;
   requiredVersion: string;
 }
@@ -111,24 +112,25 @@ export const findDifferencesInJsonImported = (
   const currentRepositories = new Set<string>(
     Object.values(pieces)?.map(
       (p) =>
-        p?.repository_url.replace("https://github.com/", "") +
+        repoPathFromUrl(p?.repository_url) +
           ":" +
           p?.source_image.split(":")[1]?.replace(/-group\d+$/g, "") || "",
     ) || [],
   );
 
-  const incomeRepositories = new Set<string>(
-    Object.values(json.workflowPieces)
-      .flatMap(
-        (next: any) =>
-          next.repository_url.replace("https://github.com/", "") +
-            ":" +
-            next.source_image.split(":")[1].replace(/-group\d+$/g, "") || null,
-      )
-      .filter(Boolean) as string[],
-  );
+  // Map "path:version" -> full repository_url so DifferencesModal can use it directly
+  const incomeRepositoriesMap = new Map<string, string>();
+  Object.values(json.workflowPieces).forEach((next: any) => {
+    const path = repoPathFromUrl(next.repository_url);
+    const version = next.source_image
+      .split(":")[1]
+      ?.replace(/-group\d+$/g, "");
+    if (path && version) {
+      incomeRepositoriesMap.set(`${path}:${version}`, next.repository_url);
+    }
+  });
 
-  const differences = [...incomeRepositories].filter(
+  const differences = [...incomeRepositoriesMap.keys()].filter(
     (x) => !currentRepositories.has(x),
   );
 
@@ -141,6 +143,7 @@ export const findDifferencesInJsonImported = (
 
     return {
       source,
+      repository_url: incomeRepositoriesMap.get(d) ?? "",
       installedVersion: installedVersion
         ? installedVersion.split(":")[1]
         : null,
