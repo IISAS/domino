@@ -17,8 +17,8 @@
 stages:
   - test
   - build-dev
-  - build-prod
   - release
+  - build-prod
 
 # ── shared: Docker build template ────────────────────────────────────────────
 
