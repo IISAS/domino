@@ -359,7 +359,7 @@ services:
       - AIRFLOW_ADMIN_PASSWORD=${AIRFLOW_ADMIN_PASSWORD:-airflow}
       - AIRFLOW_API_SERVER_HOST=http://airflow-apiserver:8080${AIRFLOW_API_SERVER_BASENAME:-}
       - ROOT_PATH=${DOMINO_REST_BASENAME:-}
-      - CHAT_APP_URL=${CHAT_APP_URL:-http://llm-inference:6969}
+      - CHAT_APP_URL=${CHAT_APP_URL:-http://pipeline-composer:6969}
       - CHAT_APP_TOKEN=${CHAT_APP_TOKEN:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"

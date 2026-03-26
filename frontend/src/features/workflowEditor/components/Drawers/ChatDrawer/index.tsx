@@ -130,7 +130,7 @@ export const ChatDrawer: React.FC<ChatDrawerProps> = ({
               alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
               maxWidth: "85%",
               bgcolor: msg.role === "user" ? "primary.main" : "grey.200",
-              color: msg.role === "user" ? "primary.contrastText" : "text.primary",
+              color: "primary.contrastText",
               borderRadius: 2,
               px: 1.5,
               py: 1,
