@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Response
 from schemas.context.auth_context import AuthorizationContextData
 from typing import List
+from core.logger import get_configured_logger
 from services.workflow_service import WorkflowService
 from schemas.requests.workflow import CreateWorkflowRequest, ListWorkflowsFilters
 from schemas.responses.workflow import (
@@ -36,6 +37,7 @@ router = APIRouter(prefix="/workspaces/{workspace_id}/workflows")
 workflow_service = WorkflowService()
 read_authorizer = Authorizer(permission_level=Permission.read.value)
 write_authorizer = Authorizer(permission_level=Permission.write.value)
+logger = get_configured_logger("workflow_router")
 
 
 
@@ -55,13 +57,17 @@ def create_workflow(
     auth_context: AuthorizationContextData = Depends(write_authorizer.authorize)
 ) -> CreateWorkflowResponse:
     """Create a new workflow"""
+    logger.info(f"Creating workflow in workspace_id={workspace_id}")
     try:
-        return workflow_service.create_workflow(
+        response = workflow_service.create_workflow(
             workspace_id=workspace_id,
             body=body,
             auth_context=auth_context
         )
+        logger.info(f"Workflow created successfully in workspace_id={workspace_id}")
+        return response
     except (BaseException, ConflictException, ForbiddenException, ResourceNotFoundException, BadRequestException) as e:
+        logger.info(f"Failed to create workflow in workspace_id={workspace_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -82,14 +88,17 @@ async def list_workflows(
     filters: ListWorkflowsFilters = Depends(),
 ) -> GetWorkflowsResponse:
     """List all workflows with its basic information"""
+    logger.info(f"Listing workflows in workspace_id={workspace_id} page={page} page_size={page_size}")
     try:
-        return await workflow_service.list_workflows(
+        response = await workflow_service.list_workflows(
             workspace_id=workspace_id,
             page=page,
             page_size=page_size,
             filters=filters
         )
+        return response
     except (BaseException, ForbiddenException) as e:
+        logger.info(f"Failed to list workflows in workspace_id={workspace_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -109,13 +118,16 @@ def get_workflow(
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> GetWorkflowResponse:
     """Get a workflow information"""
+    logger.info(f"Getting workflow_id={workflow_id} in workspace_id={workspace_id}")
     try:
-        return workflow_service.get_workflow(
+        response = workflow_service.get_workflow(
             workspace_id=workspace_id,
             workflow_id=workflow_id,
             auth_context=auth_context
         )
+        return response
     except (BaseException, UnauthorizedException, ResourceNotFoundException) as e:
+        logger.info(f"Failed to get workflow_id={workflow_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 @router.delete(
@@ -134,12 +146,16 @@ async def delete_workflow(
     workspace_id: int,
     workflow_id: int,
 ):
+    logger.info(f"Deleting workflow_id={workflow_id} in workspace_id={workspace_id}")
     try:
-        return await workflow_service.delete_workflow(
+        response = await workflow_service.delete_workflow(
             workflow_id=workflow_id,
             workspace_id=workspace_id
         )
+        logger.info(f"Workflow workflow_id={workflow_id} deleted successfully")
+        return response
     except (BaseException, ForbiddenException, ResourceNotFoundException) as e:
+        logger.info(f"Failed to delete workflow_id={workflow_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -159,11 +175,15 @@ def run_workflow(
     workflow_id: int,
     auth_context: AuthorizationContextData = Depends(write_authorizer.authorize)
 ):
+    logger.info(f"Running workflow_id={workflow_id} in workspace_id={workspace_id}")
     try:
-        return workflow_service.run_workflow(
+        response = workflow_service.run_workflow(
             workflow_id=workflow_id
         )
+        logger.info(f"Workflow workflow_id={workflow_id} triggered successfully")
+        return response
     except (BaseException, ForbiddenException, ResourceNotFoundException, ConflictException) as e:
+        logger.info(f"Failed to run workflow_id={workflow_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 @router.get(
@@ -183,13 +203,16 @@ def list_workflow_runs(
     page_size: int = 5,
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> GetWorkflowRunsResponse:
+    logger.info(f"Listing runs for workflow_id={workflow_id} page={page} page_size={page_size}")
     try:
-        return workflow_service.list_workflow_runs(
+        response = workflow_service.list_workflow_runs(
             workflow_id=workflow_id,
             page=page,
             page_size=page_size
         )
+        return response
     except (BaseException, ForbiddenException, ResourceNotFoundException) as e:
+        logger.info(f"Failed to list runs for workflow_id={workflow_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 @router.get(
@@ -210,14 +233,17 @@ def list_run_tasks(
     page_size: int = 5,
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> GetWorkflowRunTasksResponse:
+    logger.info(f"Listing tasks for workflow_id={workflow_id} run_id={workflow_run_id} page={page} page_size={page_size}")
     try:
-        return workflow_service.list_run_tasks(
+        response = workflow_service.list_run_tasks(
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             page=page,
             page_size=page_size
         )
+        return response
     except (BaseException, ForbiddenException, ResourceNotFoundException) as e:
+        logger.info(f"Failed to list tasks for workflow_id={workflow_id} run_id={workflow_run_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 @router.get(
@@ -236,12 +262,15 @@ def generate_report(
     workflow_run_id: str,
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> GetWorkflowResultReportResponse:
+    logger.info(f"Generating report for workflow_id={workflow_id} run_id={workflow_run_id}")
     try:
-        return workflow_service.generate_report(
+        response = workflow_service.generate_report(
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
         )
+        return response
     except (BaseException, ForbiddenException, ResourceNotFoundException) as e:
+        logger.info(f"Failed to generate report for workflow_id={workflow_id} run_id={workflow_run_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 @router.get(
@@ -266,14 +295,17 @@ def get_task_logs(
     """
     Get workflow run task parsed logs lines.
     """
+    logger.info(f"Getting logs for workflow_id={workflow_id} run_id={workflow_run_id} task_id={task_id} try={task_try_number}")
     try:
-        return workflow_service.get_task_logs(
+        response = workflow_service.get_task_logs(
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             task_id=task_id,
             task_try_number=task_try_number
         )
+        return response
     except (BaseException, ForbiddenException, ResourceNotFoundException) as e:
+        logger.info(f"Failed to get logs for task_id={task_id} run_id={workflow_run_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -299,12 +331,15 @@ def get_task_result(
     """
     Get workflow run task parsed logs lines.
     """
+    logger.info(f"Getting result for workflow_id={workflow_id} run_id={workflow_run_id} task_id={task_id} try={task_try_number}")
     try:
-        return workflow_service.get_task_result(
+        response = workflow_service.get_task_result(
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             task_id=task_id,
             task_try_number=task_try_number
         )
+        return response
     except (BaseException, ForbiddenException, ResourceNotFoundException) as e:
+        logger.info(f"Failed to get result for task_id={task_id} run_id={workflow_run_id}: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)

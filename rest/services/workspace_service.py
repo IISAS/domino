@@ -115,7 +115,7 @@ class WorkspaceService(object):
             user_id=auth_context.user_id
         )
         if not _workspace:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Workspace {workspace_id} not found.")
 
         workspace = Workspace(
             id=_workspace.id,
@@ -166,7 +166,7 @@ class WorkspaceService(object):
 
         workspace = self.workspace_repository.find_by_id_and_user(workspace_id, user_id=auth_context.user_id)
         if not workspace:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Workspace {workspace_id} not found.")
 
         response = GetWorkspaceResponse(
             id=workspace.id,
@@ -215,7 +215,7 @@ class WorkspaceService(object):
     async def delete_workspace(self, workspace_id: int):
         workspace = self.workspace_repository.find_by_id(id=workspace_id)
         if not workspace:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Workspace {workspace_id} not found.")
 
         try:
             await self.workflow_service.delete_workspace_workflows(
@@ -298,6 +298,7 @@ class WorkspaceService(object):
         self.logger.info(f"Listing workspace {workspace_id} users")
 
         workspace = self.workspace_repository.find_by_id(id=workspace_id)
+        self.logger.info(f"Workspace {workspace_id} users")
         if not workspace:
             raise ResourceNotFoundException("Workspace not found.")
 

@@ -110,7 +110,7 @@ class SecretService(object):
         # Get the required Secrets names for the Piece
         piece_item = self.piece_repository.find_by_name_and_repository_id(name=piece_name, repository_id=piece_repository_id)
         if not piece_item:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Piece '{piece_name}' not found in repository {piece_repository_id}.")
 
         secrets_schema = piece_item.secrets_schema
         piece_item_required_secrets = []
@@ -127,7 +127,7 @@ class SecretService(object):
         for secret in secrets_names:
             secret_item = self.secret_repository.find_by_name_and_piece_repository_id(name=secret, piece_repository_id=piece_repository_id)
             if not secret_item:
-                raise ResourceNotFoundException()
+                raise ResourceNotFoundException(f"Secret '{secret}' not found for repository {piece_repository_id}.")
             str_value = secret_item.value
             decoded_value = None if not str_value else self.secret_fernet.decrypt(str_value.encode('utf-8')).decode('utf-8')
             response.append(

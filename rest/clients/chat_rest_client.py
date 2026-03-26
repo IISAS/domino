@@ -51,7 +51,7 @@ class ChatRestClient(requests.Session):
             'POST',
             'chat',
             json={"messages": messages, "workspace_id": workspace_id},
-            timeout=60,
+            timeout=180,
         )
         resp.raise_for_status()
         return resp.json()

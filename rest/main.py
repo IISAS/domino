@@ -48,7 +48,7 @@ def configure_app():
         allow_headers=settings.CORS["allow_headers"],
         #allow_origins=['*'],
         #allow_credentials=True,
-        #allow_methods=["*"],
+        #allow_methods=["*"]
         #allow_headers=["*"],
     )
 

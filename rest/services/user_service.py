@@ -54,6 +54,7 @@ class UserService(object):
 
             return response
         except (BaseException, ForbiddenException, UnauthorizedException, ResourceNotFoundException) as e:
+            self.logger.info(e)
             self.logger.exception(e)
             await self.delete_user(user_id=user.id, auth_context=auth_context)
             raise e
@@ -83,7 +84,7 @@ class UserService(object):
         self.logger.info(f"Deleting user with id: {user_id}")
         user = self.user_repository.find_by_id(user_id)
         if not user:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"User {user_id} not found.")
 
         if user.id != auth_context.user_id:
             raise ForbiddenException()

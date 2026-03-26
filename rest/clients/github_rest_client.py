@@ -18,7 +18,7 @@ class GithubRestClient(Github):
     def _handle_exceptions(self, _exception):
         if _exception.status == 404:
             self.logger.info('Resource not found in github: %s', _exception)
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException("GitHub resource not found.")
         elif _exception.status == 403 or _exception.status == 401:
             self.logger.info('Forbidden in github: %s', _exception)
             self.logger.exception(_exception)

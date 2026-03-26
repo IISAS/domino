@@ -44,7 +44,7 @@ class PieceRepositoryService(object):
     def get_piece_repository(self, piece_repository_id: int) -> GetRepositoryResponse:
         piece_repository = self.piece_repository_repository.find_by_id(piece_repository_id)
         if not piece_repository:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Piece repository {piece_repository_id} not found.")
 
         if not piece_repository.label:
             piece_repository.label = piece_repository.name
@@ -123,7 +123,7 @@ class PieceRepositoryService(object):
 
         repository = self.piece_repository_repository.find_by_id(id=repository_id)
         if not repository:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Piece repository {repository_id} not found.")
         self.logger.info(f"Updating piece repository {repository.id} for workspace {repository.workspace_id}")
 
         repository_files_metadata = self._read_repository_data(
@@ -345,7 +345,7 @@ class PieceRepositoryService(object):
     def delete_repository(self, piece_repository_id: int):
         repository = self.piece_repository_repository.find_by_id(id=piece_repository_id)
         if not repository:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Piece repository {piece_repository_id} not found.")
 
         if getattr(repository, 'source') == RepositorySource.default.value:
             raise ForbiddenException(message="Default repository can not be deleted.")

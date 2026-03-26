@@ -72,6 +72,7 @@ class WorkflowService(object):
         body: CreateWorkflowRequest,
         auth_context: AuthorizationContextData
     ) -> CreateWorkflowResponse:
+        self.logger.info(f"Creating workflow name='{body.workflow.name}' workspace_id={workspace_id}")
         # If workflow with this name already exists for the group raise conflict
         workflow = self.workflow_repository.find_by_name_and_workspace_id(
             body.workflow.name,
@@ -103,17 +104,17 @@ class WorkflowService(object):
         new_workflow.awpl = awpl
         workflow = self.workflow_repository.create(new_workflow)
 
-        try:
-            resp = self.awpl_rest_client.submit_workflow(
-                id=workflow.id,
-                name=workflow.name,
-                uuid_name=workflow.uuid_name,
-                created_at=workflow.created_at,
-                awpl=awpl
-            )
-            self.logger.debug(f'AWPL REST resp: {resp}')
-        except Exception as e:
-            self.logger.error(e)
+        # try:
+        #     resp = self.awpl_rest_client.submit_workflow(
+        #         id=workflow.id,
+        #         name=workflow.name,
+        #         uuid_name=workflow.uuid_name,
+        #         created_at=workflow.created_at,
+        #         awpl=awpl
+        #     )
+        #     self.logger.debug(f'AWPL REST resp: {resp}')
+        # except Exception as e:
+        #     self.logger.error(e)
 
         data_dict = body.model_dump()
         data_dict['workflow']['id'] = workflow_id
@@ -151,6 +152,7 @@ class WorkflowService(object):
                 )
 
             workflow = self.workflow_repository.update(workflow)
+            self.logger.info(f"Workflow created successfully: id={workflow.id} name='{workflow.name}'")
             response = CreateWorkflowResponse(
                 id=workflow.id,
                 name=workflow.name,
@@ -163,6 +165,7 @@ class WorkflowService(object):
             )
             return response
         except (BaseException, ConflictException, ForbiddenException, ResourceNotFoundException) as custom_exception:
+            self.logger.error(f"Failed to create workflow name='{body.workflow.name}': {custom_exception}")
             asyncio.run(self.delete_workflow(workflow_id=workflow.id, workspace_id=workspace_id))
             raise custom_exception
 
@@ -182,6 +185,7 @@ class WorkflowService(object):
         page_size: int,
         filters: ListWorkflowsFilters,
     ):
+        self.logger.info(f"Listing workflows workspace_id={workspace_id} page={page} page_size={page_size}")
         workflows = self.workflow_repository.find_by_workspace_id(
             workspace_id=workspace_id,
             page=page,
@@ -277,9 +281,10 @@ class WorkflowService(object):
 
     def get_workflow(self, workspace_id: int, workflow_id: str,
                      auth_context: AuthorizationContextData) -> GetWorkflowResponse:
+        self.logger.info(f"Getting workflow_id={workflow_id} workspace_id={workspace_id}")
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
-            raise ResourceNotFoundException()
+            raise ResourceNotFoundException(f"Workflow {workflow_id} not found.")
 
         if workflow.workspace_id != workspace_id:
             raise ForbiddenException()
@@ -373,6 +378,27 @@ class WorkflowService(object):
         )
 
         if len(necessary_repositories_and_pieces) != len(pieces_names):
+            found_names = {r.piece_name for r in necessary_repositories_and_pieces}
+            missing_names = pieces_names - found_names
+            self.logger.info(f"Piece validation failed for workspace_id={workspace_id}.")
+            self.logger.info(f"Requested pieces (name -> source_image): { {t['piece']['name']: t['piece']['source_image'] for t in tasks_dict.values()} }")
+            self.logger.info(f"Found by name+source_image: {found_names}")
+            self.logger.info(f"Missing pieces (name not matched): {missing_names}")
+            installed = self.piece_repository.find_pieces_by_names_and_workspace_id(
+                pieces_names=pieces_names,
+                workspace_id=workspace_id,
+            )
+            installed_map = {p.piece_name: p.source_image for p in installed}
+            for name in pieces_names:
+                requested_image = next(
+                    (t['piece']['source_image'] for t in tasks_dict.values() if t['piece']['name'] == name),
+                    '<unknown>'
+                )
+                installed_image = installed_map.get(name, '<not installed>')
+                match = requested_image == installed_image
+                self.logger.info(
+                    f"  piece='{name}': requested='{requested_image}', installed='{installed_image}', match={match}"
+                )
             raise ResourceNotFoundException("Some pieces were not found for this workspace.")
 
         for repo_piece in necessary_repositories_and_pieces:
@@ -468,15 +494,15 @@ class WorkflowService(object):
 
             input_kwargs = {}
             for input_key, input_value in raw_input_kwargs.items():
-                if input_value['fromUpstream']:
+                if input_value.get('fromUpstream', False):
                     input_kwargs[input_key] = {}
                     input_kwargs[input_key]['type'] = 'fromUpstream'
                     input_kwargs[input_key]['upstream_task_id'] = input_value['upstreamTaskId']
                     input_kwargs[input_key]['output_arg'] = input_value['upstreamArgument']
-                elif isinstance(input_value['value'], list):
+                elif isinstance(input_value.get('value'), list):
                     array_input_kwargs = []
                     for element_idx, element in enumerate(input_value['value']):
-                        element_from_upstream = element['fromUpstream']
+                        element_from_upstream = element.get('fromUpstream', False)
                         # simple array
                         # TODO we must handle fromUpstream at item level in Task domino class
                         if isinstance(element_from_upstream, bool):
@@ -504,7 +530,7 @@ class WorkflowService(object):
                             array_input_kwargs.append(value_dict)
                     input_kwargs[input_key] = array_input_kwargs
                 else:
-                    input_kwargs[input_key] = input_value['value']
+                    input_kwargs[input_key] = input_value.get('value')
 
             # piece_request = {"id": 1, "name": "SimpleLogPiece"}
             piece_db = self.piece_repository.find_repository_by_piece_name_and_workspace_id(
@@ -546,6 +572,7 @@ class WorkflowService(object):
         return list(dict.fromkeys(all_pieces))
 
     def run_workflow(self, workflow_id: int):
+        self.logger.info(f"Running workflow_id={workflow_id}")
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException("Workflow not found")
@@ -580,6 +607,7 @@ class WorkflowService(object):
             self.logger.error(f"Error while trying to run workflow {workflow_id}")
             self.logger.error(run_dag_response.json())
             raise BaseException("Error while trying to run workflow")
+        self.logger.info(f"Workflow workflow_id={workflow_id} triggered successfully")
 
     async def delete_workspace_workflows(self, workspace_id: int):
         # TODO: improve this? Maybe running in a worker and not in the main thread? Pagination may take a while if there are a lot of workflows.
@@ -602,6 +630,7 @@ class WorkflowService(object):
         )
 
     async def delete_workflow(self, workflow_id: str, workspace_id: int):
+        self.logger.info(f"Deleting workflow_id={workflow_id} workspace_id={workspace_id}")
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException("Workflow not found!")
@@ -611,6 +640,7 @@ class WorkflowService(object):
             await self.delete_workflow_files(workflow_uuid=workflow.uuid_name)
             self.airflow_client.delete_dag(dag_id=workflow.uuid_name)
             self.workflow_repository.delete(id=workflow_id)
+            self.logger.info(f"Workflow workflow_id={workflow_id} deleted successfully")
         except Exception as e:  # TODO improve exception handling
             self.logger.exception(e)
             self.workflow_repository.delete(id=workflow_id)
@@ -637,6 +667,7 @@ class WorkflowService(object):
             raise e
 
     def list_workflow_runs(self, workflow_id: int, page: int, page_size: int):
+        self.logger.info(f"Listing runs for workflow_id={workflow_id} page={page} page_size={page_size}")
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException("Workflow not found")
@@ -707,6 +738,7 @@ class WorkflowService(object):
         return response
 
     def list_run_tasks(self, workflow_id: int, workflow_run_id: str, page: int, page_size: int):
+        self.logger.info(f"Listing tasks for workflow_id={workflow_id} run_id={workflow_run_id} page={page} page_size={page_size}")
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException("Workflow not found")
@@ -753,6 +785,7 @@ class WorkflowService(object):
         return response
 
     def generate_report(self, workflow_id: int, workflow_run_id: str):
+        self.logger.info(f"Generating report for workflow_id={workflow_id} run_id={workflow_run_id}")
         page_size = 100
         page = 0
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
@@ -919,6 +952,7 @@ class WorkflowService(object):
         return output_lines
 
     def get_task_logs(self, workflow_id=int, workflow_run_id=str, task_id=str, task_try_number=int):
+        self.logger.info(f"Getting logs for workflow_id={workflow_id} run_id={workflow_run_id} task_id={task_id} try={task_try_number}")
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException("Workflow not found")
@@ -931,6 +965,7 @@ class WorkflowService(object):
             task_try_number=task_try_number
         )
         if response.status_code != 200:
+            self.logger.error(f"Failed to get task logs for task_id={task_id} run_id={workflow_run_id}: status={response.status_code}")
             raise BaseException("Error while trying to get task logs")
 
         if response.headers.get('Content-Type') == 'application/json':
@@ -948,6 +983,7 @@ class WorkflowService(object):
         )
 
     def get_task_result(self, workflow_id=int, workflow_run_id=str, task_id=str, task_try_number=int):
+        self.logger.info(f"Getting result for workflow_id={workflow_id} run_id={workflow_run_id} task_id={task_id} try={task_try_number}")
         workflow = self.workflow_repository.find_by_id(id=workflow_id)
         if not workflow:
             raise ResourceNotFoundException("Workflow not found")

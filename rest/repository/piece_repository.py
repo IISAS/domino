@@ -42,6 +42,22 @@ class PieceRepository(object):
         return result
 
 
+    def find_pieces_by_names_and_workspace_id(self, pieces_names: set, workspace_id: int):
+        """Query pieces by name only (no source_image filter) - used for diagnostic logging."""
+        with session_scope() as session:
+            query = session.query(
+                Piece.name.label("piece_name"),
+                Piece.source_image.label("source_image"),
+            )\
+                .filter(PieceRepositoryDatabaseModel.workspace_id == workspace_id)\
+                    .join(Piece, Piece.repository_id == PieceRepositoryDatabaseModel.id)\
+                        .filter(Piece.name.in_(pieces_names))
+            result = query.all()
+            session.flush()
+            if result:
+                session.expunge_all()
+        return result
+
     def find_repository_by_piece_name_and_workspace_id(self, piece_name: str, workspace_id: int):
         # Find pieces repositories by pieces names and workspace_id
         with session_scope() as session:
