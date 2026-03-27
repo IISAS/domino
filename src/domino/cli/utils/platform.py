@@ -85,15 +85,16 @@ def _git_ssh_url(provider: str, repository: str) -> str:
     return f"ssh://git@{host}/{repository.strip('/')}.git"
 
 
-def _strip_host_from_repo(provider: str, raw: str) -> str:
+def _strip_host_from_repo(provider: str, raw: str, host_url: str = "") -> str:
     """
     Normalise a repository value that may include a full URL into
     'namespace/project' form.
 
     Handles inputs like:
-      https://github.com/org/repo   → org/repo
-      git@github.com:org/repo.git   → org/repo
-      org/repo                      → org/repo  (no-op)
+      https://github.com/org/repo              → org/repo
+      https://gitlab.example.com/org/repo      → org/repo
+      git@github.com:org/repo.git              → org/repo
+      org/repo                                 → org/repo  (no-op)
     """
     # Strip common URL prefixes
     for prefix in ("https://", "http://", "ssh://"):
@@ -101,10 +102,17 @@ def _strip_host_from_repo(provider: str, raw: str) -> str:
             raw = raw.split("//", 1)[1]
             break
 
-    # Strip host portion (everything up to and including the first / or :)
+    # Strip known provider host
     host = _GIT_SSH_HOSTS.get(provider, "")
     if host and host in raw:
         raw = raw.split(host, 1)[1].lstrip("/:")
+
+    # Strip custom host extracted from host_url (for self-hosted providers)
+    if host_url:
+        from urllib.parse import urlparse
+        custom_host = urlparse(host_url).netloc or host_url
+        if custom_host and custom_host in raw:
+            raw = raw.split(custom_host, 1)[1].lstrip("/:")
 
     return raw.removesuffix(".git").strip("/")
 
@@ -153,6 +161,7 @@ def prepare_platform(
     local_frontend_image: str,
     local_airflow_image: str,
     git_provider: str | None = None,
+    git_provider_url: str = "",
 ) -> None:
     """
     Create (or update) the local config-domino-local.toml with all platform
@@ -190,7 +199,7 @@ def prepare_platform(
             config_dict["dev"][repo_name] = local_pieces_repository
 
     # Normalise the repository to 'namespace/project' form
-    repo_path = _strip_host_from_repo(git_provider, workflows_repository)
+    repo_path = _strip_host_from_repo(git_provider, workflows_repository, host_url=git_provider_url)
 
     # -----------------------------------------------------------------------
     # Write provider-agnostic [git] section
@@ -199,6 +208,7 @@ def prepare_platform(
         config_dict["git"] = {}
 
     config_dict["git"]["DOMINO_GIT_PROVIDER"] = git_provider
+    config_dict["git"]["DOMINO_GIT_HOST_URL"] = git_provider_url or ""
     config_dict["git"]["DOMINO_GIT_WORKFLOWS_REPOSITORY"] = repo_path
     config_dict["git"]["DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS"] = github_workflows_token
     config_dict["git"]["DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN"] = github_default_pieces_repository_token
@@ -261,6 +271,7 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
     token_workflows = _git("DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS",      "DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS")
     workflows_repo  = _git("DOMINO_GIT_WORKFLOWS_REPOSITORY",        "DOMINO_GITHUB_WORKFLOWS_REPOSITORY")
     ssh_private_key = _git("DOMINO_GIT_WORKFLOWS_SSH_PRIVATE_KEY",   "DOMINO_GITHUB_WORKFLOWS_SSH_PRIVATE_KEY")
+    git_host_url    = _git("DOMINO_GIT_HOST_URL",                    "DOMINO_GIT_HOST_URL",                    default="")
 
     # Build Kind cluster config
     kubeadm_config_patches = dict(
@@ -453,6 +464,8 @@ def create_platform(install_airflow: bool = True, use_gpu: bool = False) -> None
             "image":             domino_rest_image,
             "workflowsRepository": workflows_repo,
             "createDefaultUser": platform_config["domino_db"].get("DOMINO_CREATE_DEFAULT_USER", True),
+            "gitProvider":       provider,
+            "gitHostUrl":        git_host_url or "",
         },
     }
 

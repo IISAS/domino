@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: {{ .Release.Name }}-rest
-          image: {{ .Values.rest.image }}
+          image: {{ .Values.images.registry }}/{{ .Values.rest.image.repository }}:{{ .Values.rest.image.tag }}
           {{- if .Values.rest.entrypointCommand }}
           command:
             {{ toYaml .Values.rest.entrypointCommand | indent 12 }}
@@ -58,6 +58,12 @@ spec:
                   name: {{ .Release.Name }}-secrets
             - name: DOMINO_GIT_WORKFLOWS_REPOSITORY
               value: {{ .Values.rest.workflowsRepository }}
+            - name: DOMINO_GIT_PROVIDER
+              value: {{ .Values.rest.gitProvider }}
+            {{- if .Values.rest.gitHostUrl }}
+            - name: DOMINO_GIT_HOST_URL
+              value: {{ .Values.rest.gitHostUrl }}
+            {{- end }}
             - name: ROOT_PATH
               value: {{ .Values.rest.rootPath }}
           {{- if .Values.rest.extraVolumeMounts }}

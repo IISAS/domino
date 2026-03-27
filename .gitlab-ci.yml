@@ -50,6 +50,8 @@ api-tests:
     DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN: "$TESTS_GIT_PIECES_TOKEN"
     DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: "$TESTS_GIT_WORKFLOWS_TOKEN"
     DOMINO_GIT_WORKFLOWS_REPOSITORY: "$TESTS_WORKFLOWS_REPOSITORY"
+    DOMINO_GIT_PROVIDER: "$TESTS_GIT_PROVIDER"
+    DOMINO_GIT_HOST_URL: "$TESTS_GIT_PROVIDER_URL"
   tags:
     - privileged
   rules:
@@ -84,6 +86,8 @@ api-tests:
       --workflows-ssh-private-key=''
       --workflows-token="$TESTS_GIT_WORKFLOWS_TOKEN"
       --default-pieces-repository-token="$TESTS_GIT_PIECES_TOKEN"
+      --git-provider="$TESTS_GIT_PROVIDER"
+      --git-provider-url="$TESTS_GIT_PROVIDER_URL"
       --deploy-mode=local-k8s-dev
       --local-pieces-repository-path=[]
       --local-domino-path='./src/domino'

@@ -179,6 +179,10 @@ def get_git_provider_from_env():
     return _env("DOMINO_GIT_PROVIDER", default="github")
 
 
+def get_git_provider_url_from_env():
+    return _env("DOMINO_GIT_HOST_URL", default="")
+
+
 def get_git_token_pieces_from_config_or_env():
     if Path("config-domino-local.toml").is_file():
         with open("config-domino-local.toml", "rb") as f:
@@ -219,6 +223,11 @@ def get_git_token_pieces_from_config_or_env():
     default=get_git_provider_from_env,
     type=click.Choice(SUPPORTED_PROVIDERS, case_sensitive=False),
     help="Git provider for workflows and pieces repositories.",
+)
+@click.option(
+    "--git-provider-url",
+    default=get_git_provider_url_from_env,
+    help="Base URL for self-hosted git provider (e.g. https://gitlab.example.com). Leave empty for github.com / gitlab.com.",
 )
 @click.option(
     "--workflows-repository",
@@ -291,6 +300,7 @@ def cli_prepare_platform(
     http_port,
     https_port,
     git_provider,
+    git_provider_url,
     workflows_repository,
     workflows_ssh_private_key,
     default_pieces_repository_token,
@@ -308,6 +318,7 @@ def cli_prepare_platform(
         http_port=int(http_port),
         https_port=int(https_port),
         git_provider=git_provider,
+        git_provider_url=git_provider_url,
         workflows_repository=workflows_repository,
         github_workflows_ssh_private_key=workflows_ssh_private_key,   # keep kwarg name for platform compat
         github_default_pieces_repository_token=default_pieces_repository_token,

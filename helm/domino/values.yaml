@@ -3,24 +3,38 @@
 git_access_token_pieces: default-substitute-this-for-your-own-token
 git_access_token_workflows: default-substitute-this-for-your-own-token
 
+# Container image registry — all Domino images are pulled from this registry.
+# Override to use a mirror or a self-hosted registry (e.g. registry.gitlab.com/myorg).
+# Matches the REGISTRY_NAME / CONTAINER_REGISTRY_* env var convention used elsewhere.
+images:
+  registry: gitlab.spice-platform.eu:5050
+
 # Frontend service
 frontend:
   enabled: true
-  image: ghcr.io/iisas/domino-frontend:k8s
-  deployMode: prod #local-k8s # TODO change to prod
+  image:
+    repository: domino-frontend
+    tag: k8s
+  deployMode: prod
   apiUrl: http://localhost/api
   baseName: /
 
 # REST service
 rest:
   enabled: true
-  image: ghcr.io/iisas/domino-rest:latest
-  tag: latest
-  deployMode: prod #local-k8s # TODO change to prod
-  # Github workflows repository name - Same one used in airflow gitSync ssh
+  image:
+    repository: domino-rest
+    tag: latest
+  deployMode: prod
+  # Workflows git repository — namespace/repo path (DOMINO_GIT_WORKFLOWS_REPOSITORY)
   workflowsRepository: ~
   createDefaultUser: true
   rootPath: /api
+  # Git provider for the workflows repository: github | gitlab | generic
+  # Maps to DOMINO_GIT_PROVIDER env var.
+  gitProvider: gitlab
+  # Base URL for self-hosted GitLab (DOMINO_GIT_HOST_URL), e.g. https://gitlab.example.com
+  gitHostUrl: https://gitlab.spice-platform.eu
 
 # Change this if using external Database
 database:
