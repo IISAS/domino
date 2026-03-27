@@ -50,8 +50,8 @@ api-tests:
     DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN: "$TESTS_GIT_PIECES_TOKEN"
     DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: "$TESTS_GIT_WORKFLOWS_TOKEN"
     DOMINO_GIT_WORKFLOWS_REPOSITORY: "$TESTS_WORKFLOWS_REPOSITORY"
-  tags:
-    - privileged
+  # tags:
+  #   - privileged
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^(main|dev|test\/.+)$/'
   before_script:
