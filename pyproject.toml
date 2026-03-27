@@ -1,5 +1,5 @@
 [project]
-name = "domino-py-iisas"
+name = "domino-py-spice"
 dynamic = ["version", "readme"]
 description = "Fork of the original Python package for Domino."
 authors = [
