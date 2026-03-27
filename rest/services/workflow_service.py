@@ -380,26 +380,8 @@ class WorkflowService(object):
         if len(necessary_repositories_and_pieces) != len(pieces_names):
             found_names = {r.piece_name for r in necessary_repositories_and_pieces}
             missing_names = pieces_names - found_names
-            self.logger.info(f"Piece validation failed for workspace_id={workspace_id}.")
-            self.logger.info(f"Requested pieces (name -> source_image): { {t['piece']['name']: t['piece']['source_image'] for t in tasks_dict.values()} }")
-            self.logger.info(f"Found by name+source_image: {found_names}")
-            self.logger.info(f"Missing pieces (name not matched): {missing_names}")
-            installed = self.piece_repository.find_pieces_by_names_and_workspace_id(
-                pieces_names=pieces_names,
-                workspace_id=workspace_id,
-            )
-            installed_map = {p.piece_name: p.source_image for p in installed}
-            for name in pieces_names:
-                requested_image = next(
-                    (t['piece']['source_image'] for t in tasks_dict.values() if t['piece']['name'] == name),
-                    '<unknown>'
-                )
-                installed_image = installed_map.get(name, '<not installed>')
-                match = requested_image == installed_image
-                self.logger.info(
-                    f"  piece='{name}': requested='{requested_image}', installed='{installed_image}', match={match}"
-                )
-            raise ResourceNotFoundException("Some pieces were not found for this workspace.")
+
+            raise ResourceNotFoundException(f"Pieces not found for this workspace: {missing_names}")
 
         for repo_piece in necessary_repositories_and_pieces:
             piece_name = repo_piece.piece_name
