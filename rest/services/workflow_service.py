@@ -104,17 +104,17 @@ class WorkflowService(object):
         new_workflow.awpl = awpl
         workflow = self.workflow_repository.create(new_workflow)
 
-        # try:
-        #     resp = self.awpl_rest_client.submit_workflow(
-        #         id=workflow.id,
-        #         name=workflow.name,
-        #         uuid_name=workflow.uuid_name,
-        #         created_at=workflow.created_at,
-        #         awpl=awpl
-        #     )
-        #     self.logger.debug(f'AWPL REST resp: {resp}')
-        # except Exception as e:
-        #     self.logger.error(e)
+        try:
+            resp = self.awpl_rest_client.submit_workflow(
+                id=workflow.id,
+                name=workflow.name,
+                uuid_name=workflow.uuid_name,
+                created_at=workflow.created_at,
+                awpl=awpl
+            )
+            self.logger.debug(f'AWPL REST resp: {resp}')
+        except Exception as e:
+            self.logger.error(e)
 
         data_dict = body.model_dump()
         data_dict['workflow']['id'] = workflow_id
