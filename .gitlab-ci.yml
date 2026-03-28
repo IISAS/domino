@@ -39,15 +39,9 @@ stages:
 api-tests:
   stage: test
   image: python:3.11-slim
-  services:
-    - name: docker:24-dind
-      alias: docker
-      # Disable TLS — python:3.11-slim doesn't share the /certs volume that
-      # docker:24 does, so the client certs are never written before docker runs.
-      command: ["--tls=false"]
+  # No DinD service — the runner uses Docker socket binding (/var/run/docker.sock).
+  # Kind creates containers directly on the host daemon via the mounted socket.
   variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
     DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN: "$TESTS_GIT_PIECES_TOKEN"
     DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: "$TESTS_GIT_WORKFLOWS_TOKEN"
     DOMINO_GIT_WORKFLOWS_REPOSITORY: "$TESTS_WORKFLOWS_REPOSITORY"
