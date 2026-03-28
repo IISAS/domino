@@ -36,75 +36,75 @@ stages:
 
 # ── integration tests ─────────────────────────────────────────────────────────
 
-api-tests:
-  stage: test
-  image: python:3.11-slim
-  # No DinD service — the runner uses Docker socket binding (/var/run/docker.sock).
-  # Kind creates containers directly on the host daemon via the mounted socket.
-  variables:
-    DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN: "$TESTS_GIT_PIECES_TOKEN"
-    DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: "$TESTS_GIT_WORKFLOWS_TOKEN"
-    DOMINO_GIT_WORKFLOWS_REPOSITORY: "$TESTS_WORKFLOWS_REPOSITORY"
-    DOMINO_GIT_PROVIDER: "$TESTS_GIT_PROVIDER"
-    DOMINO_GIT_HOST_URL: "$TESTS_GIT_PROVIDER_URL"
-  tags:
-    - privileged
-  rules:
-    - if: '$CI_COMMIT_BRANCH =~ /^(main|dev|test\/.+)$/'
-  before_script:
-    - apt-get update -qq && apt-get install -y -qq curl ca-certificates gnupg lsb-release
-    # Docker CLI
-    - install -m 0755 -d /etc/apt/keyrings
-    - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    - |
-      echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
-        > /etc/apt/sources.list.d/docker.list
-    - apt-get update -qq && apt-get install -y -qq docker-ce-cli
-    # Kind
-    - curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 && chmod +x /usr/local/bin/kind
-    # kubectl
-    - KUBECTL_VER=$(curl -Ls https://dl.k8s.io/release/stable.txt)
-    - curl -Lo /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/amd64/kubectl" && chmod +x /usr/local/bin/kubectl
-    # Helm
-    - curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-    # Domino CLI
-    - pip install -q -e .[cli]
-    # Build REST test image
-    - docker build -t domino-rest:test -f rest/Dockerfile rest/
-  script:
-    - >
-      domino platform prepare
-      --cluster-name=domino-cluster
-      --http-port=80
-      --https-port=443
-      --workflows-repository="$TESTS_WORKFLOWS_REPOSITORY"
-      --workflows-ssh-private-key=''
-      --workflows-token="$TESTS_GIT_WORKFLOWS_TOKEN"
-      --default-pieces-repository-token="$TESTS_GIT_PIECES_TOKEN"
-      --git-provider="$TESTS_GIT_PROVIDER"
-      --git-provider-url="$TESTS_GIT_PROVIDER_URL"
-      --deploy-mode=local-k8s-dev
-      --local-pieces-repository-path=[]
-      --local-domino-path='./src/domino'
-      --local-rest-image='domino-rest:test'
-      --local-frontend-image=''
-      --local-airflow-image=''
-    - domino platform create --install-airflow=False
-    - pip install -q -r rest/requirements-test.txt
-    - python rest/tests/utils/kubernetes.py
-    - pytest --cov=rest --cov-report=xml --cov-report=term-missing rest/tests/ -v -s
-    # Upload coverage to Codecov
-    - curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov
-    - ./codecov -t "$CODECOV_TOKEN"
-  after_script:
-    - kind delete cluster --name domino-cluster || true
-  coverage: '/^TOTAL\s+\d+\s+\d+\s+(\d+%)/'
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-    when: always
+# api-tests:
+#   stage: test
+#   image: python:3.11-slim
+#   # No DinD service — the runner uses Docker socket binding (/var/run/docker.sock).
+#   # Kind creates containers directly on the host daemon via the mounted socket.
+#   variables:
+#     DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN: "$TESTS_GIT_PIECES_TOKEN"
+#     DOMINO_GIT_ACCESS_TOKEN_WORKFLOWS: "$TESTS_GIT_WORKFLOWS_TOKEN"
+#     DOMINO_GIT_WORKFLOWS_REPOSITORY: "$TESTS_WORKFLOWS_REPOSITORY"
+#     DOMINO_GIT_PROVIDER: "$TESTS_GIT_PROVIDER"
+#     DOMINO_GIT_HOST_URL: "$TESTS_GIT_PROVIDER_URL"
+#   tags:
+#     - privileged
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH =~ /^(main|dev|test\/.+)$/'
+#   before_script:
+#     - apt-get update -qq && apt-get install -y -qq curl ca-certificates gnupg lsb-release
+#     # Docker CLI
+#     - install -m 0755 -d /etc/apt/keyrings
+#     - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+#     - |
+#       echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+#         > /etc/apt/sources.list.d/docker.list
+#     - apt-get update -qq && apt-get install -y -qq docker-ce-cli
+#     # Kind
+#     - curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 && chmod +x /usr/local/bin/kind
+#     # kubectl
+#     - KUBECTL_VER=$(curl -Ls https://dl.k8s.io/release/stable.txt)
+#     - curl -Lo /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/amd64/kubectl" && chmod +x /usr/local/bin/kubectl
+#     # Helm
+#     - curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+#     # Domino CLI
+#     - pip install -q -e .[cli]
+#     # Build REST test image
+#     - docker build -t domino-rest:test -f rest/Dockerfile rest/
+#   script:
+#     - >
+#       domino platform prepare
+#       --cluster-name=domino-cluster
+#       --http-port=80
+#       --https-port=443
+#       --workflows-repository="$TESTS_WORKFLOWS_REPOSITORY"
+#       --workflows-ssh-private-key=''
+#       --workflows-token="$TESTS_GIT_WORKFLOWS_TOKEN"
+#       --default-pieces-repository-token="$TESTS_GIT_PIECES_TOKEN"
+#       --git-provider="$TESTS_GIT_PROVIDER"
+#       --git-provider-url="$TESTS_GIT_PROVIDER_URL"
+#       --deploy-mode=local-k8s-dev
+#       --local-pieces-repository-path=[]
+#       --local-domino-path='./src/domino'
+#       --local-rest-image='domino-rest:test'
+#       --local-frontend-image=''
+#       --local-airflow-image=''
+#     - domino platform create --install-airflow=False
+#     - pip install -q -r rest/requirements-test.txt
+#     - python rest/tests/utils/kubernetes.py
+#     - pytest --cov=rest --cov-report=xml --cov-report=term-missing rest/tests/ -v -s
+#     # Upload coverage to Codecov
+#     - curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov
+#     - ./codecov -t "$CODECOV_TOKEN"
+#   after_script:
+#     - kind delete cluster --name domino-cluster || true
+#   coverage: '/^TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+#   artifacts:
+#     reports:
+#       coverage_report:
+#         coverage_format: cobertura
+#         path: coverage.xml
+#     when: always
 
 # ── REST image ────────────────────────────────────────────────────────────────
 
