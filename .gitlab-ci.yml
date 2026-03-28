@@ -118,6 +118,10 @@ rest-image-dev:
       changes: [rest/**/*]
     - when: manual
       allow_failure: true
+  before_script:                                                                                                                                                                                                                           
+    - docker context create tls-env
+    - docker buildx create --use --driver docker-container tls-env
+    - docker login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
   script:
     - docker buildx create --use
     - >
