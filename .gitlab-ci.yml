@@ -31,6 +31,7 @@ stages:
     DOCKER_TLS_CERTDIR: "/certs"
     # Derived convenience variable — override if needed
     REGISTRY_BASE: "$CONTAINER_REGISTRY/$CONTAINER_REGISTRY_BASE_PATH"
+    REGISTRY_BASE: "${REGISTRY_BASE%/}"
   before_script:
     - docker context create tls-env
     - docker buildx create --use --driver docker-container tls-env
