@@ -29,14 +29,9 @@ stages:
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
+    # Derived convenience variable — override if needed
+    REGISTRY_BASE: "$CONTAINER_REGISTRY/$CONTAINER_REGISTRY_BASE_PATH"
   before_script:
-    - REGISTRY="${CONTAINER_REGISTRY:-$CI_REGISTRY}"                                                                                                                                                                                     
-    - |                                                                                                                                                                                                                                  
-      if [ -n "$CONTAINER_REGISTRY_BASE_PATH" ]; then
-        REGISTRY_BASE="${REGISTRY}/${CONTAINER_REGISTRY_BASE_PATH}"                                                                                                                                                                      
-      else                                                                                                                                                                                                                               
-        REGISTRY_BASE="${REGISTRY}"
-      fi 
     - docker context create tls-env
     - docker buildx create --use --driver docker-container tls-env
     - docker login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
