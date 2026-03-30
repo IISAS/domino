@@ -400,7 +400,7 @@ create-gitlab-release:
     - echo "Creating GitLab release v${PACKAGE_VERSION}"
   release:
     tag_name: "v${PACKAGE_VERSION}"
-    name: "domino-py v${PACKAGE_VERSION}"
+    name: "domino-py-spice v${PACKAGE_VERSION}"
     description: "Release v${PACKAGE_VERSION}"
     ref: "$CI_COMMIT_SHA"
 
