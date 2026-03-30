@@ -417,7 +417,7 @@ pypi-release:
     - pip install -q build twine
   script:
     - python -m build
-    - twine upload dist/*
+    - twine upload --verbose dist/*
   variables:
     TWINE_USERNAME: __token__
     TWINE_PASSWORD: "$PYPI_TOKEN"
