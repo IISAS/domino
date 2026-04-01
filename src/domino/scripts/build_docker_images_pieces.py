@@ -96,8 +96,8 @@ def build_images_from_pieces_repository(tag_overwrite: str | None = None, dev: b
     # Base image used when the piece group has no extra Dockerfile/requirements.
     # Can be overridden via DOMINO_BASE_PIECE_IMAGE env var.
     _default_base = (
-        "ghcr.io/iisas/domino-base-piece:latest-dev" if dev
-        else "ghcr.io/iisas/domino-base-piece:latest"
+        "gitlab.spice-platform.eu:5050/work-packages/wp4/domino/domino-base-piece:latest-dev" if dev
+        else "gitlab.spice-platform.eu:5050/work-packages/wp4/domino/domino-base-piece:latest"
     )
     base_image = os.environ.get("DOMINO_BASE_PIECE_IMAGE", _default_base)
 
