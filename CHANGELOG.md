@@ -1,3 +1,8 @@
+# v1.1.2
+
+### Fixes
+- [x] `piece-repository release` / `delete-release` now respect the active GitLab server URL when the active provider is `gitlab`. Previously `GitlabRestClient` was instantiated without a URL, so it defaulted to `https://gitlab.com` and rejected Project Access Tokens issued by self-hosted GitLab instances with `401 Unauthorized`. The `_PROVIDER_ENV` mapping gains a `url` key (gitlab → `[GITLAB_URL, CI_SERVER_URL]`, falling back to the REST client's default), and `_make_git_client` looks it up via the new `_env_url()` helper. No consumer change required on GitLab CI — `CI_SERVER_URL` is auto-set.
+
 # v1.1.1
 
 ### Fixes

@@ -38,19 +38,24 @@ CONFIG_REQUIRED_FIELDS = {}
 
 SUPPORTED_PROVIDERS = ("github", "gitlab", "generic")
 
-# Maps each provider to the env vars it uses for token and repository identity.
+# Maps each provider to the env vars it uses for token, repository identity,
+# and server URL. URL lookup falls back to the REST client's hardcoded default
+# when no env var is set (e.g. https://gitlab.com / https://api.github.com).
 _PROVIDER_ENV = {
     "github": {
         "token":      ["GITHUB_TOKEN"],
         "repository": ["GITHUB_REPOSITORY"],
+        "url":        ["GITHUB_URL"],
     },
     "gitlab": {
         "token":      ["GITLAB_TOKEN", "CI_JOB_TOKEN"],
         "repository": ["GITLAB_REPOSITORY", "CI_PROJECT_PATH"],
+        "url":        ["GITLAB_URL", "CI_SERVER_URL"],
     },
     "generic": {
         "token":      ["GIT_TOKEN"],
         "repository": ["GIT_REPOSITORY"],
+        "url":        ["GIT_URL"],
     },
 }
 
@@ -78,6 +83,15 @@ def _env_repository(provider: str) -> str | None:
     return None
 
 
+def _env_url(provider: str) -> str | None:
+    """Return the first non-empty server URL env var for the given provider."""
+    for key in _PROVIDER_ENV.get(provider, {}).get("url", []):
+        val = os.environ.get(key)
+        if val:
+            return val
+    return None
+
+
 def _make_git_client(provider: str, token: str):
     """
     Instantiate and return the appropriate REST client for the given provider.
@@ -88,6 +102,9 @@ def _make_git_client(provider: str, token: str):
         return GithubRestClient(token=token)
     if provider == "gitlab":
         from domino.client.gitlab_rest_client import GitlabRestClient
+        url = _env_url(provider)
+        if url:
+            return GitlabRestClient(token=token, url=url)
         return GitlabRestClient(token=token)
     raise ValueError(
         f"Unsupported git provider '{provider}'. "
