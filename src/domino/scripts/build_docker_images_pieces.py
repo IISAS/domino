@@ -96,8 +96,8 @@ def build_images_from_pieces_repository(tag_overwrite: str | None = None, dev: b
     # Base image used when the piece group has no extra Dockerfile/requirements.
     # Can be overridden via DOMINO_BASE_PIECE_IMAGE env var.
     _default_base = (
-        "ghcr.io/iisas/domino-base-piece:latest-dev" if dev
-        else "ghcr.io/iisas/domino-base-piece:latest"
+        "gitlab.spice-platform.eu:5050/work-packages/wp4/domino/domino-base-piece:latest-dev" if dev
+        else "gitlab.spice-platform.eu:5050/work-packages/wp4/domino/domino-base-piece:latest"
     )
     base_image = os.environ.get("DOMINO_BASE_PIECE_IMAGE", _default_base)
 
@@ -141,6 +141,13 @@ RUN pip install --no-cache-dir -r domino/pieces_repository/dependencies/{depende
             pieces_images_map[piece_name] = source_image_name
 
         build_image_from_tmp_dockerfile(source_image_name=source_image_name)
+
+    # Persist for downstream `publish-images` invocations that run in a fresh
+    # process (e.g. GitLab CI script lines, manual re-runs). Mirrors the
+    # $GITHUB_ENV propagation but works in any CI / local shell.
+    images_map_path = domino_path / "images_map.json"
+    with open(images_map_path, "w") as f:
+        json.dump(pieces_images_map, f, indent=4)
 
     var_value = json.dumps(pieces_images_map)
     os.environ["PIECES_IMAGES_MAP"] = var_value

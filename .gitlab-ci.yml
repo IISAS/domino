@@ -1,10 +1,6 @@
 # GitLab CI/CD — converted from .github/workflows/
 #
 # Required CI/CD variables (Settings → CI/CD → Variables):
-#   CONTAINER_REGISTRY           — registry host, e.g. "ghcr.io" or "registry.gitlab.example.com"
-#   CONTAINER_REGISTRY_BASE_PATH — namespace/org path, e.g. "iisas" or "myorg/domino"
-#   CONTAINER_REGISTRY_USERNAME  — username for registry login
-#   CONTAINER_REGISTRY_PASSWORD  — token/password for registry login
 #   TESTS_WORKFLOWS_REPOSITORY   — e.g. "myorg/domino_workflows_test"
 #   TESTS_GIT_WORKFLOWS_TOKEN    — token for the test workflows repository
 #   TESTS_GIT_PIECES_TOKEN       — token for the test pieces repository
@@ -31,12 +27,10 @@ stages:
     - privileged
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
-    # Derived convenience variable — override if needed
-    REGISTRY_BASE: "$CONTAINER_REGISTRY/$CONTAINER_REGISTRY_BASE_PATH"
   before_script:
     - docker context create tls-env
     - docker buildx create --use --driver docker-container tls-env
-    - docker login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
+    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
 
 # ── integration tests ─────────────────────────────────────────────────────────
 
@@ -123,7 +117,7 @@ rest-image-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-rest:latest-dev
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-rest:latest-dev
       --file rest/Dockerfile
       rest/
 
@@ -138,7 +132,7 @@ rest-image-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-rest:latest
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-rest:latest
       --file rest/Dockerfile
       rest/
 
@@ -155,7 +149,7 @@ frontend-k8s-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-frontend:k8s-dev
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:k8s-dev
       --file frontend/Dockerfile.prod
       frontend/
 
@@ -170,7 +164,7 @@ frontend-compose-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-frontend:dev-compose
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:dev-compose
       --build-arg DOMINO_DEPLOY_MODE=local-compose
       --file frontend/Dockerfile.prod
       frontend/
@@ -186,7 +180,7 @@ frontend-k8s-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-frontend:k8s
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:k8s
       --file frontend/Dockerfile.prod
       frontend/
 
@@ -201,7 +195,7 @@ frontend-compose-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-frontend:compose
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:compose
       --build-arg DOMINO_DEPLOY_MODE=local-compose
       --file frontend/Dockerfile.prod
       frontend/
@@ -221,7 +215,7 @@ airflow-base-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-airflow-base:latest-dev
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-airflow-base:latest-dev
       --file Dockerfile-airflow-domino.dev .
 
 base-piece-dev:
@@ -237,7 +231,7 @@ base-piece-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-base-piece:latest-dev
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:latest-dev
       --file Dockerfile-domino-piece.dev .
 
 base-piece-gpu-dev:
@@ -252,7 +246,7 @@ base-piece-gpu-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-base-piece:gpu-dev
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:gpu-dev
       --file Dockerfile-domino-piece.gpu-dev .
 
 base-piece-tensorflow-gpu-dev:
@@ -267,7 +261,7 @@ base-piece-tensorflow-gpu-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-base-piece:tensorflow-gpu-dev
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:tensorflow-gpu-dev
       --file Dockerfile-domino-piece.tensorflow-gpu-dev .
 
 storage-sidecar-dev:
@@ -282,7 +276,7 @@ storage-sidecar-dev:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-shared-storage-sidecar:latest-dev
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-shared-storage-sidecar:latest-dev
       --file src/domino/custom_operators/sidecar/Dockerfile
       src/domino/custom_operators/sidecar/
 
@@ -302,7 +296,7 @@ airflow-base-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-airflow-base:latest
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-airflow-base:latest
       --file Dockerfile-airflow-domino.prod .
 
 base-piece-prod:
@@ -321,7 +315,7 @@ base-piece-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-base-piece:latest
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:latest
       --file Dockerfile-domino-piece.prod .
 
 base-piece-gpu-prod:
@@ -336,7 +330,7 @@ base-piece-gpu-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-base-piece:gpu
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:gpu
       --file Dockerfile-domino-piece.gpu-prod .
 
 base-piece-tensorflow-gpu-prod:
@@ -351,7 +345,7 @@ base-piece-tensorflow-gpu-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-base-piece:tensorflow-gpu
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:tensorflow-gpu
       --file Dockerfile-domino-piece.tensorflow-gpu-prod .
 
 storage-sidecar-prod:
@@ -366,7 +360,7 @@ storage-sidecar-prod:
   script:
     - >
       docker buildx build --push
-      --tag $REGISTRY_BASE/domino-shared-storage-sidecar:latest
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-shared-storage-sidecar:latest
       --file src/domino/custom_operators/sidecar/Dockerfile
       src/domino/custom_operators/sidecar/
 
