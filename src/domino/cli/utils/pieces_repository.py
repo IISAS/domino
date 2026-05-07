@@ -485,6 +485,13 @@ def publish_docker_images() -> None:
 
     pieces_images_map = json.loads(os.environ.get("PIECES_IMAGES_MAP", "{}"))
     if not pieces_images_map:
+        # Fallback for CIs without $GITHUB_ENV (GitLab, plain shell, etc.):
+        # the build step persists the map to .domino/images_map.json.
+        images_map_path = Path(".") / ".domino" / "images_map.json"
+        if images_map_path.exists():
+            with open(images_map_path) as f:
+                pieces_images_map = json.load(f)
+    if not pieces_images_map:
         raise ValueError("No images found to publish.")
 
     console.print("Publishing Docker images...")

@@ -1,3 +1,8 @@
+# v1.1.1
+
+### Fixes
+- [x] Persist `pieces_images_map` to `.domino/images_map.json` during `piece-repository organize --build-images`, and have `piece-repository publish-images` fall back to that file when `PIECES_IMAGES_MAP` is unset. Fixes `ValueError: No images found to publish.` when the two commands run as separate shell invocations on CIs without a `$GITHUB_ENV`-style env-propagation mechanism (GitLab CI, plain shell, etc.). The env-var path remains the primary contract — no behavior change for existing GitHub Actions setups.
+
 # v1.0.0
 Migrated to Apache Airflow v3.0.6.
 

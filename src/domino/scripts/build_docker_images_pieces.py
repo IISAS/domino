@@ -142,6 +142,13 @@ RUN pip install --no-cache-dir -r domino/pieces_repository/dependencies/{depende
 
         build_image_from_tmp_dockerfile(source_image_name=source_image_name)
 
+    # Persist for downstream `publish-images` invocations that run in a fresh
+    # process (e.g. GitLab CI script lines, manual re-runs). Mirrors the
+    # $GITHUB_ENV propagation but works in any CI / local shell.
+    images_map_path = domino_path / "images_map.json"
+    with open(images_map_path, "w") as f:
+        json.dump(pieces_images_map, f, indent=4)
+
     var_value = json.dumps(pieces_images_map)
     os.environ["PIECES_IMAGES_MAP"] = var_value
     env_file = os.getenv('GITHUB_ENV')
