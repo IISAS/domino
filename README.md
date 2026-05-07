@@ -3,8 +3,8 @@
   <a href="https://iisas.github.io/domino-docs/docs/intro">
     <img alt="Documentation" src="https://img.shields.io/badge/Documentation-docs?logo=readthedocs&logoColor=white&labelColor=gray&color=%231e4c94">
   </a>
-  <a href="https://pypi.org/project/domino-py-iisas">
-    <img alt="PyPI" src="https://img.shields.io/pypi/v/domino-py-iisas?color=%231BA331&label=PyPI&logo=python&logoColor=%23F7F991">
+  <a href="https://pypi.org/project/domino-py-spice">
+    <img alt="PyPI" src="https://img.shields.io/pypi/v/domino-py-spice?color=%231BA331&label=PyPI&logo=python&logoColor=%23F7F991">
   </a>
   <a href="https://artifacthub.io/packages/helm/domino-iisas/domino">
     <img alt="ArtifactHub" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/domino-iisas">
@@ -24,7 +24,7 @@ Please refer to the [original Domino README](https://github.com/Tauffer-Consulti
 ### 🔗 Useful Links
 
 - 📘 **Documentation:** [tauffer-consulting.github.io/domino-docs](https://tauffer-consulting.github.io/domino-docs/docs/intro)  
-- 🐍 **Python package (PyPI):** [domino-py-iisas](https://pypi.org/project/domino-py-iisas)  
+- 🐍 **Python package (PyPI):** [domino-py-spice](https://pypi.org/project/domino-py-spice)  
 - ☸️ **Helm chart (ArtifactHub):** [Domino on ArtifactHub](https://artifacthub.io/packages/helm/domino-iisas/domino)
 
 ---
