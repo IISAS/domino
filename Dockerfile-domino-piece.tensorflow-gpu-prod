@@ -18,7 +18,7 @@ RUN apt-get update --yes && apt-get install -y --no-install-recommends \
 
 # Install Domino CLI
 RUN pip install --no-cache-dir \
-    domino-py-iisas[cli] \
+    domino-py-spice[cli] \
     -t /opt/python
 
 # ---- runtime stage ----

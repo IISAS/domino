@@ -15,4 +15,4 @@ RUN set -eux; \
 
 USER airflow
 RUN pip install --upgrade pip && \
-    pip install domino-py-iisas[airflow]
+    pip install domino-py-spice[airflow]
