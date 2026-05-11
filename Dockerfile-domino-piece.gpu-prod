@@ -42,6 +42,6 @@ WORKDIR /airflow/xcom
 RUN chmod -R 777 .
 
 ## pip install Domino from PyPI
-RUN pip install domino-py-iisas[cli]
+RUN pip install domino-py-spice[cli]
 
 WORKDIR /home
