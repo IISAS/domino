@@ -116,7 +116,7 @@ rest-image-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-rest:latest-dev
       --file rest/Dockerfile
       rest/
@@ -131,7 +131,7 @@ rest-image-prod:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-rest:latest
       --file rest/Dockerfile
       rest/
@@ -148,7 +148,7 @@ frontend-k8s-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:k8s-dev
       --file frontend/Dockerfile.prod
       frontend/
@@ -163,7 +163,7 @@ frontend-compose-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:dev-compose
       --build-arg DOMINO_DEPLOY_MODE=local-compose
       --file frontend/Dockerfile.prod
@@ -179,7 +179,7 @@ frontend-k8s-prod:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:k8s
       --file frontend/Dockerfile.prod
       frontend/
@@ -194,7 +194,7 @@ frontend-compose-prod:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:compose
       --build-arg DOMINO_DEPLOY_MODE=local-compose
       --file frontend/Dockerfile.prod
@@ -214,7 +214,7 @@ airflow-base-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-airflow-base:latest-dev
       --file Dockerfile-airflow-domino.dev .
 
@@ -230,7 +230,7 @@ base-piece-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:latest-dev
       --file Dockerfile-domino-piece.dev .
 
@@ -245,7 +245,7 @@ base-piece-gpu-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:gpu-dev
       --file Dockerfile-domino-piece.gpu-dev .
 
@@ -260,7 +260,7 @@ base-piece-tensorflow-gpu-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:tensorflow-gpu-dev
       --file Dockerfile-domino-piece.tensorflow-gpu-dev .
 
@@ -275,7 +275,7 @@ storage-sidecar-dev:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-shared-storage-sidecar:latest-dev
       --file src/domino/custom_operators/sidecar/Dockerfile
       src/domino/custom_operators/sidecar/
@@ -295,7 +295,7 @@ airflow-base-prod:
       optional: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-airflow-base:latest
       --file Dockerfile-airflow-domino.prod .
 
@@ -314,7 +314,7 @@ base-piece-prod:
       optional: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:latest
       --file Dockerfile-domino-piece.prod .
 
@@ -329,7 +329,7 @@ base-piece-gpu-prod:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:gpu
       --file Dockerfile-domino-piece.gpu-prod .
 
@@ -344,7 +344,7 @@ base-piece-tensorflow-gpu-prod:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:tensorflow-gpu
       --file Dockerfile-domino-piece.tensorflow-gpu-prod .
 
@@ -359,7 +359,7 @@ storage-sidecar-prod:
       allow_failure: true
   script:
     - >
-      docker buildx build --push
+      docker buildx build --provenance=false --sbom=false --push
       --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-shared-storage-sidecar:latest
       --file src/domino/custom_operators/sidecar/Dockerfile
       src/domino/custom_operators/sidecar/
