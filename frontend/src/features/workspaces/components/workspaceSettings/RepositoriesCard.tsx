@@ -1,13 +1,11 @@
 import {
-  GitHub as GitHubIcon,
-  Folder as FolderIcon,
   Add as AddIcon,
   ChevronRight as ChevronRightIcon,
   Delete as DeleteIcon,
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
 } from "@mui/icons-material";
-import { GitlabIcon } from "components/icons/GitlabIcon";
+import { RepositorySourceIcon } from "components/icons/RepositorySourceIcon";
 import { parseRepoUrl } from "@utils/gitProviders";
 import KeyIcon from "@mui/icons-material/Key";
 import {
@@ -41,18 +39,9 @@ import { repositorySource } from "context/workspaces/types";
 import {
   type RepositoriesReleasesResponse,
   useDetectProvider,
-  type DetectedProvider,
 } from "features/workspaces";
 import { type FC, type ReactNode, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-
-const iconForSource = (source: string, detected?: DetectedProvider) => {
-  if (source === repositorySource.github) return <GitHubIcon />;
-  if (source === repositorySource.gitlab) return <GitlabIcon />;
-  if (source === repositorySource.generic && detected === "gitlab")
-    return <GitlabIcon />;
-  return <FolderIcon />;
-};
 
 const RepoAvatarIcon: FC<{ source: string; url?: string | null }> = ({
   source,
@@ -65,7 +54,7 @@ const RepoAvatarIcon: FC<{ source: string; url?: string | null }> = ({
     workspaceId: workspace?.id,
     enabled: isGeneric && !!url,
   });
-  return iconForSource(source, detected);
+  return <RepositorySourceIcon source={source} detected={detected} />;
 };
 
 /**
@@ -311,7 +300,10 @@ export const RepositoriesCard: FC = () => {
               ...(!!url && {
                 startAdornment: (
                   <Box sx={{ display: "flex", mr: 1 }}>
-                    {iconForSource(source, detectedProvider)}
+                    <RepositorySourceIcon
+                      source={source}
+                      detected={detectedProvider}
+                    />
                   </Box>
                 ),
               }),

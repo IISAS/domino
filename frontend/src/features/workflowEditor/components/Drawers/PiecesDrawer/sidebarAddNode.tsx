@@ -8,10 +8,14 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import { RepositorySourceIcon } from "components/icons/RepositorySourceIcon";
 import { usesPieces } from "context/workspaces";
 import { type FC, useState, useMemo, useEffect } from "react";
+
+import { repoHostFromUrl } from "@utils/gitProviders";
 
 import PiecesSidebarNode from "./sidebarNode";
 
@@ -109,6 +113,10 @@ const SidebarAddNode: FC<Props> = ({ setOrientation, orientation }) => {
             return null;
           }
 
+          const host = repoHostFromUrl(repo.url);
+          const subtitle = host || repo.path || "";
+          const tooltip = repo.url || repo.path || "";
+
           return (
             <Accordion
               expanded={expanded[repo.id]}
@@ -119,18 +127,53 @@ const SidebarAddNode: FC<Props> = ({ setOrientation, orientation }) => {
               key={repo.id}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography
-                  sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    WebkitLineClamp: "2",
-                    WebkitBoxOrient: "vertical",
-                    maxWidth: "180px",
-                    fontWeight: "450",
-                  }}
-                >
-                  {repo.label}
-                </Typography>
+                <Tooltip title={tooltip} placement="left" disableInteractive>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      minWidth: 0,
+                      flex: 1,
+                    }}
+                  >
+                    <RepositorySourceIcon
+                      source={repo.source}
+                      fontSize="small"
+                      sx={{ flexShrink: 0 }}
+                    />
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography
+                        sx={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          maxWidth: "180px",
+                          fontWeight: "450",
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {repo.label}
+                      </Typography>
+                      {subtitle && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: "180px",
+                            lineHeight: 1.25,
+                          }}
+                        >
+                          {subtitle}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </Tooltip>
               </AccordionSummary>
               <AccordionDetails
                 sx={{

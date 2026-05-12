@@ -42,3 +42,17 @@ export function repoPathFromUrl(url: string): string {
     return url;
   }
 }
+
+/**
+ * Extract the host (provider domain) from a repository URL, e.g.
+ * "https://gitlab.example.com/foo/bar" -> "gitlab.example.com".
+ * Returns an empty string when the URL is missing or unparseable.
+ */
+export function repoHostFromUrl(url?: string | null): string {
+  if (!url) return "";
+  try {
+    return new URL(url.trim()).hostname;
+  } catch {
+    return "";
+  }
+}
