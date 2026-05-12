@@ -7,9 +7,9 @@ import gitlab.exceptions
 
 from core.logger import get_configured_logger
 from schemas.exceptions.base import (
-    ResourceNotFoundException,
+    BadRequestException,
     ForbiddenException,
-    UnauthorizedException,
+    ResourceNotFoundException,
     BaseException as DominoBaseException,
 )
 
@@ -41,10 +41,10 @@ class GitlabRestClient:
 
     def _handle_exceptions(self, e: Exception):
         if isinstance(e, gitlab.exceptions.GitlabAuthenticationError):
-            raise UnauthorizedException(message='Invalid or expired access token.')
+            raise BadRequestException(message='Invalid or expired access token.')
         if isinstance(e, gitlab.exceptions.GitlabGetError):
             if e.response_code == 401:
-                raise UnauthorizedException(message='Invalid or expired access token.')
+                raise BadRequestException(message='Invalid or expired access token.')
             if e.response_code == 404:
                 if self._token_provided:
                     raise ResourceNotFoundException(

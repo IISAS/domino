@@ -1,6 +1,11 @@
 from github import Github, GithubException
 from core.logger import get_configured_logger
-from schemas.exceptions.base import ResourceNotFoundException, ForbiddenException, BaseException, UnauthorizedException
+from schemas.exceptions.base import (
+    BadRequestException,
+    BaseException,
+    ForbiddenException,
+    ResourceNotFoundException,
+)
 
 
 class GithubRestClient(Github):
@@ -19,7 +24,7 @@ class GithubRestClient(Github):
     def _handle_exceptions(self, _exception):
         if _exception.status == 401:
             self.logger.info('Unauthorized in github: %s', _exception)
-            raise UnauthorizedException(message='Invalid or expired access token.')
+            raise BadRequestException(message='Invalid or expired access token.')
         if _exception.status == 404:
             self.logger.info('Resource not found in github: %s', _exception)
             if self._token_provided:

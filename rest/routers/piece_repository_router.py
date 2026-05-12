@@ -17,7 +17,7 @@ from schemas.responses.piece_repository import (
     UpdateRepositoryTokenResponse,
 )
 from database.models.enums import RepositorySource
-from schemas.exceptions.base import BaseException, ConflictException, ForbiddenException, ResourceNotFoundException, UnauthorizedException
+from schemas.exceptions.base import BadRequestException, BaseException, ConflictException, ForbiddenException, ResourceNotFoundException, UnauthorizedException
 from schemas.errors.base import ConflictError, ForbiddenError, ResourceNotFoundError, SomethingWrongError, UnauthorizedError
 from typing import List, Optional
 from auth.permission_authorizer import Authorizer
@@ -59,7 +59,7 @@ def create_piece_repository(
             auth_context=auth_context
         )
         return response
-    except (BaseException, ForbiddenException, ConflictException, ResourceNotFoundException, UnauthorizedException) as e:
+    except (BaseException, BadRequestException, ForbiddenException, ConflictException, ResourceNotFoundException, UnauthorizedException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -92,7 +92,7 @@ def get_piece_repository_releases(
             access_token=x_repository_access_token,
         )
         return response
-    except (BaseException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
+    except (BaseException, BadRequestException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -149,7 +149,7 @@ def get_piece_repository_release_data(
             access_token=x_repository_access_token,
         )
         return response
-    except (BaseException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
+    except (BaseException, BadRequestException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
