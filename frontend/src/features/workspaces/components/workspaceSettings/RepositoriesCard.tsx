@@ -7,6 +7,7 @@ import {
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
 } from "@mui/icons-material";
+import { GitlabIcon } from "components/icons/GitlabIcon";
 import { parseRepoUrl } from "@utils/gitProviders";
 import KeyIcon from "@mui/icons-material/Key";
 import {
@@ -35,11 +36,37 @@ import {
   DialogActions,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import { usesPieces } from "context/workspaces";
+import { usesPieces, useWorkspaces } from "context/workspaces";
 import { repositorySource } from "context/workspaces/types";
-import { type RepositoriesReleasesResponse } from "features/workspaces";
+import {
+  type RepositoriesReleasesResponse,
+  useDetectProvider,
+  type DetectedProvider,
+} from "features/workspaces";
 import { type FC, type ReactNode, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+
+const iconForSource = (source: string, detected?: DetectedProvider) => {
+  if (source === repositorySource.github) return <GitHubIcon />;
+  if (source === repositorySource.gitlab) return <GitlabIcon />;
+  if (source === repositorySource.generic && detected === "gitlab")
+    return <GitlabIcon />;
+  return <FolderIcon />;
+};
+
+const RepoAvatarIcon: FC<{ source: string; url?: string | null }> = ({
+  source,
+  url,
+}) => {
+  const { workspace } = useWorkspaces();
+  const isGeneric = source === repositorySource.generic;
+  const { data: detected } = useDetectProvider({
+    url: url ?? "",
+    workspaceId: workspace?.id,
+    enabled: isGeneric && !!url,
+  });
+  return iconForSource(source, detected);
+};
 
 /**
  * TODO this file is growing too much, maybe it's time to split into smaller components
@@ -73,6 +100,8 @@ export const RepositoriesCard: FC = () => {
     handleUpdateRepositoryToken,
   } = usesPieces();
 
+  const { workspace } = useWorkspaces();
+
   /**
    * 1- fetch metadata for given url
    * 2- select version
@@ -93,6 +122,12 @@ export const RepositoriesCard: FC = () => {
       return { source: repositorySource.github, path: "" };
     }
   }, [url]);
+
+  const { data: detectedProvider } = useDetectProvider({
+    url,
+    workspaceId: workspace?.id,
+    enabled: source === repositorySource.generic && !!url,
+  });
 
   /**
    * Submit handler
@@ -152,12 +187,8 @@ export const RepositoriesCard: FC = () => {
             }
             setStep("SELECT_VERSION");
           })
-          .catch((e) => {
-            if (e.response.data.detail) {
-              toast.error(e.response.data.detail);
-            } else {
-              toast.error("Error fetching repo metadata");
-            }
+          .catch(() => {
+            // Toast is shown by useRepositoriesReleases onError; swallow here so .finally() runs.
           })
           .finally(() => {
             setIsStepLoading(false);
@@ -278,12 +309,11 @@ export const RepositoriesCard: FC = () => {
             disabled={step !== "FETCH_METADATA"}
             InputProps={{
               ...(!!url && {
-                startAdornment:
-                  source === repositorySource.github ? (
-                    <GitHubIcon sx={{ mr: 1 }} />
-                  ) : (
-                    <FolderIcon sx={{ mr: 1 }} />
-                  ),
+                startAdornment: (
+                  <Box sx={{ display: "flex", mr: 1 }}>
+                    {iconForSource(source, detectedProvider)}
+                  </Box>
+                ),
               }),
             }}
           />
@@ -361,11 +391,7 @@ export const RepositoriesCard: FC = () => {
                 <ListItemAvatar>
                   <IconButton value={repo.id}>
                     <Avatar>
-                      {repo.source === repositorySource.github ? (
-                        <GitHubIcon />
-                      ) : (
-                        <FolderIcon />
-                      )}
+                      <RepoAvatarIcon source={repo.source} url={repo.url} />
                     </Avatar>
                   </IconButton>
                 </ListItemAvatar>

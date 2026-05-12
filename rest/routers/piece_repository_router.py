@@ -9,6 +9,7 @@ from schemas.requests.piece_repository import (
 )
 from schemas.responses.piece_repository import (
     CreateRepositoryReponse,
+    DetectProviderResponse,
     GetRepositoryReleasesResponse,
     GetRepositoryReleaseDataResponse,
     GetWorkspaceRepositoriesResponse,
@@ -93,6 +94,28 @@ def get_piece_repository_releases(
         return response
     except (BaseException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get(
+    path="/detect-provider",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_200_OK: {'model': DetectProviderResponse},
+        status.HTTP_403_FORBIDDEN: {'model': ForbiddenError},
+    },
+)
+def detect_repository_provider(
+    url: str,
+    workspace_id: int,
+    auth_context: AuthorizationContextData = Depends(read_authorizer.authorize),
+) -> DetectProviderResponse:
+    """
+    Identify the git provider behind a repository URL (used by the UI to pick the
+    correct provider icon for self-hosted/`generic` repositories).
+    Never raises on probe failure — falls back to ``provider="unknown"``.
+    """
+    provider = piece_repository_service.detect_provider(url=url)
+    return DetectProviderResponse(provider=provider)
 
 
 @router.get(

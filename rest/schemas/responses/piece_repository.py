@@ -11,6 +11,7 @@ class GetWorkspaceRepositoriesData(BaseModel):
     label: str
     source: RepositorySource
     path: Optional[str] = None
+    url: Optional[str] = None
     version: Optional[str] = None
     workspace_id: int
     is_token_filled: bool = False
@@ -62,3 +63,7 @@ class GetRepositoryResponse(BaseModel):
     version: Optional[str] = None
     workspace_id: int
     is_token_filled: bool = False
+
+
+class DetectProviderResponse(BaseModel):
+    provider: str = Field(..., description="One of: github, gitlab, unknown")

@@ -1,9 +1,15 @@
 from typing import List, Optional
+import ipaddress
 import json
+import socket
+import threading
+import time
+from urllib.parse import urlparse
 import tomli
 from math import ceil
 from datetime import datetime, timezone
 from cryptography.fernet import Fernet
+import requests
 from core.logger import get_configured_logger
 from schemas.context.auth_context import AuthorizationContextData
 from schemas.requests.piece_repository import CreateRepositoryRequest, PatchRepositoryRequest, ListRepositoryFilters
@@ -29,6 +35,12 @@ from database.models.enums import RepositorySource
 from database.models import PieceRepository
 from clients.git_client_factory import make_git_client
 from core.settings import settings
+
+
+_PROVIDER_CACHE_TTL_SECONDS = 600
+_PROVIDER_CACHE_MAX_ENTRIES = 256
+_provider_cache: dict[str, tuple[float, str]] = {}
+_provider_cache_lock = threading.Lock()
 
 
 class PieceRepositoryService(object):
@@ -114,6 +126,83 @@ class PieceRepositoryService(object):
         )
         response = GetWorkspaceRepositoriesResponse(data=data, metadata=metadata)
         return response
+
+    @staticmethod
+    def _host_resolves_public(host: str) -> bool:
+        try:
+            infos = socket.getaddrinfo(host, None)
+        except socket.gaierror:
+            return False
+        for info in infos:
+            addr = info[4][0]
+            try:
+                ip = ipaddress.ip_address(addr)
+            except ValueError:
+                continue
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+                return False
+        return True
+
+    def _probe_gitlab(self, base_url: str) -> bool:
+        for api_path in ("/api/v4/metadata", "/api/v4/version"):
+            try:
+                resp = requests.get(
+                    base_url + api_path,
+                    timeout=2,
+                    allow_redirects=False,
+                    stream=True,
+                )
+            except requests.RequestException:
+                continue
+            try:
+                server_header = resp.headers.get("Server", "") or ""
+                if "gitlab" in server_header.lower():
+                    return True
+                if resp.status_code in (200, 401, 403):
+                    chunk = resp.raw.read(2048, decode_content=True) or b""
+                    body = chunk.decode("utf-8", errors="replace").lower()
+                    if resp.status_code == 200 and '"version"' in body:
+                        return True
+                    if resp.status_code in (401, 403) and ("401 unauthorized" in body or "403 forbidden" in body):
+                        if "gitlab" in body or '"message"' in body:
+                            return True
+            finally:
+                resp.close()
+        return False
+
+    def detect_provider(self, url: str) -> str:
+        if not url:
+            return "unknown"
+        try:
+            parsed = urlparse(url.strip())
+        except ValueError:
+            return "unknown"
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
+            return "unknown"
+        host = parsed.hostname.lower()
+        if host == "github.com" or host.endswith(".github.com"):
+            return "github"
+        if host == "gitlab.com" or host.endswith(".gitlab.com"):
+            return "gitlab"
+
+        now = time.time()
+        with _provider_cache_lock:
+            cached = _provider_cache.get(host)
+            if cached and (now - cached[0]) < _PROVIDER_CACHE_TTL_SECONDS:
+                return cached[1]
+
+        if not self._host_resolves_public(host):
+            result = "unknown"
+        else:
+            base = f"{parsed.scheme}://{parsed.netloc}"
+            result = "gitlab" if self._probe_gitlab(base) else "unknown"
+
+        with _provider_cache_lock:
+            if len(_provider_cache) >= _PROVIDER_CACHE_MAX_ENTRIES:
+                oldest_host = min(_provider_cache, key=lambda h: _provider_cache[h][0])
+                _provider_cache.pop(oldest_host, None)
+            _provider_cache[host] = (now, result)
+        return result
 
     def get_piece_repository_releases(
         self,

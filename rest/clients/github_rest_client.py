@@ -11,25 +11,29 @@ class GithubRestClient(Github):
             token = None
         if token is not None:
             token=token.replace("\n", "")
-        
+
+        self._token_provided = token is not None
         super().__init__(login_or_token=token)
         self.logger = get_configured_logger(self.__class__.__name__)
 
     def _handle_exceptions(self, _exception):
+        if _exception.status == 401:
+            self.logger.info('Unauthorized in github: %s', _exception)
+            raise UnauthorizedException(message='Invalid or expired access token.')
         if _exception.status == 404:
             self.logger.info('Resource not found in github: %s', _exception)
-            raise ResourceNotFoundException()
-        elif _exception.status == 403 or _exception.status == 401:
+            if self._token_provided:
+                raise ResourceNotFoundException(
+                    message='Repository not found, or the provided access token does not have access to it.'
+                )
+            raise ResourceNotFoundException(
+                message='Repository not found. If it is private, provide an access token.'
+            )
+        if _exception.status == 403:
             self.logger.info('Forbidden in github: %s', _exception)
-            self.logger.exception(_exception)
-            raise ForbiddenException(message='Github access token is invalid or does not have the required permissions.')
-        # elif _exception.status == 401:
-        #     self.logger.info('Unauthorized in github: %s', _exception)
-        #     self.logger.exception(_exception)
-        #     raise UnauthorizedException()
-        else:
-            self.logger.exception(_exception)
-            raise BaseException('Error connecting to github service.')
+            raise ForbiddenException(message='Access denied (insufficient permissions or rate limit).')
+        self.logger.exception(_exception)
+        raise BaseException('Error connecting to github service.')
 
     def get_contents(self, repo_name: str, file_path: str, commit_sha: str | None = None):
         """
