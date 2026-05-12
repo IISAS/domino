@@ -30,7 +30,12 @@ class CreateRepositoryRequest(BaseModel):
     # version: str = Field(pattern=r'((^\d+\.\d+\.\d+$))', description="Version of the repository.")
     version: str = Field(description="Version of the repository.")
     url: str = Field(..., description="Url of the repository.")
+    git_access_token: Optional[str] = Field(description="Per-repository git provider access token. Used when the repository is private.", default=None)
 
 
 class PatchRepositoryRequest(BaseModel):
     version: str = Field(pattern=r'((^\d+\.\d+\.\d+$))', description="Version of the repository.")
+
+
+class UpdateRepositoryTokenRequest(BaseModel):
+    git_access_token: Optional[str] = Field(description="Per-repository git provider access token. Pass null/empty to clear.", default=None)

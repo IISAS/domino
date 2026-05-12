@@ -46,7 +46,6 @@ def default_workspace():
     return Workspace(
         id=1,
         name="default_workspace",
-        git_access_token=os.environ.get('DOMINO_TESTS_WORKSPACE_GITHUB_ACCESS_TOKEN')
     )
 
 @pytest.fixture(scope="session")

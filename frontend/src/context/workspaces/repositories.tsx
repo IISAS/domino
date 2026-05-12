@@ -6,10 +6,13 @@ import {
   useAddRepository,
   useDeleteRepository,
   usePieces,
+  useUpdateRepositoryToken,
   type AddRepositoryParams,
   type AddRepositoryResponse,
   type RepositoriesReleasesParams,
   type RepositoriesReleasesResponse,
+  type UpdateRepositoryTokenParams,
+  type UpdateRepositoryTokenResponse,
 } from "features/workspaces/api";
 import React, { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -37,6 +40,10 @@ export interface IPiecesContext {
   ) => Promise<RepositoriesReleasesResponse[]>;
 
   handleDeleteRepository: (params: { id: string }) => Promise<void>;
+
+  handleUpdateRepositoryToken: (
+    params: UpdateRepositoryTokenParams,
+  ) => Promise<UpdateRepositoryTokenResponse>;
 
   fetchForagePieceById: (id: number) => Piece | undefined;
 }
@@ -100,6 +107,17 @@ const PiecesProvider: React.FC<{ children: React.ReactNode }> = ({
     },
   });
 
+  const { mutateAsync: handleUpdateRepositoryToken } = useUpdateRepositoryToken(
+    {
+      onSuccess: async () => {
+        toast.success("Repository access token updated.");
+        await queryClient.invalidateQueries({
+          queryKey: ["REPOSITORIES", workspace?.id],
+        });
+      },
+    },
+  );
+
   const repositoryPieces = useMemo(() => {
     const repositoryPiecesAux: PiecesRepository = {};
     const foragePieces: PieceForageSchema = {};
@@ -142,6 +160,7 @@ const PiecesProvider: React.FC<{ children: React.ReactNode }> = ({
     handleAddRepository,
     handleFetchRepoReleases,
     handleDeleteRepository,
+    handleUpdateRepositoryToken,
 
     fetchForagePieceById,
   };

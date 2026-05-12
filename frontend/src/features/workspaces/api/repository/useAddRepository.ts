@@ -10,6 +10,7 @@ export interface AddRepositoryParams {
   path: string;
   version: string;
   url: string;
+  git_access_token?: string | null;
 }
 
 export interface AddRepositoryResponse {
@@ -21,6 +22,7 @@ export interface AddRepositoryResponse {
   path: string;
   version: string;
   workspace_id: number;
+  is_token_filled: boolean;
 }
 
 interface UseAddRepository {

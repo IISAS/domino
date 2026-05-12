@@ -7,7 +7,6 @@ import { dominoApiClient } from "services/clients/domino.client";
 
 interface PatchWorkspaceParams {
   name?: string | null;
-  git_access_token?: string | null;
 }
 
 interface UseUpdateWorkspace {

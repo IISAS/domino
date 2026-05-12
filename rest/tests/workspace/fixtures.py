@@ -25,7 +25,6 @@ def default_workspace_user_extra():
     return Workspace(
         id=1,
         name="default_workspace_user_extra",
-        git_access_token=os.environ.get('DOMINO_TESTS_WORKSPACE_GITHUB_ACCESS_TOKEN')
     )
 
 @pytest.fixture(scope="class")
@@ -61,7 +60,6 @@ def workspace():
     return Workspace(
         id=1,
         name="workspace_test",
-        git_access_token=None,
     )
 
 @pytest.fixture(scope="class")
@@ -140,7 +138,7 @@ def delete_user_from_workspace(
 @pytest.fixture(scope="function")
 def patch_workspace(client: ApiTestClient, authorization_token: Dict, workspace: Workspace):
     patch_workspace_request = PatchWorkspaceRequest(
-        git_access_token = 'ghp_1234567890'
+        name=workspace.name
     )
     body = json.loads(patch_workspace_request.model_dump_json())
     response = client.patch(
@@ -148,9 +146,6 @@ def patch_workspace(client: ApiTestClient, authorization_token: Dict, workspace:
         headers={"Authorization": authorization_token["header"]},
         json=body
     )
-    content = response.json()
-    if content.get('git_access_token_filled'):
-        workspace.git_access_token = "ghp_1234567890"
     return response
 
 @pytest.fixture(scope="function")
