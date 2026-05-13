@@ -10,16 +10,14 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import {
-  Drawer,
-  DrawerHeader,
-} from "components/PrivateLayout/header/drawerMenu.style";
-import { type FC, type ReactNode, useState } from "react";
+import { DrawerHeader } from "components/PrivateLayout/header/drawerMenu.style";
+import { type FC, type ReactNode, useEffect } from "react";
 
+import { ResizableDrawer, ResizeHandle } from "./piecesDrawer.style";
 import SidebarAddNode from "./sidebarAddNode";
+import { useDrawerResize } from "./useDrawerResize";
 
 interface PiecesDrawerProps {
-  isOpen?: boolean;
   handleClose: () => void;
   children?: ReactNode;
   sidePanel?: ReactNode;
@@ -27,14 +25,32 @@ interface PiecesDrawerProps {
     React.SetStateAction<"horizontal" | "vertical">
   >;
   orientation: "vertical" | "horizontal";
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  width: number;
+  onWidthChange: (width: number) => void;
+  onWidthCommit: (width: number) => void;
 }
 
 export const PiecesDrawer: FC<PiecesDrawerProps> = ({
   setOrientation,
   orientation,
+  open,
+  onOpenChange,
+  width,
+  onWidthChange,
+  onWidthCommit,
 }) => {
   const theme = useTheme();
-  const [openDrawer, setOpenDrawer] = useState(true);
+  const {
+    width: liveWidth,
+    isDragging,
+    onHandleMouseDown,
+  } = useDrawerResize(width, onWidthCommit);
+
+  useEffect(() => {
+    onWidthChange(liveWidth);
+  }, [liveWidth, onWidthChange]);
 
   return (
     <Box sx={{ overflow: "auto" }}>
@@ -42,23 +58,35 @@ export const PiecesDrawer: FC<PiecesDrawerProps> = ({
         position="fixed"
         sx={{ backgroundColor: theme.palette.background.paper }}
       >
-        <Drawer variant="permanent" anchor="right" open={openDrawer}>
+        <ResizableDrawer
+          variant="permanent"
+          anchor="right"
+          open={open}
+          width={liveWidth}
+          isDragging={isDragging}
+        >
+          {open && (
+            <ResizeHandle
+              onMouseDown={onHandleMouseDown}
+              data-active={isDragging || undefined}
+            />
+          )}
           <DrawerHeader sx={{ marginTop: "4rem" }}>
-            {openDrawer && (
+            {open && (
               <Typography variant="h1" sx={{ display: "flex", flex: 1 }}>
                 Pieces
               </Typography>
             )}
             <IconButton
               onClick={() => {
-                setOpenDrawer(!openDrawer);
+                onOpenChange(!open);
               }}
               edge="start"
             >
-              {openDrawer ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+              {open ? <ChevronRightIcon /> : <ChevronLeftIcon />}
             </IconButton>
           </DrawerHeader>
-          {openDrawer && (
+          {open && (
             <>
               <Divider />
               <Box>
@@ -69,7 +97,7 @@ export const PiecesDrawer: FC<PiecesDrawerProps> = ({
               </Box>
             </>
           )}
-        </Drawer>
+        </ResizableDrawer>
       </AppBar>
     </Box>
   );

@@ -47,14 +47,15 @@ const PiecesSidebarNode: FC<{
       }}
       draggable
     >
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
         <Typography
           variant="body1"
           sx={{
-            width: "100%",
+            flex: 1,
+            minWidth: 0,
             textOverflow: "ellipsis",
             overflow: "hidden",
-            maxWidth: "180px",
+            whiteSpace: "nowrap",
           }}
         >
           {piece?.style?.label ?? "-"}
