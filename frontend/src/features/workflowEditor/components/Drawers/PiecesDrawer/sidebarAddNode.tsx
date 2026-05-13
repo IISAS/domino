@@ -148,7 +148,6 @@ const SidebarAddNode: FC<Props> = ({ setOrientation, orientation }) => {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          maxWidth: "180px",
                           fontWeight: "450",
                           lineHeight: 1.25,
                         }}
@@ -164,7 +163,6 @@ const SidebarAddNode: FC<Props> = ({ setOrientation, orientation }) => {
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
-                            maxWidth: "180px",
                             lineHeight: 1.25,
                           }}
                         >
