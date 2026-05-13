@@ -1,6 +1,7 @@
-import { Grid, Paper } from "@mui/material";
+import { Box, Paper } from "@mui/material";
 import { AxiosError } from "axios";
 import Loading from "components/Loading";
+import { useStorage } from "context/storage/useStorage";
 import { useWorkspaces } from "context/workspaces";
 import { useWorkflowsEditor } from "features/workflowEditor/context";
 import React, { useCallback, useRef, useState } from "react";
@@ -20,6 +21,13 @@ import {
   PieceFormDrawer,
 } from "../Drawers";
 import { ContainerResourceFormSchema } from "../Drawers/PieceFormDrawer/ContainerResourceForm";
+import {
+  COLLAPSED_RAIL_WIDTH,
+  DEFAULT_DRAWER_WIDTH,
+  MAX_DRAWER_WIDTH,
+  MIN_DRAWER_WIDTH,
+  STORAGE_KEY as PIECES_DRAWER_WIDTH_STORAGE_KEY,
+} from "../Drawers/PiecesDrawer/piecesDrawer.style";
 import { storageFormSchema } from "../Drawers/PieceFormDrawer/StorageForm";
 import { type WorkflowPanelRef, WorkflowPanel } from "../Panel/WorkflowPanel";
 
@@ -39,6 +47,27 @@ export const WorkflowsEditorComponent: React.FC = () => {
   );
 
   const { workspace } = useWorkspaces();
+  const { getItem, setItem } = useStorage();
+
+  const [piecesDrawerOpen, setPiecesDrawerOpen] = useState(true);
+  const [piecesDrawerWidth, setPiecesDrawerWidth] = useState<number>(() => {
+    const stored = getItem<number>(PIECES_DRAWER_WIDTH_STORAGE_KEY);
+    if (
+      typeof stored === "number" &&
+      stored >= MIN_DRAWER_WIDTH &&
+      stored <= MAX_DRAWER_WIDTH
+    ) {
+      return stored;
+    }
+    return DEFAULT_DRAWER_WIDTH;
+  });
+  const persistPiecesDrawerWidth = useCallback(
+    (w: number) => setItem(PIECES_DRAWER_WIDTH_STORAGE_KEY, w),
+    [setItem],
+  );
+  const reservedRight = piecesDrawerOpen
+    ? piecesDrawerWidth
+    : COLLAPSED_RAIL_WIDTH;
 
   const saveDataToLocalForage = useCallback(() => {
     if (workflowPanelRef?.current) {
@@ -224,38 +253,38 @@ export const WorkflowsEditorComponent: React.FC = () => {
   return (
     <>
       {loading && <Loading />}
-      <Grid
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-        style={{ marginLeft: 0, marginTop: 0 }}
+      <Box
+        sx={{
+          paddingRight: `${reservedRight}px`,
+          transition: "padding 150ms",
+        }}
       >
-        <Grid size={{ xs:10 }}>
-          <ButtonsMenu
-            handleClear={handleClear}
-            handleExport={handleExport}
-            handleImported={handleImportedJson}
-            handleSave={handleSaveWorkflow}
-            handleSettings={toggleSidebarSettingsDrawer(true)}
+        <ButtonsMenu
+          handleClear={handleClear}
+          handleExport={handleExport}
+          handleImported={handleImportedJson}
+          handleSave={handleSaveWorkflow}
+          handleSettings={toggleSidebarSettingsDrawer(true)}
+        />
+        <Paper sx={{ height: "80vh" }}>
+          <WorkflowPanel
+            ref={workflowPanelRef}
+            onNodeDoubleClick={onNodeDoubleClick}
           />
-          <Paper sx={{ height: "80vh" }}>
-            <WorkflowPanel
-              ref={workflowPanelRef}
-              onNodeDoubleClick={onNodeDoubleClick}
-            />
-          </Paper>
-        </Grid>
-        <Grid size={{ xs:2 }}>
-          <PiecesDrawer
-            setOrientation={setOrientation}
-            orientation={orientation}
-            handleClose={() => {
-              setMenuOpen(!menuOpen);
-            }}
-          />
-        </Grid>
-      </Grid>
+        </Paper>
+      </Box>
+      <PiecesDrawer
+        setOrientation={setOrientation}
+        orientation={orientation}
+        open={piecesDrawerOpen}
+        onOpenChange={setPiecesDrawerOpen}
+        width={piecesDrawerWidth}
+        onWidthChange={setPiecesDrawerWidth}
+        onWidthCommit={persistPiecesDrawerWidth}
+        handleClose={() => {
+          setMenuOpen(!menuOpen);
+        }}
+      />
       <PieceFormDrawer
         title={formTitle}
         formId={formId}
