@@ -18,6 +18,7 @@ class PieceRepository(Base, BaseDatabaseModel):
     version = Column(String(15), nullable=True)
     dependencies_map = Column(JSON, nullable=True)
     compiled_metadata = Column(JSON, nullable=True)
+    git_access_token = Column(String, nullable=True)
     workspace_id = Column(Integer, ForeignKey("workspace.id", ondelete='cascade'), nullable=False)
 
     workspace = relationship(

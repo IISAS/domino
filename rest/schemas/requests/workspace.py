@@ -1,5 +1,4 @@
-from pydantic import BaseModel, Field, SecretStr
-from typing import Optional
+from pydantic import BaseModel, Field
 from database.models.enums import MembersPermissions
 
 class CreateWorkspaceRequest(BaseModel):
@@ -7,7 +6,7 @@ class CreateWorkspaceRequest(BaseModel):
 
 
 class PatchWorkspaceRequest(BaseModel):
-    git_access_token: Optional[str] = Field(description='Git provider personal access token', default=None)
+    name: str | None = Field(default=None, description="New workspace name")
 
 class AssignWorkspaceRequest(BaseModel):
     permission: MembersPermissions

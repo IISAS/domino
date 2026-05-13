@@ -19,7 +19,6 @@ from services.piece_repository_service import PieceRepositoryService
 from repository.user_repository import UserRepository
 from database.models import Workspace, UserWorkspaceAssociative
 from database.models.enums import Permission, UserWorkspaceStatus
-from cryptography.fernet import Fernet
 from core.settings import settings
 from typing import List
 from math import ceil
@@ -32,7 +31,6 @@ class WorkspaceService(object):
         self.piece_repository_service = PieceRepositoryService()
         self.logger = get_configured_logger(self.__class__.__name__)
         self.workflow_service = WorkflowService()
-        self.git_token_fernet = Fernet(settings.GIT_TOKEN_SECRET_KEY)
 
 
     def create_workspace(
@@ -51,7 +49,6 @@ class WorkspaceService(object):
 
         new_workspace = Workspace(
             name=workspace_data.name,
-            git_access_token=None
         )
         workspace = self.workspace_repository.create(new_workspace)
         associative = UserWorkspaceAssociative(
@@ -71,7 +68,6 @@ class WorkspaceService(object):
             auth_context.workspace = WorkspaceAuthorizerData(
                 id=workspace.id,
                 name=workspace.name,
-                git_access_token=None,
                 user_permission=Permission.owner.value
             )
             threads = []
@@ -117,23 +113,15 @@ class WorkspaceService(object):
         if not _workspace:
             raise ResourceNotFoundException()
 
+        new_name = workspace_data.name if workspace_data.name else _workspace.name
         workspace = Workspace(
             id=_workspace.id,
-            name=_workspace.name,
-            git_access_token=None
+            name=new_name,
         )
-        decoded_encrypted_secret = None
-        if workspace_data.git_access_token:
-            encrypted_secret = self.git_token_fernet.encrypt(
-                data=workspace_data.git_access_token.encode('utf-8')
-            )
-            decoded_encrypted_secret = encrypted_secret.decode('utf-8')
-        workspace.git_access_token = decoded_encrypted_secret
         self.workspace_repository.update(workspace)
         return PatchWorkspaceResponse(
             id=workspace.id,
             workspace_name=workspace.name,
-            git_access_token_filled=workspace.git_access_token is not None,
             status=_workspace.status,
             user_permission=_workspace.permission
         )
@@ -154,7 +142,6 @@ class WorkspaceService(object):
                 workspace_name=workspace.name,
                 user_permission=permission,
                 status=status,
-                git_access_token_filled=workspace.git_access_token is not None
             )
             for workspace, permission, status in workspaces
         ]
@@ -173,7 +160,6 @@ class WorkspaceService(object):
             workspace_name=workspace.name,
             user_permission=workspace.permission.value,
             status=workspace.status,
-            git_access_token_filled=workspace.git_access_token is not None
         )
         return response
 
@@ -253,7 +239,6 @@ class WorkspaceService(object):
             workspace_name=workspace.name,
             user_permission=updated_associative.permission,
             status=updated_associative.status,
-            git_access_token_filled=workspace.git_access_token is not None
         )
         return response
 

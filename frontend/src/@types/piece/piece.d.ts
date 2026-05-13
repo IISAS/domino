@@ -55,6 +55,8 @@ export interface Repository {
   created_at: string;
   source: string;
   path: string;
+  url?: string;
   version: string;
   workspace_id: number;
+  is_token_filled: boolean;
 }

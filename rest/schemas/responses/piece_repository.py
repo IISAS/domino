@@ -11,8 +11,10 @@ class GetWorkspaceRepositoriesData(BaseModel):
     label: str
     source: RepositorySource
     path: Optional[str] = None
+    url: Optional[str] = None
     version: Optional[str] = None
     workspace_id: int
+    is_token_filled: bool = False
 
 class GetWorkspaceRepositoriesResponse(BaseModel):
     data: List[GetWorkspaceRepositoriesData]
@@ -31,10 +33,16 @@ class CreateRepositoryReponse(BaseModel):
     path: str = Field(..., description="Path of the repository")
     version: Optional[str] = Field(default=None, description="Version of the repository")
     workspace_id: int = Field(..., description="Workspace id the repository belongs to")
+    is_token_filled: bool = Field(default=False, description="Whether the repository has a per-repository access token set")
 
 
 class PatchRepositoryResponse(CreateRepositoryReponse):
     ...
+
+
+class UpdateRepositoryTokenResponse(BaseModel):
+    id: int
+    is_token_filled: bool
 
 class GetRepositoryReleasesResponse(BaseModel):
     version: str
@@ -54,3 +62,8 @@ class GetRepositoryResponse(BaseModel):
     path: Optional[str] = None
     version: Optional[str] = None
     workspace_id: int
+    is_token_filled: bool = False
+
+
+class DetectProviderResponse(BaseModel):
+    provider: str = Field(..., description="One of: github, gitlab, unknown")

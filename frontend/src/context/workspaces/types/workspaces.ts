@@ -17,5 +17,4 @@ export interface WorkspaceSummary {
   workspace_name: string;
   user_permission: Roles;
   status: workspaceStatus;
-  git_access_token_filled: boolean;
 }

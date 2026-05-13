@@ -87,6 +87,7 @@ class PieceRepositoryRepository(object):
             current_repository.version = piece_repository.version
             current_repository.dependencies_map = piece_repository.dependencies_map
             current_repository.compiled_metadata = piece_repository.compiled_metadata
+            current_repository.git_access_token = piece_repository.git_access_token
             current_repository.workspace_id = piece_repository.workspace_id
             session.flush()
             session.refresh(current_repository)

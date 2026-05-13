@@ -1,16 +1,23 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Response
+from fastapi import APIRouter, HTTPException, status, Depends, Response, Header
 from services.piece_repository_service import PieceRepositoryService
 from schemas.context.auth_context import AuthorizationContextData
-from schemas.requests.piece_repository import CreateRepositoryRequest, PatchRepositoryRequest, ListRepositoryFilters
+from schemas.requests.piece_repository import (
+    CreateRepositoryRequest,
+    PatchRepositoryRequest,
+    ListRepositoryFilters,
+    UpdateRepositoryTokenRequest,
+)
 from schemas.responses.piece_repository import (
     CreateRepositoryReponse,
+    DetectProviderResponse,
     GetRepositoryReleasesResponse,
     GetRepositoryReleaseDataResponse,
     GetWorkspaceRepositoriesResponse,
-    GetRepositoryResponse
+    GetRepositoryResponse,
+    UpdateRepositoryTokenResponse,
 )
 from database.models.enums import RepositorySource
-from schemas.exceptions.base import BaseException, ConflictException, ForbiddenException, ResourceNotFoundException, UnauthorizedException
+from schemas.exceptions.base import BadRequestException, BaseException, ConflictException, ForbiddenException, ResourceNotFoundException, UnauthorizedException
 from schemas.errors.base import ConflictError, ForbiddenError, ResourceNotFoundError, SomethingWrongError, UnauthorizedError
 from typing import List, Optional
 from auth.permission_authorizer import Authorizer
@@ -52,7 +59,7 @@ def create_piece_repository(
             auth_context=auth_context
         )
         return response
-    except (BaseException, ForbiddenException, ConflictException, ResourceNotFoundException, UnauthorizedException) as e:
+    except (BaseException, BadRequestException, ForbiddenException, ConflictException, ResourceNotFoundException, UnauthorizedException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -72,6 +79,7 @@ def get_piece_repository_releases(
     path: str,
     workspace_id: int,
     url: str | None = None,
+    x_repository_access_token: Optional[str] = Header(default=None, alias="X-Repository-Access-Token"),
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> List[GetRepositoryReleasesResponse]:
     """Get piece repository releases"""
@@ -81,10 +89,33 @@ def get_piece_repository_releases(
             path=path,
             auth_context=auth_context,
             url=url,
+            access_token=x_repository_access_token,
         )
         return response
-    except (BaseException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
+    except (BaseException, BadRequestException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get(
+    path="/detect-provider",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_200_OK: {'model': DetectProviderResponse},
+        status.HTTP_403_FORBIDDEN: {'model': ForbiddenError},
+    },
+)
+def detect_repository_provider(
+    url: str,
+    workspace_id: int,
+    auth_context: AuthorizationContextData = Depends(read_authorizer.authorize),
+) -> DetectProviderResponse:
+    """
+    Identify the git provider behind a repository URL (used by the UI to pick the
+    correct provider icon for self-hosted/`generic` repositories).
+    Never raises on probe failure — falls back to ``provider="unknown"``.
+    """
+    provider = piece_repository_service.detect_provider(url=url)
+    return DetectProviderResponse(provider=provider)
 
 
 @router.get(
@@ -104,6 +135,7 @@ def get_piece_repository_release_data(
     path: str,
     workspace_id: int,
     url: str | None = None,
+    x_repository_access_token: Optional[str] = Header(default=None, alias="X-Repository-Access-Token"),
     auth_context: AuthorizationContextData = Depends(read_authorizer.authorize)
 ) -> GetRepositoryReleaseDataResponse:
     """Get piece repository release data"""
@@ -114,9 +146,10 @@ def get_piece_repository_release_data(
             path=path,
             auth_context=auth_context,
             url=url,
+            access_token=x_repository_access_token,
         )
         return response
-    except (BaseException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
+    except (BaseException, BadRequestException, ForbiddenException, ResourceNotFoundException, UnauthorizedException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -228,4 +261,29 @@ def get_piece_repository(
         )
         return response
     except (BaseException, ResourceNotFoundException) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.patch(
+    path="/{piece_repository_id}/token",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_200_OK: {'model': UpdateRepositoryTokenResponse},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {'model': SomethingWrongError},
+        status.HTTP_404_NOT_FOUND: {'model': ResourceNotFoundError},
+        status.HTTP_403_FORBIDDEN: {'model': ForbiddenError},
+    },
+)
+def update_piece_repository_token(
+    piece_repository_id: int,
+    body: UpdateRepositoryTokenRequest,
+    auth_context: AuthorizationContextData = Depends(admin_authorizer.authorize_piece_repository)
+) -> UpdateRepositoryTokenResponse:
+    """Set or clear the per-repository git access token."""
+    try:
+        return piece_repository_service.update_piece_repository_token(
+            piece_repository_id=piece_repository_id,
+            git_access_token=body.git_access_token,
+        )
+    except (BaseException, ResourceNotFoundException, ForbiddenException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

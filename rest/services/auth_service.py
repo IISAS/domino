@@ -140,11 +140,9 @@ class AuthService():
         if workspace_associative_data and workspace_associative_data.status != UserWorkspaceStatus.accepted.value:
             raise HTTPException(status_code=ForbiddenError().status_code, detail=ForbiddenError().message)
 
-        decoded_git_token = None if not workspace_associative_data.git_access_token else cls.git_token_fernet.decrypt(workspace_associative_data.git_access_token.encode('utf-8')).decode('utf-8')
         auth_context.workspace = WorkspaceAuthorizerData(
             id=workspace_associative_data.workspace_id,
             name=workspace_associative_data.name,
-            git_access_token=decoded_git_token,
             user_permission=workspace_associative_data.permission
         )
         return auth_context
@@ -184,11 +182,9 @@ class AuthService():
         if workspace_associative_data.permission != Permission.owner.value:
             raise HTTPException(status_code=ForbiddenError().status_code, detail=ForbiddenError().message)
 
-        decoded_git_token = None if not workspace_associative_data.git_access_token else cls.git_token_fernet.decrypt(workspace_associative_data.git_access_token.encode('utf-8')).decode('utf-8')
         auth_context.workspace = WorkspaceAuthorizerData(
             id=workspace_associative_data.workspace_id,
             name=workspace_associative_data.name,
-            git_access_token=decoded_git_token,
             user_permission=workspace_associative_data.permission
         )
         return auth_context

@@ -6,7 +6,12 @@ import gitlab
 import gitlab.exceptions
 
 from core.logger import get_configured_logger
-from schemas.exceptions.base import ResourceNotFoundException, ForbiddenException, BaseException as DominoBaseException
+from schemas.exceptions.base import (
+    BadRequestException,
+    ForbiddenException,
+    ResourceNotFoundException,
+    BaseException as DominoBaseException,
+)
 
 
 @dataclass
@@ -30,21 +35,26 @@ class GitlabRestClient:
     def __init__(self, token: str | None = None, url: str = "https://gitlab.com"):
         if token is not None:
             token = token.strip().replace("\n", "") or None
+        self._token_provided = token is not None
         self._gl = gitlab.Gitlab(url, private_token=token)
         self.logger = get_configured_logger(self.__class__.__name__)
 
     def _handle_exceptions(self, e: Exception):
         if isinstance(e, gitlab.exceptions.GitlabAuthenticationError):
-            raise ForbiddenException(
-                message='GitLab access token is invalid or does not have the required permissions.'
-            )
+            raise BadRequestException(message='Invalid or expired access token.')
         if isinstance(e, gitlab.exceptions.GitlabGetError):
+            if e.response_code == 401:
+                raise BadRequestException(message='Invalid or expired access token.')
             if e.response_code == 404:
-                raise ResourceNotFoundException()
-            if e.response_code in (401, 403):
-                raise ForbiddenException(
-                    message='GitLab access token is invalid or does not have the required permissions.'
+                if self._token_provided:
+                    raise ResourceNotFoundException(
+                        message='Repository not found, or the provided access token does not have access to it.'
+                    )
+                raise ResourceNotFoundException(
+                    message='Repository not found. If it is private, provide an access token.'
                 )
+            if e.response_code == 403:
+                raise ForbiddenException(message='Access denied (insufficient permissions).')
         raise DominoBaseException('Error connecting to GitLab service.')
 
     def _get_repo(self, repo_name: str):

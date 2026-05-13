@@ -11,7 +11,6 @@ import SecretsCard from "./SecretsCard";
 import StorageSecretsCard from "./StorageSecretsCard";
 import { UsersCard } from "./UsersCard";
 import WorkspaceMembersCard from "./WorkspaceMembersCard";
-import WorkspaceSecretsCard from "./WorkspaceSecretsCard";
 
 const WorkspaceSettingsComponent = () => {
   const { workspace } = useWorkspaces();
@@ -52,9 +51,6 @@ const WorkspaceSettingsComponent = () => {
             spacing={1}
             style={{ maxWidth: "1440px", margin: "0 auto" }}
           >
-            <Grid size={{ xs:12, lg:12 }}>
-              <WorkspaceSecretsCard />
-            </Grid>
             <Grid size={{ xs:12, lg:12 }}>
               <RepositoriesCard />
             </Grid>

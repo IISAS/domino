@@ -1,10 +1,11 @@
 import {
-  GitHub as GitHubIcon,
-  Folder as FolderIcon,
   Add as AddIcon,
   ChevronRight as ChevronRightIcon,
   Delete as DeleteIcon,
+  Lock as LockIcon,
+  LockOpen as LockOpenIcon,
 } from "@mui/icons-material";
+import { RepositorySourceIcon } from "components/icons/RepositorySourceIcon";
 import { parseRepoUrl } from "@utils/gitProviders";
 import KeyIcon from "@mui/icons-material/Key";
 import {
@@ -15,7 +16,6 @@ import {
   Typography,
   Button,
   List,
-  ListItem,
   ListItemButton,
   ListItemAvatar,
   Avatar,
@@ -28,13 +28,34 @@ import {
   Select,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import { usesPieces } from "context/workspaces";
+import { usesPieces, useWorkspaces } from "context/workspaces";
 import { repositorySource } from "context/workspaces/types";
-import { type RepositoriesReleasesResponse } from "features/workspaces";
+import {
+  type RepositoriesReleasesResponse,
+  useDetectProvider,
+} from "features/workspaces";
 import { type FC, type ReactNode, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+
+const RepoAvatarIcon: FC<{ source: string; url?: string | null }> = ({
+  source,
+  url,
+}) => {
+  const { workspace } = useWorkspaces();
+  const isGeneric = source === repositorySource.generic;
+  const { data: detected } = useDetectProvider({
+    url: url ?? "",
+    workspaceId: workspace?.id,
+    enabled: isGeneric && !!url,
+  });
+  return <RepositorySourceIcon source={source} detected={detected} />;
+};
 
 /**
  * TODO this file is growing too much, maybe it's time to split into smaller components
@@ -43,6 +64,7 @@ import { toast } from "react-toastify";
  */
 export const RepositoriesCard: FC = () => {
   const [url, setUrl] = useState("");
+  const [accessToken, setAccessToken] = useState("");
   const [error, setError] = useState<string | false>(false);
   const [step, setStep] = useState<StepType>("FETCH_METADATA");
   const [isStepLoading, setIsStepLoading] = useState(false);
@@ -51,6 +73,11 @@ export const RepositoriesCard: FC = () => {
   const [availableVersions, setAvailableVersions] = useState<
     RepositoriesReleasesResponse[]
   >([]);
+  const [tokenDialogRepoId, setTokenDialogRepoId] = useState<string | null>(
+    null,
+  );
+  const [tokenDialogValue, setTokenDialogValue] = useState("");
+  const [tokenDialogSubmitting, setTokenDialogSubmitting] = useState(false);
 
   const {
     repositories,
@@ -59,7 +86,10 @@ export const RepositoriesCard: FC = () => {
     setSelectedRepositoryId,
     selectedRepositoryId,
     handleDeleteRepository,
+    handleUpdateRepositoryToken,
   } = usesPieces();
+
+  const { workspace } = useWorkspaces();
 
   /**
    * 1- fetch metadata for given url
@@ -82,6 +112,12 @@ export const RepositoriesCard: FC = () => {
     }
   }, [url]);
 
+  const { data: detectedProvider } = useDetectProvider({
+    url,
+    workspaceId: workspace?.id,
+    enabled: source === repositorySource.generic && !!url,
+  });
+
   /**
    * Submit handler
    */
@@ -92,13 +128,15 @@ export const RepositoriesCard: FC = () => {
       source,
       version,
       url,
+      git_access_token: accessToken.trim() ? accessToken.trim() : null,
     }).finally(() => {
       setStep("FETCH_METADATA");
       setAvailableVersions([]);
       setUrl("");
+      setAccessToken("");
       setIsStepLoading(false);
     });
-  }, [handleAddRepository, path, source, version, url]);
+  }, [handleAddRepository, path, source, version, url, accessToken]);
 
   const handleNextStep = useCallback(() => {
     switch (step) {
@@ -108,6 +146,7 @@ export const RepositoriesCard: FC = () => {
           path,
           source: source as repositorySource,
           url,
+          git_access_token: accessToken.trim() ? accessToken.trim() : null,
         })
           .then((data) => {
             if (data && data.length > 0) {
@@ -137,12 +176,8 @@ export const RepositoriesCard: FC = () => {
             }
             setStep("SELECT_VERSION");
           })
-          .catch((e) => {
-            if (e.response.data.detail) {
-              toast.error(e.response.data.detail);
-            } else {
-              toast.error("Error fetching repo metadata");
-            }
+          .catch(() => {
+            // Toast is shown by useRepositoriesReleases onError; swallow here so .finally() runs.
           })
           .finally(() => {
             setIsStepLoading(false);
@@ -156,7 +191,7 @@ export const RepositoriesCard: FC = () => {
       default:
         return null;
     }
-  }, [handleFetchRepoReleases, path, source, step, submitRepo]);
+  }, [handleFetchRepoReleases, path, source, step, submitRepo, accessToken, url]);
 
   const stepButtonContent: Record<StepType, ReactNode> = {
     FETCH_METADATA: (
@@ -191,6 +226,41 @@ export const RepositoriesCard: FC = () => {
       await handleDeleteRepository({ id: repositoryId });
     },
     [handleDeleteRepository],
+  );
+
+  const openTokenDialog = useCallback(
+    (e: React.SyntheticEvent<HTMLButtonElement>) => {
+      setTokenDialogRepoId(e.currentTarget.value);
+      setTokenDialogValue("");
+    },
+    [],
+  );
+
+  const closeTokenDialog = useCallback(() => {
+    setTokenDialogRepoId(null);
+    setTokenDialogValue("");
+  }, []);
+
+  const submitTokenDialog = useCallback(
+    async (clear: boolean) => {
+      if (!tokenDialogRepoId) return;
+      setTokenDialogSubmitting(true);
+      try {
+        await handleUpdateRepositoryToken({
+          repositoryId: tokenDialogRepoId,
+          git_access_token: clear ? null : tokenDialogValue.trim() || null,
+        });
+        closeTokenDialog();
+      } finally {
+        setTokenDialogSubmitting(false);
+      }
+    },
+    [
+      tokenDialogRepoId,
+      tokenDialogValue,
+      handleUpdateRepositoryToken,
+      closeTokenDialog,
+    ],
   );
 
   return (
@@ -228,14 +298,32 @@ export const RepositoriesCard: FC = () => {
             disabled={step !== "FETCH_METADATA"}
             InputProps={{
               ...(!!url && {
-                startAdornment:
-                  source === repositorySource.github ? (
-                    <GitHubIcon sx={{ mr: 1 }} />
-                  ) : (
-                    <FolderIcon sx={{ mr: 1 }} />
-                  ),
+                startAdornment: (
+                  <Box sx={{ display: "flex", mr: 1 }}>
+                    <RepositorySourceIcon
+                      source={source}
+                      detected={detectedProvider}
+                    />
+                  </Box>
+                ),
               }),
             }}
+          />
+
+          <TextField
+            value={accessToken}
+            onChange={(e) => {
+              setAccessToken(e.target.value);
+            }}
+            fullWidth
+            type="password"
+            variant="outlined"
+            id="repository-access-token"
+            label="Access Token (optional, for private repositories)"
+            name="repository-access-token"
+            sx={{ mt: 2 }}
+            disabled={step !== "FETCH_METADATA"}
+            autoComplete="new-password"
           />
 
           {!!availableVersions.length && (
@@ -295,18 +383,27 @@ export const RepositoriesCard: FC = () => {
                 <ListItemAvatar>
                   <IconButton value={repo.id}>
                     <Avatar>
-                      {repo.source === repositorySource.github ? (
-                        <GitHubIcon />
-                      ) : (
-                        <FolderIcon />
-                      )}
+                      <RepoAvatarIcon source={repo.source} url={repo.url} />
                     </Avatar>
                   </IconButton>
                 </ListItemAvatar>
                 <ListItemText
                   primary={repo.name}
-                  secondary={`${repo.path} - version: ${repo.version}`}
+                  secondary={`${repo.path} - version: ${repo.version}${
+                    repo.is_token_filled ? " - token set" : ""
+                  }`}
                 />
+                <IconButton value={repo.id} onClick={openTokenDialog}>
+                  <Tooltip
+                    title={
+                      repo.is_token_filled
+                        ? "Update or clear access token."
+                        : "Set access token (private repository)."
+                    }
+                  >
+                    {repo.is_token_filled ? <LockIcon /> : <LockOpenIcon />}
+                  </Tooltip>
+                </IconButton>
                 <IconButton value={repo.id} onClick={handleSelectRepository}>
                   <Tooltip title="Edit repository secrets.">
                     <KeyIcon />
@@ -328,6 +425,58 @@ export const RepositoriesCard: FC = () => {
             No repositories!
           </Alert>
         )}
+
+        <Dialog
+          open={!!tokenDialogRepoId}
+          onClose={closeTokenDialog}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle>Repository access token</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Enter a new access token to set or update it. Leave the field
+              empty and click &quot;Clear token&quot; to remove the stored
+              token.
+            </Typography>
+            <TextField
+              value={tokenDialogValue}
+              onChange={(e) => {
+                setTokenDialogValue(e.target.value);
+              }}
+              fullWidth
+              type="password"
+              label="Access Token"
+              autoComplete="new-password"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={closeTokenDialog}
+              disabled={tokenDialogSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="warning"
+              onClick={() => {
+                void submitTokenDialog(true);
+              }}
+              disabled={tokenDialogSubmitting}
+            >
+              Clear token
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                void submitTokenDialog(false);
+              }}
+              disabled={tokenDialogSubmitting || !tokenDialogValue.trim()}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
       </CardContent>
     </Card>
   );

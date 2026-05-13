@@ -1,8 +1,15 @@
-from typing import List
+from typing import List, Optional
+import ipaddress
 import json
+import socket
+import threading
+import time
+from urllib.parse import urlparse
 import tomli
 from math import ceil
 from datetime import datetime, timezone
+from cryptography.fernet import Fernet
+import requests
 from core.logger import get_configured_logger
 from schemas.context.auth_context import AuthorizationContextData
 from schemas.requests.piece_repository import CreateRepositoryRequest, PatchRepositoryRequest, ListRepositoryFilters
@@ -13,7 +20,8 @@ from schemas.responses.piece_repository import (
     GetWorkspaceRepositoriesData,
     GetWorkspaceRepositoriesResponse,
     GetRepositoryReleaseDataResponse,
-    GetRepositoryResponse
+    GetRepositoryResponse,
+    UpdateRepositoryTokenResponse,
 )
 from schemas.responses.base import PaginationSet
 from schemas.exceptions.base import ConflictException, ResourceNotFoundException, ForbiddenException, UnauthorizedException
@@ -29,6 +37,12 @@ from clients.git_client_factory import make_git_client
 from core.settings import settings
 
 
+_PROVIDER_CACHE_TTL_SECONDS = 600
+_PROVIDER_CACHE_MAX_ENTRIES = 256
+_provider_cache: dict[str, tuple[float, str]] = {}
+_provider_cache_lock = threading.Lock()
+
+
 class PieceRepositoryService(object):
     def __init__(self) -> None:
         self.logger = get_configured_logger(self.__class__.__name__)
@@ -38,8 +52,35 @@ class PieceRepositoryService(object):
         self.piece_repository_repository = PieceRepositoryRepository()
         self.workflow_repository = WorkflowRepository()
         self.secret_repository = SecretRepository()
+        self.git_token_fernet = Fernet(settings.GIT_TOKEN_SECRET_KEY)
 
-        # TODO change token from app level to workspace level
+    def _encrypt_token(self, raw_token: Optional[str]) -> Optional[str]:
+        if raw_token is None:
+            return None
+        raw_token = raw_token.replace("\n", "").strip()
+        if not raw_token:
+            return None
+        return self.git_token_fernet.encrypt(raw_token.encode('utf-8')).decode('utf-8')
+
+    def _decrypt_token(self, stored_token: Optional[str]) -> Optional[str]:
+        if not stored_token:
+            return None
+        return self.git_token_fernet.decrypt(stored_token.encode('utf-8')).decode('utf-8')
+
+    def _resolve_token(self, repository: PieceRepository) -> Optional[str]:
+        token = self._decrypt_token(repository.git_access_token) if repository else None
+        if not token:
+            token = settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        if token is not None and not token.strip():
+            token = None
+        return token
+
+    @staticmethod
+    def _sanitize_raw_token(raw_token: Optional[str]) -> Optional[str]:
+        if raw_token is None:
+            return None
+        sanitized = raw_token.replace("\n", "").strip()
+        return sanitized or None
 
     def get_piece_repository(self, piece_repository_id: int) -> GetRepositoryResponse:
         piece_repository = self.piece_repository_repository.find_by_id(piece_repository_id)
@@ -49,9 +90,9 @@ class PieceRepositoryService(object):
         if not piece_repository.label:
             piece_repository.label = piece_repository.name
 
-        response = GetRepositoryResponse(
-            **piece_repository.to_dict(),
-        )
+        data = piece_repository.to_dict()
+        data['is_token_filled'] = bool(piece_repository.git_access_token)
+        response = GetRepositoryResponse(**data)
         return response
 
     def get_pieces_repositories(
@@ -72,7 +113,9 @@ class PieceRepositoryService(object):
         for piece_repository in pieces_repositories:
             if not piece_repository[0].label:
                 piece_repository[0].label = piece_repository[0].name
-            data.append(GetWorkspaceRepositoriesData(**piece_repository[0].to_dict()))
+            row = piece_repository[0].to_dict()
+            row['is_token_filled'] = bool(piece_repository[0].git_access_token)
+            data.append(GetWorkspaceRepositoriesData(**row))
 
         count = 0 if not pieces_repositories else pieces_repositories[0].count
         metadata = PaginationSet(
@@ -84,10 +127,96 @@ class PieceRepositoryService(object):
         response = GetWorkspaceRepositoriesResponse(data=data, metadata=metadata)
         return response
 
-    def get_piece_repository_releases(self, source: str, path: str, auth_context: AuthorizationContextData, url: str | None = None) -> List[GetRepositoryReleasesResponse]:
+    @staticmethod
+    def _host_resolves_public(host: str) -> bool:
+        try:
+            infos = socket.getaddrinfo(host, None)
+        except socket.gaierror:
+            return False
+        for info in infos:
+            addr = info[4][0]
+            try:
+                ip = ipaddress.ip_address(addr)
+            except ValueError:
+                continue
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+                return False
+        return True
+
+    def _probe_gitlab(self, base_url: str) -> bool:
+        for api_path in ("/api/v4/metadata", "/api/v4/version"):
+            try:
+                resp = requests.get(
+                    base_url + api_path,
+                    timeout=2,
+                    allow_redirects=False,
+                    stream=True,
+                )
+            except requests.RequestException:
+                continue
+            try:
+                server_header = resp.headers.get("Server", "") or ""
+                if "gitlab" in server_header.lower():
+                    return True
+                if resp.status_code in (200, 401, 403):
+                    chunk = resp.raw.read(2048, decode_content=True) or b""
+                    body = chunk.decode("utf-8", errors="replace").lower()
+                    if resp.status_code == 200 and '"version"' in body:
+                        return True
+                    if resp.status_code in (401, 403) and ("401 unauthorized" in body or "403 forbidden" in body):
+                        if "gitlab" in body or '"message"' in body:
+                            return True
+            finally:
+                resp.close()
+        return False
+
+    def detect_provider(self, url: str) -> str:
+        if not url:
+            return "unknown"
+        try:
+            parsed = urlparse(url.strip())
+        except ValueError:
+            return "unknown"
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
+            return "unknown"
+        host = parsed.hostname.lower()
+        if host == "github.com" or host.endswith(".github.com"):
+            return "github"
+        if host == "gitlab.com" or host.endswith(".gitlab.com"):
+            return "gitlab"
+
+        now = time.time()
+        with _provider_cache_lock:
+            cached = _provider_cache.get(host)
+            if cached and (now - cached[0]) < _PROVIDER_CACHE_TTL_SECONDS:
+                return cached[1]
+
+        if not self._host_resolves_public(host):
+            result = "unknown"
+        else:
+            base = f"{parsed.scheme}://{parsed.netloc}"
+            result = "gitlab" if self._probe_gitlab(base) else "unknown"
+
+        with _provider_cache_lock:
+            if len(_provider_cache) >= _PROVIDER_CACHE_MAX_ENTRIES:
+                oldest_host = min(_provider_cache, key=lambda h: _provider_cache[h][0])
+                _provider_cache.pop(oldest_host, None)
+            _provider_cache[host] = (now, result)
+        return result
+
+    def get_piece_repository_releases(
+        self,
+        source: str,
+        path: str,
+        auth_context: AuthorizationContextData,
+        url: str | None = None,
+        access_token: Optional[str] = None,
+    ) -> List[GetRepositoryReleasesResponse]:
         self.logger.info(f"Getting releases for repository {path}")
 
-        token = auth_context.workspace.git_access_token if auth_context.workspace.git_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        token = self._sanitize_raw_token(access_token)
+        if not token:
+            token = settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
         if token is not None and not token.strip():
             token = None
         git_client = make_git_client(source=source, token=token, repository_url=url)
@@ -96,10 +225,20 @@ class PieceRepositoryService(object):
             return []
         return [GetRepositoryReleasesResponse(version=tag.name, last_modified=tag.last_modified) for tag in tags]
 
-    def get_piece_repository_release_data(self, version: str, source: str, path: str, auth_context: AuthorizationContextData, url: str | None = None) -> GetRepositoryReleaseDataResponse:
+    def get_piece_repository_release_data(
+        self,
+        version: str,
+        source: str,
+        path: str,
+        auth_context: AuthorizationContextData,
+        url: str | None = None,
+        access_token: Optional[str] = None,
+    ) -> GetRepositoryReleaseDataResponse:
         self.logger.info(f'Getting release data for repository {path}')
 
-        token = auth_context.workspace.git_access_token if auth_context.workspace.git_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
+        token = self._sanitize_raw_token(access_token)
+        if not token:
+            token = settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
         if token is not None and not token.strip():
             token = None
         tag_data = self._read_repository_data(path=path, source=source, version=version, access_token=token, repository_url=url)
@@ -128,7 +267,7 @@ class PieceRepositoryService(object):
             source=repository.source,
             path=repository.path,
             version=piece_repository_data.version,
-            access_token=settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN,
+            access_token=self._resolve_token(repository),
             repository_url=repository.url,
         )
         new_repo = PieceRepository(
@@ -139,6 +278,7 @@ class PieceRepositoryService(object):
             version=piece_repository_data.version,
             dependencies_map=repository_files_metadata['dependencies_map'],
             compiled_metadata=repository_files_metadata['compiled_metadata'],
+            git_access_token=repository.git_access_token,
             workspace_id=repository.workspace_id
         )
         repository = self.piece_repository_repository.update(piece_repository=new_repo, id=repository.id)
@@ -174,7 +314,40 @@ class PieceRepositoryService(object):
             piece_repository_id=repository.id
         )
 
-        return PatchRepositoryResponse(**repository.to_dict())
+        data = repository.to_dict()
+        data['is_token_filled'] = bool(repository.git_access_token)
+        return PatchRepositoryResponse(**data)
+
+    def update_piece_repository_token(
+        self,
+        piece_repository_id: int,
+        git_access_token: Optional[str],
+    ) -> UpdateRepositoryTokenResponse:
+        repository = self.piece_repository_repository.find_by_id(id=piece_repository_id)
+        if not repository:
+            raise ResourceNotFoundException()
+        self.logger.info(f"Updating access token for piece repository {repository.id}")
+
+        encrypted = self._encrypt_token(git_access_token)
+        updated = PieceRepository(
+            id=repository.id,
+            created_at=repository.created_at,
+            name=repository.name,
+            label=repository.label,
+            source=repository.source,
+            path=repository.path,
+            url=repository.url,
+            version=repository.version,
+            dependencies_map=repository.dependencies_map,
+            compiled_metadata=repository.compiled_metadata,
+            git_access_token=encrypted,
+            workspace_id=repository.workspace_id,
+        )
+        saved = self.piece_repository_repository.update(piece_repository=updated, id=repository.id)
+        return UpdateRepositoryTokenResponse(
+            id=saved.id,
+            is_token_filled=bool(saved.git_access_token),
+        )
 
     def create_default_storage_repository(self, workspace_id: int):
         """
@@ -218,9 +391,8 @@ class PieceRepositoryService(object):
         if repository:
             raise ConflictException(message=f"Repository {piece_repository_data.path} already exists for this workspace")
 
-        token = auth_context.workspace.git_access_token if auth_context.workspace.git_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
-        if token is not None:
-            token = token.replace("\n", "")
+        raw_token = self._sanitize_raw_token(getattr(piece_repository_data, 'git_access_token', None))
+        token = raw_token if raw_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
         if token is not None and not token.strip():
             token = None
         repository_files_metadata = self._read_repository_data(
@@ -230,6 +402,7 @@ class PieceRepositoryService(object):
             access_token=token,
             repository_url=piece_repository_data.url,
         )
+        encrypted_token = self._encrypt_token(raw_token)
         new_repo = PieceRepository(
             created_at=datetime.now(timezone.utc),
             name=repository_files_metadata['config_toml'].get('repository').get('REPOSITORY_NAME'),
@@ -239,6 +412,7 @@ class PieceRepositoryService(object):
             version=piece_repository_data.version,
             dependencies_map=repository_files_metadata['dependencies_map'],
             compiled_metadata=repository_files_metadata['compiled_metadata'],
+            git_access_token=encrypted_token,
             workspace_id=piece_repository_data.workspace_id,
             url=piece_repository_data.url
         )
@@ -265,7 +439,9 @@ class PieceRepositoryService(object):
                     secret_name=secret,
                 )
 
-            response = CreateRepositoryReponse(**repository.to_dict())
+            response_data = repository.to_dict()
+            response_data['is_token_filled'] = bool(repository.git_access_token)
+            response = CreateRepositoryReponse(**response_data)
             return response
         except (BaseException, ForbiddenException, UnauthorizedException, ResourceNotFoundException) as e:
             self.logger.exception(e)

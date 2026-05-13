@@ -9,6 +9,7 @@ export interface RepositoriesReleasesParams {
   source: repositorySource;
   path: string;
   url?: string;
+  git_access_token?: string | null;
 }
 
 export interface RepositoriesReleasesResponse {
@@ -28,7 +29,7 @@ export const useRepositoriesReleases = (
   > = {},
 ) => {
   return useMutation({
-    mutationFn: async ({ source, path, url }) => {
+    mutationFn: async ({ source, path, url, git_access_token }) => {
       if (!workspaceId) {
         throw new Error("No workspace selected");
       }
@@ -37,6 +38,7 @@ export const useRepositoriesReleases = (
         path,
         source,
         url,
+        git_access_token,
         workspaceId,
       });
     },
@@ -56,6 +58,7 @@ const getPiecesRepositoriesReleases = async ({
   source,
   path,
   url,
+  git_access_token,
   workspaceId,
 }: RepositoriesReleasesParams & { workspaceId: string }): Promise<
   RepositoriesReleasesResponse[]
@@ -66,7 +69,12 @@ const getPiecesRepositoriesReleases = async ({
   search.set("workspace_id", workspaceId);
   if (url) search.set("url", url);
 
+  const headers = git_access_token
+    ? { "X-Repository-Access-Token": git_access_token }
+    : undefined;
+
   return await dominoApiClient.get(
     `/pieces-repositories/releases?${search.toString()}`,
+    headers ? { headers } : undefined,
   );
 };
