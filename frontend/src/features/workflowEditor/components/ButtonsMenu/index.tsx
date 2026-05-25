@@ -73,15 +73,34 @@ export const ButtonsMenu: React.FC<Props> = ({
     setMenuElement(null);
   }, [fileInputRef]);
 
+  // Opening a Dialog while the Menu is still closing causes MUI to apply
+  // aria-hidden to #root while focus is still on the menu trigger. Defer the
+  // modal open until Menu's exit transition completes, then blur the trigger.
+  const pendingModalRef = useRef<null | "examples" | "myWorkflows">(null);
+
   const handleImportFromExamples = useCallback(() => {
+    pendingModalRef.current = "examples";
     setMenuElement(null);
-    workflowsGalleryModalRef.current?.open();
-  }, [workflowsGalleryModalRef]);
+  }, []);
 
   const handleImportFromMyWorkflows = useCallback(() => {
+    pendingModalRef.current = "myWorkflows";
     setMenuElement(null);
-    myWorkflowsGalleryModalRef.current?.open();
-  }, [myWorkflowsGalleryModalRef]);
+  }, []);
+
+  const handleMenuExited = useCallback(() => {
+    const pending = pendingModalRef.current;
+    if (!pending) return;
+    pendingModalRef.current = null;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    if (pending === "examples") {
+      workflowsGalleryModalRef.current?.open();
+    } else {
+      myWorkflowsGalleryModalRef.current?.open();
+    }
+  }, []);
 
   const [incompatiblesPieces, setIncompatiblesPieces] = useState<Differences[]>(
     [],
@@ -187,6 +206,7 @@ export const ButtonsMenu: React.FC<Props> = ({
           MenuListProps={{
             "aria-labelledby": "import-button",
           }}
+          TransitionProps={{ onExited: handleMenuExited }}
         >
           <MenuItem onClick={handleImportFromFile}>from file</MenuItem>
           <MenuItem onClick={handleImportFromExamples}>
