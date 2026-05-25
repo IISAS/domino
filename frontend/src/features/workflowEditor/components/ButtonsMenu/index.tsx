@@ -78,6 +78,11 @@ export const ButtonsMenu: React.FC<Props> = ({
     workflowsGalleryModalRef.current?.open();
   }, [workflowsGalleryModalRef]);
 
+  const handleImportFromMyWorkflows = useCallback(() => {
+    setMenuElement(null);
+    myWorkflowsGalleryModalRef.current?.open();
+  }, [myWorkflowsGalleryModalRef]);
+
   const [incompatiblesPieces, setIncompatiblesPieces] = useState<Differences[]>(
     [],
   );
@@ -187,11 +192,7 @@ export const ButtonsMenu: React.FC<Props> = ({
           <MenuItem onClick={handleImportFromExamples}>
             from examples gallery
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              myWorkflowsGalleryModalRef.current?.open();
-            }}
-          >
+          <MenuItem onClick={handleImportFromMyWorkflows}>
             from my workflows
           </MenuItem>
         </Menu>
