@@ -109,21 +109,23 @@ export const findDifferencesInJsonImported = (
   json: any,
   pieces: Piece[],
 ): Differences[] => {
-  const currentRepositories = new Set<string>(
-    Object.values(pieces)?.map(
-      (p) =>
-        repoPathFromUrl(p?.repository_url) +
-          ":" +
-          p?.source_image.split(":")[1]?.replace(/-group\d+$/g, "") || "",
-    ) || [],
-  );
+  const currentRepositories = new Set<string>();
+  Object.values(pieces ?? {}).forEach((p) => {
+    const path = repoPathFromUrl(p?.repository_url);
+    const version = p?.source_image
+      ?.split(":")[1]
+      ?.replace(/-group\d+$/g, "");
+    if (path && version) {
+      currentRepositories.add(`${path}:${version}`);
+    }
+  });
 
   // Map "path:version" -> full repository_url so DifferencesModal can use it directly
   const incomeRepositoriesMap = new Map<string, string>();
   Object.values(json.workflowPieces).forEach((next: any) => {
     const path = repoPathFromUrl(next.repository_url);
     const version = next.source_image
-      .split(":")[1]
+      ?.split(":")[1]
       ?.replace(/-group\d+$/g, "");
     if (path && version) {
       incomeRepositoriesMap.set(`${path}:${version}`, next.repository_url);
