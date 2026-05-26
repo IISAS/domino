@@ -357,14 +357,12 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         return pod_cp
 
 
-    def _get_piece_secrets(
+    def _resolve_piece_repository_id(
         self,
         repository_url: str,
         repository_version: str,
-        piece_name: str,
-        source: str = 'github'
-    ) -> Dict[str, Any]:
-        """Get piece secrets values from Domino API"""
+        source: str = 'github',
+    ) -> int:
         params = {
             "workspace_id": self.workspace_id,
             "url": repository_url,
@@ -376,8 +374,80 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         piece_repository_data = self.domino_client.get_piece_repositories_from_workspace_id(
             params=params
         ).json()
+        return piece_repository_data["data"][0]["id"]
+
+    def _reconcile_image_pull_secret(self) -> Optional[str]:
+        """Fetch per-repo registry credentials and reconcile a docker-config Secret
+        in the pod namespace so kubelet can authenticate to the private registry.
+        Returns the Secret name, or None when the piece repository has no token."""
+        try:
+            piece_repository_id = self._resolve_piece_repository_id(
+                repository_url=self.repository_url,
+                repository_version=self.repository_version,
+            )
+        except Exception as e:
+            self.log.warning("Could not resolve piece repository id: %s", e)
+            return None
+        try:
+            response = self.domino_client.get_registry_credentials(
+                piece_repository_id=piece_repository_id
+            )
+        except Exception as e:
+            self.log.warning("Could not fetch registry credentials: %s", e)
+            return None
+        if response.status_code == 204:
+            return None
+        if response.status_code != 200:
+            self.log.warning("Registry credentials endpoint returned %s: %s",
+                             response.status_code, response.text)
+            return None
+        creds = response.json()
+
+        import base64
+        auth_blob = base64.b64encode(
+            f"{creds['username']}:{creds['password']}".encode("utf-8")
+        ).decode("ascii")
+        dockerconfig = json.dumps({
+            "auths": {creds["registry"]: {"auth": auth_blob}}
+        })
+
+        try:
+            config.load_incluster_config()
+        except Exception:
+            pass
+        core = client.CoreV1Api()
+        namespace = self.namespace or "airflow"
+        secret_name = f"piece-repo-{piece_repository_id}-registry"
+        body = k8s.V1Secret(
+            metadata=k8s.V1ObjectMeta(name=secret_name, namespace=namespace),
+            type="kubernetes.io/dockerconfigjson",
+            string_data={".dockerconfigjson": dockerconfig},
+        )
+        try:
+            core.read_namespaced_secret(name=secret_name, namespace=namespace)
+            core.replace_namespaced_secret(name=secret_name, namespace=namespace, body=body)
+        except client.rest.ApiException as e:
+            if e.status == 404:
+                core.create_namespaced_secret(namespace=namespace, body=body)
+            else:
+                raise
+        return secret_name
+
+    def _get_piece_secrets(
+        self,
+        repository_url: str,
+        repository_version: str,
+        piece_name: str,
+        source: str = 'github'
+    ) -> Dict[str, Any]:
+        """Get piece secrets values from Domino API"""
+        piece_repository_id = self._resolve_piece_repository_id(
+            repository_url=repository_url,
+            repository_version=repository_version,
+            source=source,
+        )
         secrets_response = self.domino_client.get_piece_secrets(
-            piece_repository_id=piece_repository_data["data"][0]["id"],
+            piece_repository_id=piece_repository_id,
             piece_name=piece_name
         )
         if secrets_response.status_code != 200:
@@ -497,6 +567,14 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest-service:8000/")
         #self.domino_client = DominoBackendRestClient(base_url="http://localhost:8080/")
         self._prepare_execute_environment(context=context)
+
+        pull_secret_name = self._reconcile_image_pull_secret()
+        if pull_secret_name:
+            existing = list(self.image_pull_secrets or [])
+            if not any(getattr(s, "name", None) == pull_secret_name for s in existing):
+                existing.append(k8s.V1LocalObjectReference(name=pull_secret_name))
+            self.image_pull_secrets = existing
+
         remote_pod = None
         try:
             self.pod_request_obj = self.build_pod_request_obj(context)

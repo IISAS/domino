@@ -67,3 +67,9 @@ class GetRepositoryResponse(BaseModel):
 
 class DetectProviderResponse(BaseModel):
     provider: str = Field(..., description="One of: github, gitlab, unknown")
+
+
+class GetRegistryCredentialsResponse(BaseModel):
+    registry: str = Field(..., description="Container registry host:port derived from the piece repository URL")
+    username: str = Field(..., description="Username sent to the registry (defaults to 'oauth2' for gitlab/generic)")
+    password: str = Field(..., description="Decrypted access token used as registry password")
