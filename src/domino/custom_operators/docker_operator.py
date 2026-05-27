@@ -92,8 +92,9 @@ class DominoDockerOperator(DockerOperator):
             environment=self.environment,
         )
 
-    def _get_piece_secrets(self) -> Dict[str, Any]:
-        """Get piece secrets values from Domino API"""
+    def _resolve_piece_repository_id(self) -> int:
+        if getattr(self, "_piece_repository_id", None) is not None:
+            return self._piece_repository_id
         params = {
             "workspace_id": self.workspace_id,
             "url": self.repository_url,
@@ -101,12 +102,16 @@ class DominoDockerOperator(DockerOperator):
             "page": 0,
             "page_size": 1,
         }
-
         piece_repository_data = self.domino_client.get_piece_repositories_from_workspace_id(
             params=params
         ).json()
+        self._piece_repository_id = piece_repository_data["data"][0]["id"]
+        return self._piece_repository_id
+
+    def _get_piece_secrets(self) -> Dict[str, Any]:
+        """Get piece secrets values from Domino API"""
         secrets_response = self.domino_client.get_piece_secrets(
-            piece_repository_id=piece_repository_data["data"][0]["id"],
+            piece_repository_id=self._resolve_piece_repository_id(),
             piece_name=self.piece_name
         )
         if secrets_response.status_code != 200:
@@ -118,6 +123,38 @@ class DominoDockerOperator(DockerOperator):
             piece_secrets[e.get('name')] = e.get('value')
 
         return piece_secrets
+
+    def _authenticated_pre_pull(self) -> None:
+        """Pre-pull the piece image with per-repo registry credentials so the
+        parent DockerOperator finds it cached and skips its own (unauthenticated)
+        pull. No-op when the piece repository has no token."""
+        try:
+            response = self.domino_client.get_registry_credentials(
+                piece_repository_id=self._resolve_piece_repository_id()
+            )
+        except Exception as e:
+            self.log.warning("Could not fetch registry credentials: %s", e)
+            return
+        if response.status_code == 204:
+            return
+        if response.status_code != 200:
+            self.log.warning("Registry credentials endpoint returned %s: %s",
+                             response.status_code, response.text)
+            return
+        creds = response.json()
+        repo, _, tag = self.image.rpartition(":")
+        if not repo:
+            repo, tag = self.image, "latest"
+        if not tag:
+            tag = "latest"
+        cli = docker.APIClient(base_url=self.docker_url)
+        self.log.info("Pre-pulling %s:%s with credentials for registry %s",
+                      repo, tag, creds.get("registry"))
+        cli.pull(
+            repo,
+            tag=tag,
+            auth_config={"username": creds["username"], "password": creds["password"]},
+        )
 
     @staticmethod
     def _get_upstream_xcom_data_from_task_ids(task_ids: list, context: Context):
@@ -190,6 +227,7 @@ class DominoDockerOperator(DockerOperator):
         self.domino_client = DominoBackendRestClient(base_url="http://domino-rest:8000/")
         # env var format = {"name": "value"}
         self._prepare_execute_environment(context=context)
+        self._authenticated_pre_pull()
         result = super().execute(context=context)
         self._shared_storage_usage_in_bytes = result.get('_shared_storage_usage_in_bytes', 0)
         return result

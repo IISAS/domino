@@ -10,6 +10,7 @@ from schemas.requests.piece_repository import (
 from schemas.responses.piece_repository import (
     CreateRepositoryReponse,
     DetectProviderResponse,
+    GetRegistryCredentialsResponse,
     GetRepositoryReleasesResponse,
     GetRepositoryReleaseDataResponse,
     GetWorkspaceRepositoriesResponse,
@@ -262,6 +263,34 @@ def get_piece_repository(
         return response
     except (BaseException, ResourceNotFoundException) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get(
+    path="/{piece_repository_id}/registry-credentials",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_200_OK: {'model': GetRegistryCredentialsResponse},
+        status.HTTP_204_NO_CONTENT: {},
+        status.HTTP_404_NOT_FOUND: {'model': ResourceNotFoundError},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {'model': SomethingWrongError},
+    },
+    include_in_schema=False,
+)
+def get_piece_repository_registry_credentials(piece_repository_id: int):
+    """
+    Worker-only endpoint returning decrypted container-registry credentials for a piece repository.
+    Returns 204 when no token is set (caller falls back to anonymous pull).
+    Authorization is enforced by the service-mesh policy, same as the /secrets-values endpoint.
+    """
+    try:
+        creds = piece_repository_service.get_registry_credentials(
+            piece_repository_id=piece_repository_id
+        )
+    except (BaseException, ResourceNotFoundException) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    if creds is None:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return creds
 
 
 @router.patch(

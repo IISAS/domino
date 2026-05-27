@@ -38,6 +38,14 @@ class DominoBackendRestClient(requests.Session):
         )
         return response
 
+    def get_registry_credentials(self, piece_repository_id: int) -> requests.Response:
+        resource = f"/pieces-repositories/{piece_repository_id}/registry-credentials"
+        response = self.request(
+            method='get',
+            resource=resource
+        )
+        return response
+
     def get_piece_repositories_from_workspace_id(self, params: dict) -> requests.Response:
         resource = "/pieces-repositories/worker"
         response = self.request(

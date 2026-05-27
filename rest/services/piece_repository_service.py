@@ -15,6 +15,7 @@ from schemas.context.auth_context import AuthorizationContextData
 from schemas.requests.piece_repository import CreateRepositoryRequest, PatchRepositoryRequest, ListRepositoryFilters
 from schemas.responses.piece_repository import (
     CreateRepositoryReponse,
+    GetRegistryCredentialsResponse,
     GetRepositoryReleasesResponse,
     PatchRepositoryResponse,
     GetWorkspaceRepositoriesData,
@@ -81,6 +82,38 @@ class PieceRepositoryService(object):
             return None
         sanitized = raw_token.replace("\n", "").strip()
         return sanitized or None
+
+    @staticmethod
+    def _registry_host_from_url(url: Optional[str]) -> Optional[str]:
+        if not url:
+            return None
+        try:
+            parsed = urlparse(url.strip())
+        except ValueError:
+            return None
+        host = parsed.netloc or parsed.path.split('/', 1)[0]
+        return host or None
+
+    def get_registry_credentials(self, piece_repository_id: int) -> Optional[GetRegistryCredentialsResponse]:
+        repository = self.piece_repository_repository.find_by_id(piece_repository_id)
+        if not repository:
+            raise ResourceNotFoundException()
+
+        token = self._decrypt_token(repository.git_access_token)
+        if not token:
+            return None
+
+        registry = self._registry_host_from_url(repository.url)
+        if not registry:
+            return None
+
+        # PATs are the standard credential in this deployment; 'oauth2' works for
+        # GitLab PATs/OAuth2 tokens and is accepted by GitHub Container Registry too.
+        return GetRegistryCredentialsResponse(
+            registry=registry,
+            username="oauth2",
+            password=token,
+        )
 
     def get_piece_repository(self, piece_repository_id: int) -> GetRepositoryResponse:
         piece_repository = self.piece_repository_repository.find_by_id(piece_repository_id)
