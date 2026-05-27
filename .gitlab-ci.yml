@@ -372,10 +372,8 @@ gitlab-release:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes: [src/domino/**/*]
-  before_script:
-    - pip install -q tomli
   script:
-    - PACKAGE_VERSION=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])")
+    - PACKAGE_VERSION=$(cat src/domino/VERSION | tr -d '[:space:]')
     - echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> release.env
   artifacts:
     reports:
@@ -394,7 +392,7 @@ create-gitlab-release:
     - echo "Creating GitLab release v${PACKAGE_VERSION}"
   release:
     tag_name: "v${PACKAGE_VERSION}"
-    name: "domino-py v${PACKAGE_VERSION}"
+    name: "domino-py-spice v${PACKAGE_VERSION}"
     description: "Release v${PACKAGE_VERSION}"
     ref: "$CI_COMMIT_SHA"
 
@@ -411,7 +409,7 @@ pypi-release:
     - pip install -q build twine
   script:
     - python -m build
-    - twine upload dist/*
+    - twine upload --verbose dist/*
   variables:
     TWINE_USERNAME: __token__
     TWINE_PASSWORD: "$PYPI_TOKEN"
