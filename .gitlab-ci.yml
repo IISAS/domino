@@ -372,10 +372,8 @@ gitlab-release:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes: [src/domino/**/*]
-  before_script:
-    - pip install -q tomli
   script:
-    - PACKAGE_VERSION=$(tr -d '[:space:]' < src/domino/VERSION)
+    - PACKAGE_VERSION=$(cat src/domino/VERSION | tr -d '[:space:]')
     - echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> release.env
   artifacts:
     reports:
