@@ -3,6 +3,17 @@ import * as yup from "yup";
 
 import { type GenerateWorkflowsParams } from "../context/workflowsEditor";
 
+// Extract the tag from a Docker image reference. A naive split(":") breaks on
+// registry ports (e.g. "gitlab.example.com:5050/group/repo:1.0.0"), so we
+// look for the tag colon only in the segment after the last "/".
+const imageTag = (image: string | undefined): string | undefined => {
+  if (!image) return undefined;
+  const lastSlash = image.lastIndexOf("/");
+  const tail = lastSlash >= 0 ? image.slice(lastSlash + 1) : image;
+  const colon = tail.indexOf(":");
+  return colon >= 0 ? tail.slice(colon + 1) : undefined;
+};
+
 export const importJsonWorkflow = (
   e: React.ChangeEvent<HTMLInputElement>,
 ): Promise<GenerateWorkflowsParams> | null => {
@@ -112,9 +123,7 @@ export const findDifferencesInJsonImported = (
   const currentRepositories = new Set<string>();
   Object.values(pieces ?? {}).forEach((p) => {
     const path = repoPathFromUrl(p?.repository_url);
-    const version = p?.source_image
-      ?.split(":")[1]
-      ?.replace(/-group\d+$/g, "");
+    const version = imageTag(p?.source_image)?.replace(/-group\d+$/g, "");
     if (path && version) {
       currentRepositories.add(`${path}:${version}`);
     }
@@ -124,9 +133,7 @@ export const findDifferencesInJsonImported = (
   const incomeRepositoriesMap = new Map<string, string>();
   Object.values(json.workflowPieces).forEach((next: any) => {
     const path = repoPathFromUrl(next.repository_url);
-    const version = next.source_image
-      ?.split(":")[1]
-      ?.replace(/-group\d+$/g, "");
+    const version = imageTag(next.source_image)?.replace(/-group\d+$/g, "");
     if (path && version) {
       incomeRepositoriesMap.set(`${path}:${version}`, next.repository_url);
     }
