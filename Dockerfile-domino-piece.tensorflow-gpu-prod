@@ -29,6 +29,14 @@ COPY --from=builder /opt/python /opt/python-domino
 
 ENV PYTHONPATH="/opt/python-domino"
 
+# Expose the `domino` CLI on PATH.
+# pip --target placed the executable in /opt/python-domino/bin, but its shebang
+# points at the builder's interpreter, which doesn't exist in this image.
+# Use a thin wrapper that runs the entry point with the runtime's own python3.
+RUN printf '#!/usr/bin/env python3\nimport sys\nfrom domino.cli.cli import cli\nsys.exit(cli())\n' \
+        > /usr/local/bin/domino \
+    && chmod +x /usr/local/bin/domino
+
 # Runtime dirs
 RUN mkdir -p \
         /home/domino/pieces_repository \
