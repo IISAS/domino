@@ -127,7 +127,17 @@ class DominoDockerOperator(DockerOperator):
     def _authenticated_pre_pull(self) -> None:
         """Pre-pull the piece image with per-repo registry credentials so the
         parent DockerOperator finds it cached and skips its own (unauthenticated)
-        pull. No-op when the piece repository has no token."""
+        pull. No-op when the image is already present locally or the piece
+        repository has no token."""
+        cli = docker.APIClient(base_url=self.docker_url)
+        try:
+            cli.inspect_image(self.image)
+            self.log.info("Image %s already present locally, skipping pre-pull", self.image)
+            return
+        except docker.errors.ImageNotFound:
+            pass
+        except Exception as e:
+            self.log.warning("Could not inspect image %s: %s", self.image, e)
         try:
             response = self.domino_client.get_registry_credentials(
                 piece_repository_id=self._resolve_piece_repository_id()
@@ -147,7 +157,6 @@ class DominoDockerOperator(DockerOperator):
             repo, tag = self.image, "latest"
         if not tag:
             tag = "latest"
-        cli = docker.APIClient(base_url=self.docker_url)
         self.log.info("Pre-pulling %s:%s with credentials for registry %s",
                       repo, tag, creds.get("registry"))
         cli.pull(
