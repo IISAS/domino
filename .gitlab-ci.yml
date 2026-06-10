@@ -30,7 +30,7 @@ stages:
   before_script:
     - docker context create tls-env
     - docker buildx create --use --driver docker-container tls-env
-    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
 
 # ── integration tests ─────────────────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ rest-image-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-rest:latest-dev
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-rest:latest-dev
       --file rest/Dockerfile
       rest/
 
@@ -132,7 +132,7 @@ rest-image-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-rest:latest
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-rest:latest
       --file rest/Dockerfile
       rest/
 
@@ -149,7 +149,7 @@ frontend-k8s-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:k8s-dev
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:k8s-dev
       --file frontend/Dockerfile.prod
       frontend/
 
@@ -164,7 +164,7 @@ frontend-compose-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:dev-compose
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:dev-compose
       --build-arg DOMINO_DEPLOY_MODE=local-compose
       --file frontend/Dockerfile.prod
       frontend/
@@ -180,7 +180,7 @@ frontend-k8s-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:k8s
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:k8s
       --file frontend/Dockerfile.prod
       frontend/
 
@@ -195,7 +195,7 @@ frontend-compose-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-frontend:compose
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:compose
       --build-arg DOMINO_DEPLOY_MODE=local-compose
       --file frontend/Dockerfile.prod
       frontend/
@@ -215,7 +215,7 @@ airflow-base-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-airflow-base:latest-dev
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-airflow-base:latest-dev
       --file Dockerfile-airflow-domino.dev .
 
 base-piece-dev:
@@ -231,7 +231,7 @@ base-piece-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:latest-dev
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:latest-dev
       --file Dockerfile-domino-piece.dev .
 
 base-piece-gpu-dev:
@@ -246,7 +246,7 @@ base-piece-gpu-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:gpu-dev
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:gpu-dev
       --file Dockerfile-domino-piece.gpu-dev .
 
 base-piece-tensorflow-gpu-dev:
@@ -261,7 +261,7 @@ base-piece-tensorflow-gpu-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:tensorflow-gpu-dev
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:tensorflow-gpu-dev
       --file Dockerfile-domino-piece.tensorflow-gpu-dev .
 
 storage-sidecar-dev:
@@ -276,7 +276,7 @@ storage-sidecar-dev:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-shared-storage-sidecar:latest-dev
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-shared-storage-sidecar:latest-dev
       --file src/domino/custom_operators/sidecar/Dockerfile
       src/domino/custom_operators/sidecar/
 
@@ -296,7 +296,7 @@ airflow-base-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-airflow-base:latest
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-airflow-base:latest
       --file Dockerfile-airflow-domino.prod .
 
 base-piece-prod:
@@ -315,7 +315,7 @@ base-piece-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:latest
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:latest
       --file Dockerfile-domino-piece.prod .
 
 base-piece-gpu-prod:
@@ -330,7 +330,7 @@ base-piece-gpu-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:gpu
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:gpu
       --file Dockerfile-domino-piece.gpu-prod .
 
 base-piece-tensorflow-gpu-prod:
@@ -345,7 +345,7 @@ base-piece-tensorflow-gpu-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-base-piece:tensorflow-gpu
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:tensorflow-gpu
       --file Dockerfile-domino-piece.tensorflow-gpu-prod .
 
 storage-sidecar-prod:
@@ -360,7 +360,7 @@ storage-sidecar-prod:
   script:
     - >
       docker buildx build --provenance=false --sbom=false --push
-      --tag $CI_REGISTRY/$CI_PROJECT_PATH/domino-shared-storage-sidecar:latest
+      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-shared-storage-sidecar:latest
       --file src/domino/custom_operators/sidecar/Dockerfile
       src/domino/custom_operators/sidecar/
 
@@ -423,7 +423,7 @@ helm-release:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes: [helm/**/*]
   before_script:
-    - helm registry login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN"
+    - helm registry login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
   script:
     - helm package helm/domino
-    - helm push domino-*.tgz "oci://${CI_REGISTRY}/${CI_PROJECT_PATH}/charts"
+    - helm push domino-*.tgz "oci://${CONTAINER_REGISTRY}/${CI_PROJECT_NAME}/charts"
