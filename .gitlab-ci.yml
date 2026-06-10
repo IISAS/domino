@@ -16,22 +16,31 @@ stages:
   - release
   - build-prod
 
-# ── shared: Docker build template ────────────────────────────────────────────
+# ── shared: image build template (buildah, daemonless) ───────────────────────
+#
+# buildah needs no Docker daemon, so there is no docker:dind service to wire up.
+# Each job only declares WHAT to build via variables:
+#   IMAGE          — full pushed tag (required)
+#   DOCKERFILE     — path to the Dockerfile (required)
+#   BUILD_CONTEXT  — build context dir (optional, defaults to ".")
+#   BUILD_ARGS     — extra `buildah build` args, e.g. "--build-arg FOO=bar" (optional)
 
 .docker_build:
-  image: docker:24
-  services:
-    - name: docker:24-dind
-      alias: docker
+  image: quay.io/buildah/stable
   tags:
-    # - privileged
     - k8s_shared_testbed
   variables:
-    DOCKER_TLS_CERTDIR: "/certs"
+    STORAGE_DRIVER: vfs
+    BUILDAH_FORMAT: docker
+    BUILD_CONTEXT: "."
   before_script:
-    - docker context create tls-env
-    - docker buildx create --use --driver docker-container tls-env
-    - docker login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
+    # Trust the Harbor CA (mounted into the runner) so buildah login/push verifies TLS
+    - cp /etc/gitlab-runner/certs/ca.crt /etc/pki/ca-trust/source/anchors/harbor-ca.crt
+    - update-ca-trust
+    - buildah login -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD" "$CONTAINER_REGISTRY"
+  script:
+    - buildah build $BUILD_ARGS -t "$IMAGE" -f "$DOCKERFILE" "$BUILD_CONTEXT"
+    - buildah push "$IMAGE"
 
 # ── integration tests ─────────────────────────────────────────────────────────
 
@@ -115,12 +124,10 @@ rest-image-dev:
       changes: [rest/**/*]
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-rest:latest-dev
-      --file rest/Dockerfile
-      rest/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-rest:latest-dev
+    DOCKERFILE: rest/Dockerfile
+    BUILD_CONTEXT: rest/
 
 rest-image-prod:
   extends: .docker_build
@@ -130,12 +137,10 @@ rest-image-prod:
       changes: [rest/**/*]
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-rest:latest
-      --file rest/Dockerfile
-      rest/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-rest:latest
+    DOCKERFILE: rest/Dockerfile
+    BUILD_CONTEXT: rest/
 
 # ── Frontend images ───────────────────────────────────────────────────────────
 
@@ -147,12 +152,10 @@ frontend-k8s-dev:
       changes: [frontend/**/*]
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:k8s-dev
-      --file frontend/Dockerfile.prod
-      frontend/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:k8s-dev
+    DOCKERFILE: frontend/Dockerfile.prod
+    BUILD_CONTEXT: frontend/
 
 frontend-compose-dev:
   extends: .docker_build
@@ -162,13 +165,11 @@ frontend-compose-dev:
       changes: [frontend/**/*]
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:dev-compose
-      --build-arg DOMINO_DEPLOY_MODE=local-compose
-      --file frontend/Dockerfile.prod
-      frontend/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:dev-compose
+    DOCKERFILE: frontend/Dockerfile.prod
+    BUILD_CONTEXT: frontend/
+    BUILD_ARGS: --build-arg DOMINO_DEPLOY_MODE=local-compose
 
 frontend-k8s-prod:
   extends: .docker_build
@@ -178,12 +179,10 @@ frontend-k8s-prod:
       changes: [frontend/**/*]
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:k8s
-      --file frontend/Dockerfile.prod
-      frontend/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:k8s
+    DOCKERFILE: frontend/Dockerfile.prod
+    BUILD_CONTEXT: frontend/
 
 frontend-compose-prod:
   extends: .docker_build
@@ -193,13 +192,11 @@ frontend-compose-prod:
       changes: [frontend/**/*]
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:compose
-      --build-arg DOMINO_DEPLOY_MODE=local-compose
-      --file frontend/Dockerfile.prod
-      frontend/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-frontend:compose
+    DOCKERFILE: frontend/Dockerfile.prod
+    BUILD_CONTEXT: frontend/
+    BUILD_ARGS: --build-arg DOMINO_DEPLOY_MODE=local-compose
 
 # ── Airflow / piece base images ───────────────────────────────────────────────
 
@@ -213,11 +210,9 @@ airflow-base-dev:
         - Dockerfile-airflow-domino.dev
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-airflow-base:latest-dev
-      --file Dockerfile-airflow-domino.dev .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-airflow-base:latest-dev
+    DOCKERFILE: Dockerfile-airflow-domino.dev
 
 base-piece-dev:
   extends: .docker_build
@@ -229,11 +224,9 @@ base-piece-dev:
         - Dockerfile-domino-piece.dev
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:latest-dev
-      --file Dockerfile-domino-piece.dev .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:latest-dev
+    DOCKERFILE: Dockerfile-domino-piece.dev
 
 base-piece-gpu-dev:
   extends: .docker_build
@@ -244,11 +237,9 @@ base-piece-gpu-dev:
         - Dockerfile-domino-piece.gpu-dev
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:gpu-dev
-      --file Dockerfile-domino-piece.gpu-dev .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:gpu-dev
+    DOCKERFILE: Dockerfile-domino-piece.gpu-dev
 
 base-piece-tensorflow-gpu-dev:
   extends: .docker_build
@@ -259,11 +250,9 @@ base-piece-tensorflow-gpu-dev:
         - Dockerfile-domino-piece.tensorflow-gpu-dev
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:tensorflow-gpu-dev
-      --file Dockerfile-domino-piece.tensorflow-gpu-dev .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:tensorflow-gpu-dev
+    DOCKERFILE: Dockerfile-domino-piece.tensorflow-gpu-dev
 
 storage-sidecar-dev:
   extends: .docker_build
@@ -274,12 +263,10 @@ storage-sidecar-dev:
         - src/domino/custom_operators/sidecar/**/*
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-shared-storage-sidecar:latest-dev
-      --file src/domino/custom_operators/sidecar/Dockerfile
-      src/domino/custom_operators/sidecar/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-shared-storage-sidecar:latest-dev
+    DOCKERFILE: src/domino/custom_operators/sidecar/Dockerfile
+    BUILD_CONTEXT: src/domino/custom_operators/sidecar/
 
 airflow-base-prod:
   extends: .docker_build
@@ -294,11 +281,9 @@ airflow-base-prod:
   needs:
     - job: pypi-release
       optional: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-airflow-base:latest
-      --file Dockerfile-airflow-domino.prod .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-airflow-base:latest
+    DOCKERFILE: Dockerfile-airflow-domino.prod
 
 base-piece-prod:
   extends: .docker_build
@@ -313,11 +298,9 @@ base-piece-prod:
   needs:
     - job: pypi-release
       optional: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:latest
-      --file Dockerfile-domino-piece.prod .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:latest
+    DOCKERFILE: Dockerfile-domino-piece.prod
 
 base-piece-gpu-prod:
   extends: .docker_build
@@ -328,11 +311,9 @@ base-piece-gpu-prod:
         - Dockerfile-domino-piece.gpu-prod
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:gpu
-      --file Dockerfile-domino-piece.gpu-prod .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:gpu
+    DOCKERFILE: Dockerfile-domino-piece.gpu-prod
 
 base-piece-tensorflow-gpu-prod:
   extends: .docker_build
@@ -343,11 +324,9 @@ base-piece-tensorflow-gpu-prod:
         - Dockerfile-domino-piece.tensorflow-gpu-prod
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:tensorflow-gpu
-      --file Dockerfile-domino-piece.tensorflow-gpu-prod .
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-base-piece:tensorflow-gpu
+    DOCKERFILE: Dockerfile-domino-piece.tensorflow-gpu-prod
 
 storage-sidecar-prod:
   extends: .docker_build
@@ -358,12 +337,10 @@ storage-sidecar-prod:
         - src/domino/custom_operators/sidecar/**/*
     - when: manual
       allow_failure: true
-  script:
-    - >
-      docker buildx build --provenance=false --sbom=false --push
-      --tag $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-shared-storage-sidecar:latest
-      --file src/domino/custom_operators/sidecar/Dockerfile
-      src/domino/custom_operators/sidecar/
+  variables:
+    IMAGE: $CONTAINER_REGISTRY/$CI_PROJECT_NAME/domino-shared-storage-sidecar:latest
+    DOCKERFILE: src/domino/custom_operators/sidecar/Dockerfile
+    BUILD_CONTEXT: src/domino/custom_operators/sidecar/
 
 # ── Python package release ────────────────────────────────────────────────────
 
@@ -420,11 +397,17 @@ pypi-release:
 helm-release:
   stage: release
   image: alpine/helm:3.14.0
+  tags:
+    # required: this runner mounts the Harbor CA at /etc/gitlab-runner/certs/ca.crt
+    - k8s_shared_testbed
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes: [helm/**/*]
+  variables:
+    # alpine/helm has no update-ca-trust; pass the mounted Harbor CA to helm directly
+    HARBOR_CA: /etc/gitlab-runner/certs/ca.crt
   before_script:
-    - helm registry login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD"
+    - helm registry login "$CONTAINER_REGISTRY" -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD" --ca-file "$HARBOR_CA"
   script:
     - helm package helm/domino
-    - helm push domino-*.tgz "oci://${CONTAINER_REGISTRY}/${CI_PROJECT_NAME}/charts"
+    - helm push domino-*.tgz "oci://${CONTAINER_REGISTRY}/${CI_PROJECT_NAME}/charts" --ca-file "$HARBOR_CA"
