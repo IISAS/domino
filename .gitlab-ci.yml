@@ -37,6 +37,9 @@ stages:
     # Trust the Harbor CA (mounted into the runner) so buildah login/push verifies TLS
     - cp /etc/gitlab-runner/certs/ca.crt /etc/pki/ca-trust/source/anchors/harbor-ca.crt
     - update-ca-trust
+    # Resolve unqualified image names (e.g. FROM apache/airflow) against docker.io
+    # without an interactive TTY prompt (buildah defaults to short-name-mode=enforcing)
+    - printf 'unqualified-search-registries = ["docker.io"]\nshort-name-mode = "permissive"\n' > /etc/containers/registries.conf.d/01-domino-shortnames.conf
     - buildah login -u "$CONTAINER_REGISTRY_USERNAME" -p "$CONTAINER_REGISTRY_PASSWORD" "$CONTAINER_REGISTRY"
   script:
     - buildah build $BUILD_ARGS -t "$IMAGE" -f "$DOCKERFILE" "$BUILD_CONTEXT"
