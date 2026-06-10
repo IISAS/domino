@@ -24,7 +24,8 @@ stages:
     - name: docker:24-dind
       alias: docker
   tags:
-    - privileged
+    # - privileged
+    - k8s_shared_testbed
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
   before_script:
