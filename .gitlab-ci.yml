@@ -30,7 +30,7 @@ stages:
   tags:
     - k8s_shared_testbed
   variables:
-    STORAGE_DRIVER: vfs
+    STORAGE_DRIVER: overlay
     BUILDAH_FORMAT: docker
     BUILD_CONTEXT: "."
   before_script:
